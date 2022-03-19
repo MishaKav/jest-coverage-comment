@@ -1,7 +1,9 @@
 /* eslint-disable no-console */
 import * as path from 'path'
-import { mkdir, writeFileSync } from 'fs'
-import { getCoverageReport } from './parse'
+import { mkdirSync, writeFileSync } from 'fs'
+import { Options } from './types.d'
+import { getSummaryReport } from './summary'
+
 // import { getSummaryReport, getParsedXml } from './junitXml'
 
 /*  
@@ -19,9 +21,9 @@ import { getCoverageReport } from './parse'
   git branch | grep -v "main" | xargs git branch -D
 */
 
-function getPathToFile(pathToFile: string): string | null {
+function getPathToFile(pathToFile: string): string {
   if (!pathToFile) {
-    return null
+    return ''
   }
 
   // suports absolute path like '/tmp/coverage-final.json'
@@ -30,19 +32,23 @@ function getPathToFile(pathToFile: string): string | null {
 
 async function main(): Promise<void> {
   try {
-    const covFile = './../data/pytest-coverage_4.txt'
-    const xmlFile = './../data/coverage/clover.xml'
+    const summaryFile = './../data/coverage_1/coverage-summary.json'
+    const covFile = './../data/coverage_1/coverage.txt'
+    // const xmlFile = './../data/coverage/clover.xml'
     const prefix = `${path.dirname(path.dirname(path.resolve(covFile)))}/`
 
     let finalHtml = ''
 
-    const options = {
+    const options: Options = {
+      token: 'token_123',
       repository: 'MishaKav/jest-coverage-comment',
       commit: 'f9d42291812ed03bb197e48050ac38ac6befe4e5',
       prefix,
       pathPrefix: '',
-      covFile: getPathToFile(covFile),
-      xmlFile: getPathToFile(xmlFile),
+      summaryFile: getPathToFile(summaryFile),
+      summaryTitle: '',
+      // covFile: getPathToFile(covFile),
+      // xmlFile: getPathToFile(xmlFile),
       defaultBranch: 'main',
       head: 'feat/test',
       base: 'main',
@@ -53,18 +59,18 @@ async function main(): Promise<void> {
       createNewComment: false,
       reportOnlyChangedFiles: false,
       hideComment: false,
-      xmlTitle: '',
-      changedFiles: {
-        all: [
-          'functions/example_completed/example_completed.py',
-          'functions/example_manager/example_manager.py',
-          'functions/example_manager/example_static.py',
-        ],
-      },
+      // xmlTitle: '',
+      // changedFiles: {
+      //   all: [
+      //     'functions/example_completed/example_completed.py',
+      //     'functions/example_manager/example_manager.py',
+      //     'functions/example_manager/example_static.py',
+      //   ],
+      // },
     }
 
-    const { html } = getCoverageReport()
-    const summaryReport = null //getSummaryReport(options);
+    const html = getSummaryReport(options)
+    // const summaryReport = null //getSummaryReport(options);
 
     // set to output junitxml values
     // if (summaryReport) {
@@ -78,7 +84,7 @@ async function main(): Promise<void> {
     // }
 
     finalHtml += html
-    finalHtml += finalHtml.length ? `\n\n${summaryReport}` : summaryReport
+    // finalHtml += finalHtml.length ? `\n\n${summaryReport}` : summaryReport
 
     if (!finalHtml || options.hideComment) {
       console.log('Nothing to report')
@@ -86,7 +92,7 @@ async function main(): Promise<void> {
     }
 
     const resultFile = `${__dirname}/../tmp/result.md`
-    mkdir(`${__dirname}/../tmp`, console.error)
+    mkdirSync(`${__dirname}/../tmp`, { recursive: true })
     writeFileSync(resultFile, finalHtml)
     console.log(resultFile)
   } catch (error) {
