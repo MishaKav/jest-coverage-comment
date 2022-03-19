@@ -33,32 +33,32 @@ function getPathToFile(pathToFile: string): string {
 async function main(): Promise<void> {
   try {
     const summaryFile = './../data/coverage_1/coverage-summary.json'
-    const covFile = './../data/coverage_1/coverage.txt'
+    // const covFile = './../data/coverage_1/coverage.txt'
     // const xmlFile = './../data/coverage/clover.xml'
-    const prefix = `${path.dirname(path.dirname(path.resolve(covFile)))}/`
+    // const prefix = `${path.dirname(path.dirname(path.resolve(covFile)))}/`
 
     let finalHtml = ''
 
     const options: Options = {
       token: 'token_123',
       repository: 'MishaKav/jest-coverage-comment',
-      commit: 'f9d42291812ed03bb197e48050ac38ac6befe4e5',
-      prefix,
-      pathPrefix: '',
+      commit: '05953710b21d222efa4f4535424a7af367be5a57',
+      // prefix,
+      // pathPrefix: '',
+      badgeTitle: 'Coverage',
       summaryFile: getPathToFile(summaryFile),
-      summaryTitle: '',
+      summaryTitle: 'misha',
       // covFile: getPathToFile(covFile),
       // xmlFile: getPathToFile(xmlFile),
-      defaultBranch: 'main',
-      head: 'feat/test',
-      base: 'main',
-      title: 'Coverage Report',
-      badgeTitle: 'Coverage',
-      hideBadge: false,
-      hideReport: false,
-      createNewComment: false,
-      reportOnlyChangedFiles: false,
-      hideComment: false,
+      // defaultBranch: 'main',
+      // head: 'feat/test',
+      // base: 'main',
+      // title: 'Coverage Report',
+      // hideBadge: false,
+      // hideReport: false,
+      // createNewComment: false,
+      // reportOnlyChangedFiles: false,
+      // hideComment: false,
       // xmlTitle: '',
       // changedFiles: {
       //   all: [
@@ -69,7 +69,7 @@ async function main(): Promise<void> {
       // },
     }
 
-    const html = getSummaryReport(options)
+    const { html } = getSummaryReport(options)
     // const summaryReport = null //getSummaryReport(options);
 
     // set to output junitxml values
@@ -86,7 +86,7 @@ async function main(): Promise<void> {
     finalHtml += html
     // finalHtml += finalHtml.length ? `\n\n${summaryReport}` : summaryReport
 
-    if (!finalHtml || options.hideComment) {
+    if (!finalHtml /*|| options.hideComment*/) {
       console.log('Nothing to report')
       return
     }

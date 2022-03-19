@@ -1,23 +1,23 @@
 export interface Options {
   token: string
   repository: string
-  prefix: string
-  pathPrefix: string
-  commit: string
-  head: string
-  base: string
   summaryFile: string
   summaryTitle: string
+  badgeTitle: string
+  commit: string
+  // prefix: string
+  // pathPrefix: string
+  // head: string
+  // base: string
   // covFile: string
   // xmlFile: string
-  title: string
-  badgeTitle: string
-  hideBadge: boolean
-  hideReport: boolean
-  createNewComment: boolean
-  hideComment: boolean
-  reportOnlyChangedFiles: boolean
-  defaultBranch: string
+  // title: string
+  // hideBadge: boolean
+  // hideReport: boolean
+  // createNewComment: boolean
+  // hideComment: boolean
+  // reportOnlyChangedFiles: boolean
+  // defaultBranch: string
   // xmlTitle: string
   // multipleFiles: string[]
 }
@@ -37,11 +37,17 @@ export interface Summary {
   branchesTrue: LineSummary
 }
 
-export interface Report {
+export type CoverageColor =
+  | 'red'
+  | 'orange'
+  | 'yellow'
+  | 'green'
+  | 'brightgreen'
+
+export interface CoverageReport {
   html: string
-  coverage: string
-  color: string
-  warnings: number
+  coverage: number
+  color: CoverageColor
 }
 
 export interface FormattedCoverage {
