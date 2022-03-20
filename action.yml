@@ -36,7 +36,7 @@ inputs:
     required: false
 
 
-  hide-summary-report:
+  hide-summary:
     description: 'Hide coverage summary report'
     default: 'false'
     required: false

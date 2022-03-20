@@ -10,7 +10,7 @@ export interface Options {
   head?: string
   base?: string
   title?: string
-  hideSummaryReport?: boolean
+  hideSummary?: boolean
   createNewComment?: boolean
   hideComment?: boolean
   // pathPrefix: string

@@ -10,7 +10,7 @@ async function main(): Promise<void> {
     const token = core.getInput('github-token', { required: true })
     const title = core.getInput('title', { required: false })
     const badgeTitle = core.getInput('badge-title', { required: false })
-    const hideSummaryReport = core.getBooleanInput('hide-summary-report', {
+    const hideSummary = core.getBooleanInput('hide-summary', {
       required: false,
     })
     const summaryTitle = core.getInput('summary-title', { required: false })
@@ -39,7 +39,7 @@ async function main(): Promise<void> {
       summaryFile,
       summaryTitle,
       badgeTitle,
-      hideSummaryReport,
+      hideSummary,
       createNewComment,
       hideComment,
     }
@@ -83,7 +83,7 @@ async function main(): Promise<void> {
       finalHtml += `# ${title}\n\n`
     }
 
-    if (!options.hideSummaryReport) {
+    if (!options.hideSummary) {
       finalHtml += summaryHtml
     }
 
