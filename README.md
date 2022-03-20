@@ -1,5 +1,6 @@
 # Jest Coverage Comment
 
+![Auto Updating Bagde](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/MishaKav/5e90d640f8c212ab7bbac38f72323f80/raw/jest-coverage-comment__main.json)
 ![licience](https://img.shields.io/github/license/MishaKav/jest-coverage-comment)
 ![version](https://img.shields.io/github/package-json/v/MishaKav/jest-coverage-comment)
 [![wakatime](https://wakatime.com/badge/user/f838c8aa-c197-42f0-b335-cd1d26159dfd/project/9b2410f3-4104-44ec-bd7f-8d2553a31ffb.svg)](https://wakatime.com/badge/user/f838c8aa-c197-42f0-b335-cd1d26159dfd/project/9b2410f3-4104-44ec-bd7f-8d2553a31ffb)
@@ -69,15 +70,16 @@ jobs:
         uses: MishaKav/jest-coverage-comment@v1
 ```
 
-Example GitHub Action workflow that uses coverage percentage as output and update badge on Readme.md without commits to repo:
+Example GitHub Action workflow that uses coverage percentage as output and update badge on Readme.md without commits to repo (see the [live workflow](../main/.github/workflows/update-coverage-on-readme.yml))
 
 ```yaml
-name: My Jest Coverage Comment
+name: Update Coverage on Readme
 on:
-  pull_request:
+  push:
+
 jobs:
-  live-test:
-    name: Live Test
+  update-coverage-on-readme:
+    name: Update Coverage on Readme
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -96,9 +98,10 @@ jobs:
           echo "Summary Html - ${{ steps.coverageComment.outputs.summaryHtml }}"
 
       - name: Create the Badge
+            if: ${{ github.ref == 'refs/heads/main' }}
         uses: schneegans/dynamic-badges-action@v1.0.0
         with:
-          auth: ${{ secrets.PYTEST_COVERAGE_COMMENT }}
+          auth: ${{ secrets.JEST_COVERAGE_COMMENT }}
           gistID: 5e90d640f8c212ab7bbac38f72323f80
           filename: jest-coverage-comment__main.json
           label: Coverage Report
@@ -183,7 +186,7 @@ jobs:
 
 ## Auto updating badge on README
 
-If you want auto-update the coverage badge on your Readme, you can see the [workflow](../main/.github/workflows/live-test.yml)
+If you want auto-update the coverage badge on your Readme, you can see the [workflow](../main/.github/workflows/update-coverage-on-readme.yml)
 ![Auto Updating Bagde](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/MishaKav/5e90d640f8c212ab7bbac38f72323f80/raw/jest-coverage-comment__main.json)
 
 ## 🤝 Contributing [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](http://makeapullrequest.com)
