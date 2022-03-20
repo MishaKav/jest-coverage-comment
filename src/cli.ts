@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-import * as path from 'path'
+// import * as path from 'path'
 import { mkdirSync, writeFileSync } from 'fs'
 import { Options } from './types.d'
 import { getSummaryReport } from './summary'
@@ -47,7 +47,7 @@ async function main(): Promise<void> {
       // pathPrefix: '',
       badgeTitle: 'Coverage',
       summaryFile: getPathToFile(summaryFile),
-      summaryTitle: 'misha',
+      summaryTitle: '',
       // covFile: getPathToFile(covFile),
       // xmlFile: getPathToFile(xmlFile),
       // defaultBranch: 'main',
