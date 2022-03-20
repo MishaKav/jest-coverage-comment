@@ -41,6 +41,7 @@ describe('parse summary', () => {
     token: 'token_123',
     repository: 'MishaKav/jest-coverage-comment',
     commit: '05953710b21d222efa4f4535424a7af367be5a57',
+    watermark: `<!-- Jest Coverage Comment: 1 -->\n`,
     summaryTitle: '',
     prefix: '',
     badgeTitle: 'Coverage',

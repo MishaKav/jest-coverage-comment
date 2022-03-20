@@ -1,5 +1,4 @@
 /* eslint-disable no-console */
-// import * as path from 'path'
 import { mkdirSync, writeFileSync } from 'fs'
 import { Options } from './types.d'
 import { getSummaryReport } from './summary'
@@ -33,9 +32,7 @@ function getPathToFile(pathToFile: string): string {
 async function main(): Promise<void> {
   try {
     const summaryFile = './../data/coverage_1/coverage-summary.json'
-    // const covFile = './../data/coverage_1/coverage.txt'
-    // const xmlFile = './../data/coverage/clover.xml'
-    // const prefix = `${path.dirname(path.dirname(path.resolve(covFile)))}/`
+    const prefix = __dirname
 
     let finalHtml = ''
 
@@ -43,7 +40,9 @@ async function main(): Promise<void> {
       token: 'token_123',
       repository: 'MishaKav/jest-coverage-comment',
       commit: '05953710b21d222efa4f4535424a7af367be5a57',
-      // prefix,
+      watermark: `<!-- Jest Coverage Comment: 1 -->\n`,
+      title: 'Jest Coverage Comment',
+      prefix,
       // pathPrefix: '',
       badgeTitle: 'Coverage',
       summaryFile: getPathToFile(summaryFile),
@@ -69,24 +68,14 @@ async function main(): Promise<void> {
       // },
     }
 
-    const { html } = getSummaryReport(options)
+    const { summaryHtml } = getSummaryReport(options)
     // const summaryReport = null //getSummaryReport(options);
 
-    // set to output junitxml values
-    // if (summaryReport) {
-    //   const parsedXml = getParsedXml(options)
-    //   const { errors, failures, skipped, tests, time } = parsedXml
-    //   const valuesToExport = { errors, failures, skipped, tests, time }
+    finalHtml += options.title
+      ? `# ${options.title}\n\n${summaryHtml}`
+      : summaryHtml
 
-    //   Object.entries(valuesToExport).forEach(([key, value]) => {
-    //     console.log(key, value)
-    //   })
-    // }
-
-    finalHtml += html
-    // finalHtml += finalHtml.length ? `\n\n${summaryReport}` : summaryReport
-
-    if (!finalHtml /*|| options.hideComment*/) {
+    if (!finalHtml || options.hideComment) {
       console.log('Nothing to report')
       return
     }

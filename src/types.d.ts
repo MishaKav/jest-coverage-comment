@@ -4,10 +4,11 @@ export interface Options {
   summaryFile: string
   summaryTitle?: string
   badgeTitle: string
-  commit?: string
+  prefix: string
+  watermark: string
+  commit: string
   head?: string
   base?: string
-  prefix: string
   title?: string
   // hideReport?: boolean
   createNewComment?: boolean

@@ -1,5 +1,5 @@
 {
-  "plugins": ["jest", "@typescript-eslint", "babel-plugin-rewire", "rewire"],
+  "plugins": ["jest", "@typescript-eslint"],
   "extends": ["plugin:github/recommended"],
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
