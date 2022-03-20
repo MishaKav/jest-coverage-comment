@@ -13,7 +13,7 @@ You can add this action to your GitHub workflow for Ubuntu runners (e.g. runs-on
 
 ```yaml
 - name: Jest coverage comment
-  uses: MishaKav/jest-coverage-comment@v1
+  uses: MishaKav/jest-coverage-comment@main
 ```
 
 ## Inputs
@@ -67,7 +67,7 @@ jobs:
           npx jest --coverage --config='{ "coverageReporters": ["json-summary"] }'
 
       - name: Jest coverage comment
-        uses: MishaKav/jest-coverage-comment@v1
+        uses: MishaKav/jest-coverage-comment@main
 ```
 
 Example GitHub Action workflow that uses coverage percentage as output and update badge on Readme.md without commits to repo (see the [live workflow](../main/.github/workflows/update-coverage-on-readme.yml))
@@ -86,7 +86,7 @@ jobs:
 
       - name: Jest coverage comment
         id: coverageComment
-        uses: MishaKav/jest-coverage-comment@v1
+        uses: MishaKav/jest-coverage-comment@main
         with:
           hide-comment: true
           coverage-summary-path: ./coverage/coverage-summary.json
@@ -114,7 +114,7 @@ Example GitHub Action workflow that passes all params to Jest Coverage Comment
 
 ```yaml
 - name: Jest coverage comment
-  uses: MishaKav/jest-coverage-comment@v1
+  uses: MishaKav/jest-coverage-comment@main
   with:
     coverage-summary-path: ./coverage/coverage-summary.json
     title: Jest Coverage Comment
@@ -154,7 +154,7 @@ jobs:
       - name: Jest coverage comment
         if: ${{ github.ref == 'refs/heads/main' }}
         id: coverageComment
-        uses: MishaKav/jest-coverage-comment@v1
+        uses: MishaKav/jest-coverage-comment@main
         with:
           hide-summary: true
           coverage-summary-path: ./coverage/coverage-summary.json

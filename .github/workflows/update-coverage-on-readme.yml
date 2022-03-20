@@ -43,7 +43,7 @@ jobs:
 
       - name: Jest coverage comment
         id: coverageComment
-        uses: MishaKav/jest-coverage-comment@v1
+        uses: MishaKav/jest-coverage-comment@main
         with:
           hide-comment: true
 
