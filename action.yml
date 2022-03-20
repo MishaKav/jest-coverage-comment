@@ -12,7 +12,7 @@ inputs:
     required: true
 
   title:
-    description: 'Main title for the comment. Useful for monorepo projects'
+    description: 'Main title for the comment'
     required: false
 
   coverage-summary-path:
@@ -34,7 +34,6 @@ inputs:
     description: 'Title for the badge icon'
     default: 'Coverage'
     required: false
-
 
   hide-summary:
     description: 'Hide coverage summary report'
