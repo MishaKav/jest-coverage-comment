@@ -13,6 +13,11 @@ function getPathToFile(pathToFile: string): string {
 }
 
 export function getContentFile(pathToFile: string): string {
+  if (!pathToFile) {
+    core.warning(`Path to file was not prvided`)
+    return ''
+  }
+
   const fixedFilePath = getPathToFile(pathToFile)
   const fileExists = existsSync(fixedFilePath)
 

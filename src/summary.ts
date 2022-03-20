@@ -11,6 +11,11 @@ import { getContentFile } from './utils'
 // parse coverage-summary.json to Sumamry object
 function parseSummary(jsonContent: string): Summary | null {
   try {
+    if (!jsonContent) {
+      core.warning(`Summary json was not prvided`)
+      return null
+    }
+
     const json = JSON.parse(jsonContent)
     if (json.total?.lines) {
       return json.total as Summary

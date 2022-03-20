@@ -298,6 +298,10 @@ const utils_1 = __nccwpck_require__(918);
 function parseSummary(jsonContent) {
     var _a;
     try {
+        if (!jsonContent) {
+            core.warning(`Summary json was not prvided`);
+            return null;
+        }
         const json = JSON.parse(jsonContent);
         if ((_a = json.total) === null || _a === void 0 ? void 0 : _a.lines) {
             return json.total;
@@ -440,6 +444,10 @@ function getPathToFile(pathToFile) {
         : `${process.env.GITHUB_WORKSPACE}/${pathToFile}`;
 }
 function getContentFile(pathToFile) {
+    if (!pathToFile) {
+        core.warning(`Path to file was not prvided`);
+        return '';
+    }
     const fixedFilePath = getPathToFile(pathToFile);
     const fileExists = (0, fs_1.existsSync)(fixedFilePath);
     if (!fileExists) {

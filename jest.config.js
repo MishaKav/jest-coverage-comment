@@ -3,7 +3,15 @@ module.exports = {
   moduleFileExtensions: ['js', 'ts'],
   testMatch: ['**/*.test.ts'],
   transform: {
-    '^.+\\.ts$': 'ts-jest'
+    '^.+\\.ts$': 'ts-jest',
   },
-  verbose: true
+  coverageReporters: [
+    //   'clover',
+    //   'json',
+    'json-summary',
+    'text',
+    'text-summary',
+    //   'lcov',
+  ],
+  verbose: true,
 }
