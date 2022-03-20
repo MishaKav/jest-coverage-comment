@@ -37,15 +37,16 @@ describe('summary to td', () => {
 })
 
 describe('parse summary', () => {
+  const options = {
+    token: 'token_123',
+    repository: 'MishaKav/jest-coverage-comment',
+    commit: '05953710b21d222efa4f4535424a7af367be5a57',
+    summaryTitle: '',
+    badgeTitle: 'Coverage',
+    summaryFile: `${__dirname}/../data/coverage_1/coverage-summary.json`,
+  }
+
   test('should return summary report', () => {
-    const options = {
-      token: 'token_123',
-      repository: 'MishaKav/jest-coverage-comment',
-      commit: '05953710b21d222efa4f4535424a7af367be5a57',
-      summaryTitle: '',
-      badgeTitle: 'Coverage',
-      summaryFile: `${__dirname}/../data/coverage_1/coverage-summary.json`,
-    }
     const htmlReport = `| Lines | Statements | Branches | Functions |
 | ----- | ------- | -------- | -------- |
 | <a href="https://github.com/MishaKav/jest-coverage-comment/blob/05953710b21d222efa4f4535424a7af367be5a57/README.md"><img alt="Coverage" src="https://img.shields.io/badge/Coverage-78%25-yellow.svg" /></a><br/> | 76.74% (33/43) | 33.33% (2/6) | 100% (0/0) |
@@ -56,6 +57,13 @@ describe('parse summary', () => {
     expect(html).toEqual(htmlReport)
     expect(coverage).toBe(78)
     expect(color).toBe('yellow')
+  })
+
+  test('should render summary title', () => {
+    const optionsWithTitle = { ...options, summaryTitle: 'summaryTitle' }
+    const { html } = getSummaryReport(optionsWithTitle)
+
+    expect(html).toContain(`## ${optionsWithTitle.summaryTitle}`)
   })
 
   test('should return default summary', () => {
