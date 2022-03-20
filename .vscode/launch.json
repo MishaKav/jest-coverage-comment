@@ -6,14 +6,11 @@
   "configurations": [
     {
       "name": "Local Test",
-      "type": "pwa-node",
+      "type": "node",
       "request": "launch",
       "skipFiles": ["<node_internals>/**"],
-      "program": "${workspaceFolder}/lib/cli.js",
-      "preLaunchTask": "tsc: build - tsconfig.json",
-      "args": ["./../data/pytest-coverage_4.txt", "./../data/pytest_1.xml"],
-      "console": "integratedTerminal",
-      "outputCapture": "std"
+      "runtimeArgs": ["-r", "ts-node/register"],
+      "args": ["${workspaceFolder}/src/cli.ts"]
     }
   ]
 }

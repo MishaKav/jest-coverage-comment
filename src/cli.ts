@@ -1,7 +1,8 @@
 /* eslint-disable no-console */
-import * as path from 'path'
-import { mkdir, writeFileSync } from 'fs'
-import { getCoverageReport } from './parse'
+import { mkdirSync, writeFileSync } from 'fs'
+import { Options } from './types.d'
+import { getSummaryReport } from './summary'
+
 // import { getSummaryReport, getParsedXml } from './junitXml'
 
 /*  
@@ -19,9 +20,9 @@ import { getCoverageReport } from './parse'
   git branch | grep -v "main" | xargs git branch -D
 */
 
-function getPathToFile(pathToFile: string): string | null {
+function getPathToFile(pathToFile: string): string {
   if (!pathToFile) {
-    return null
+    return ''
   }
 
   // suports absolute path like '/tmp/coverage-final.json'
@@ -30,55 +31,49 @@ function getPathToFile(pathToFile: string): string | null {
 
 async function main(): Promise<void> {
   try {
-    const covFile = './../data/pytest-coverage_4.txt'
-    const xmlFile = './../data/coverage/clover.xml'
-    const prefix = `${path.dirname(path.dirname(path.resolve(covFile)))}/`
+    const summaryFile = './../data/coverage_1/coverage-summary.json'
+    const prefix = __dirname
 
     let finalHtml = ''
 
-    const options = {
+    const options: Options = {
+      token: 'token_123',
       repository: 'MishaKav/jest-coverage-comment',
-      commit: 'f9d42291812ed03bb197e48050ac38ac6befe4e5',
+      commit: '05953710b21d222efa4f4535424a7af367be5a57',
+      watermark: `<!-- Jest Coverage Comment: 1 -->\n`,
+      title: 'Jest Coverage Comment',
       prefix,
-      pathPrefix: '',
-      covFile: getPathToFile(covFile),
-      xmlFile: getPathToFile(xmlFile),
-      defaultBranch: 'main',
-      head: 'feat/test',
-      base: 'main',
-      title: 'Coverage Report',
+      // pathPrefix: '',
       badgeTitle: 'Coverage',
-      hideBadge: false,
-      hideReport: false,
-      createNewComment: false,
-      reportOnlyChangedFiles: false,
-      hideComment: false,
-      xmlTitle: '',
-      changedFiles: {
-        all: [
-          'functions/example_completed/example_completed.py',
-          'functions/example_manager/example_manager.py',
-          'functions/example_manager/example_static.py',
-        ],
-      },
+      summaryFile: getPathToFile(summaryFile),
+      summaryTitle: '',
+      // covFile: getPathToFile(covFile),
+      // xmlFile: getPathToFile(xmlFile),
+      // defaultBranch: 'main',
+      // head: 'feat/test',
+      // base: 'main',
+      // title: 'Coverage Report',
+      // hideBadge: false,
+      // hideReport: false,
+      // createNewComment: false,
+      // reportOnlyChangedFiles: false,
+      // hideComment: false,
+      // xmlTitle: '',
+      // changedFiles: {
+      //   all: [
+      //     'functions/example_completed/example_completed.py',
+      //     'functions/example_manager/example_manager.py',
+      //     'functions/example_manager/example_static.py',
+      //   ],
+      // },
     }
 
-    const { html } = getCoverageReport()
-    const summaryReport = null //getSummaryReport(options);
+    const { summaryHtml } = getSummaryReport(options)
+    // const summaryReport = null //getSummaryReport(options);
 
-    // set to output junitxml values
-    // if (summaryReport) {
-    //   const parsedXml = getParsedXml(options)
-    //   const { errors, failures, skipped, tests, time } = parsedXml
-    //   const valuesToExport = { errors, failures, skipped, tests, time }
-
-    //   Object.entries(valuesToExport).forEach(([key, value]) => {
-    //     console.log(key, value)
-    //   })
-    // }
-
-    finalHtml += html
-    finalHtml += finalHtml.length ? `\n\n${summaryReport}` : summaryReport
+    finalHtml += options.title
+      ? `# ${options.title}\n\n${summaryHtml}`
+      : summaryHtml
 
     if (!finalHtml || options.hideComment) {
       console.log('Nothing to report')
@@ -86,7 +81,7 @@ async function main(): Promise<void> {
     }
 
     const resultFile = `${__dirname}/../tmp/result.md`
-    mkdir(`${__dirname}/../tmp`, console.error)
+    mkdirSync(`${__dirname}/../tmp`, { recursive: true })
     writeFileSync(resultFile, finalHtml)
     console.log(resultFile)
   } catch (error) {

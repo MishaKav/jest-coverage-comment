@@ -1,34 +1,36 @@
 import * as core from '@actions/core'
 import { existsSync, readFileSync } from 'fs'
 
-export function getPathToFile(pathToFile: string): string | null {
+function getPathToFile(pathToFile: string): string {
   if (!pathToFile) {
-    return null
+    return ''
   }
 
-  // suports absolute path like '/tmp/coverage-final.json'
+  // suports absolute path like '/tmp/coverage-summary.json'
   return pathToFile.startsWith('/')
     ? pathToFile
     : `${process.env.GITHUB_WORKSPACE}/${pathToFile}`
 }
 
-export function getContentFile(pathToFile: string): string | null {
+export function getContentFile(pathToFile: string): string {
   if (!pathToFile) {
-    return null
+    core.warning(`Path to file was not prvided`)
+    return ''
   }
 
-  const fileExists = existsSync(pathToFile)
+  const fixedFilePath = getPathToFile(pathToFile)
+  const fileExists = existsSync(fixedFilePath)
 
   if (!fileExists) {
     core.warning(`File "${pathToFile}" doesn't exist`)
-    return null
+    return ''
   }
 
-  const content = readFileSync(pathToFile, 'utf8')
+  const content = readFileSync(fixedFilePath, 'utf8')
 
   if (!content) {
     core.warning(`No content found in file "${pathToFile}"`)
-    return null
+    return ''
   }
 
   core.info(`File read successfully "${pathToFile}"`)

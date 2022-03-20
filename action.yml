@@ -11,19 +11,18 @@ inputs:
     default: ${{ github.token }}
     required: true
 
-  pytest-coverage-path:
-    description: 'The location of the txt output of pytest-coverage'
-    default: './pytest-coverage.txt'
-    required: false
-
-  coverage-path-prefix:
-    description: 'Prefix for path when link to files in comment'
-    default: ''
-    required: false
-
   title:
-    description: 'Title for the coverage report. Useful for monorepo projects'
-    default: 'Coverage Report'
+    description: 'Main title for the comment'
+    required: false
+
+  coverage-summary-path:
+    description: 'The location of the coverage-summary of jest'
+    default: './coverage/coverage-summary.json'
+    required: false
+
+  summary-title:
+    description: 'Title for the coverage summary'
+    default: ''
     required: false
 
   badge-title:
@@ -31,13 +30,8 @@ inputs:
     default: 'Coverage'
     required: false
 
-  hide-badge:
-    description: 'Hide badge with percentage'
-    default: 'false'
-    required: false
-
-  hide-report:
-    description: 'Hide coverage report'
+  hide-summary:
+    description: 'Hide coverage summary report'
     default: 'false'
     required: false
 
@@ -46,51 +40,18 @@ inputs:
     default: 'false'
     required: false
 
-  report-only-changed-files:
-    description: 'Show in report only changed files for this commit, and not all files'
-    default: 'false'
-    required: false
-
   create-new-comment:
     description: 'When false, will update the same comment, otherwise will publish new comment on each run'
     default: 'false'
     required: false
 
-  default-branch:
-    description: 'This branch name is usefull when generate "coverageHtml", it points direct links to files on this branch (instead of commit). Usually "main" or "master"'
-    default: 'main'
-    required: false
-
-  # multiple-files:
-  #   description: >
-  #     You can pass array of titles and files to generate single comment with table of results.
-  #     Single line should look like `Title, ./path/to/pytest-coverage.txt, ./path/to/pytest.xml`
-  #     example:
-  #       My Title 1, ./data/pytest-coverage_3.txt, ./data/pytest_1.xml
-  #   default: ''
-  #   required: false
-
 outputs:
   coverage:
-    description: 'value indicating the coverage percentage of your report based on pytest, example 30%'
+    description: 'value indicating the coverage percentage of your report based on jest, example 78'
   color:
     description: 'color of coverage report'
-  coverageHtml:
-    description: 'The html of the coverage report. Html with links to files of missing lines'
-  summaryReport:
-    description: 'Markdown with summaryof: Tests/Skipped/Failures/Errors/Time'
-  warnings:
-    description: 'Number of warnings, get from pytest-cov'
-  tests:
-    description: 'Total number of tests, get from `junitxml`'
-  skipped:
-    description: 'Total number of skipped tests, get from `junitxml`'
-  failures:
-    description: 'Total number of tests with failures, get from `junitxml`'
-  errors:
-    description: 'Total number of tests with errors, get from `junitxml`'
-  time:
-    description: 'Seconds the took to run all the tests, get from `junitxml`'
+  summaryHtml:
+    description: 'The html of the coverage summary report (markdown table)'
 
 runs:
   using: 'node16'
