@@ -93,7 +93,7 @@ function getCoverageColor(percentage: number): CoverageColor {
 }
 
 // get coverage and color from summary
-function getCoverage(summary: Summary): Omit<CoverageReport, 'html'> {
+function getCoverage(summary: Summary): Omit<CoverageReport, 'summaryHtml'> {
   if (!summary?.lines) {
     return { coverage: 0, color: 'red' }
   }
@@ -116,9 +116,9 @@ export function getSummaryReport(options: Options): CoverageReport {
 
     if (summary) {
       const { color, coverage } = getCoverage(summary)
-      const html = summaryToMarkdown(summary, options)
+      const summaryHtml = summaryToMarkdown(summary, options)
 
-      return { color, coverage, html }
+      return { color, coverage, summaryHtml }
     }
   } catch (error) {
     if (error instanceof Error) {
@@ -126,5 +126,5 @@ export function getSummaryReport(options: Options): CoverageReport {
     }
   }
 
-  return { html: '', coverage: 0, color: 'red' }
+  return { summaryHtml: '', coverage: 0, color: 'red' }
 }

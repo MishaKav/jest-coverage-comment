@@ -31,7 +31,7 @@ describe('summary to td', () => {
   })
 
   test('should return default sumamry to td', () => {
-    const red = lineSumamryToTd(35)
+    const red = lineSumamryToTd({})
     expect(red).toBe('')
   })
 })
@@ -42,35 +42,36 @@ describe('parse summary', () => {
     repository: 'MishaKav/jest-coverage-comment',
     commit: '05953710b21d222efa4f4535424a7af367be5a57',
     summaryTitle: '',
+    prefix: '',
     badgeTitle: 'Coverage',
     summaryFile: `${__dirname}/../data/coverage_1/coverage-summary.json`,
   }
 
   test('should return summary report', () => {
-    const htmlReport = `| Lines | Statements | Branches | Functions |
+    const html = `| Lines | Statements | Branches | Functions |
 | ----- | ------- | -------- | -------- |
 | <a href="https://github.com/MishaKav/jest-coverage-comment/blob/05953710b21d222efa4f4535424a7af367be5a57/README.md"><img alt="Coverage" src="https://img.shields.io/badge/Coverage-78%25-yellow.svg" /></a><br/> | 76.74% (33/43) | 33.33% (2/6) | 100% (0/0) |
 `
 
-    const { html, coverage, color } = getSummaryReport(options)
+    const { summaryHtml, coverage, color } = getSummaryReport(options)
 
-    expect(html).toEqual(htmlReport)
+    expect(summaryHtml).toEqual(html)
     expect(coverage).toBe(78)
     expect(color).toBe('yellow')
   })
 
   test('should render summary title', () => {
     const optionsWithTitle = { ...options, summaryTitle: 'summaryTitle' }
-    const { html } = getSummaryReport(optionsWithTitle)
+    const { summaryHtml } = getSummaryReport(optionsWithTitle)
 
-    expect(html).toContain(`## ${optionsWithTitle.summaryTitle}`)
+    expect(summaryHtml).toContain(`## ${optionsWithTitle.summaryTitle}`)
   })
 
   test('should return default summary', () => {
     // @ts-ignore
-    const { html, coverage, color } = getSummaryReport({})
+    const { summaryHtml, coverage, color } = getSummaryReport({})
 
-    expect(html).toBe('')
+    expect(summaryHtml).toBe('')
     expect(coverage).toBe(0)
     expect(color).toBe('red')
   })

@@ -2,20 +2,20 @@ export interface Options {
   token: string
   repository: string
   summaryFile: string
-  summaryTitle: string
+  summaryTitle?: string
   badgeTitle: string
-  commit: string
-  // prefix: string
+  commit?: string
+  head?: string
+  base?: string
+  prefix: string
+  title?: string
+  // hideReport?: boolean
+  createNewComment?: boolean
+  hideComment?: boolean
   // pathPrefix: string
-  // head: string
-  // base: string
   // covFile: string
   // xmlFile: string
-  // title: string
   // hideBadge: boolean
-  // hideReport: boolean
-  // createNewComment: boolean
-  // hideComment: boolean
   // reportOnlyChangedFiles: boolean
   // defaultBranch: string
   // xmlTitle: string
@@ -45,7 +45,7 @@ export type CoverageColor =
   | 'brightgreen'
 
 export interface CoverageReport {
-  html: string
+  summaryHtml: string
   coverage: number
   color: CoverageColor
 }
