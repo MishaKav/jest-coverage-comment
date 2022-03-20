@@ -10,7 +10,9 @@ async function main(): Promise<void> {
     const token = core.getInput('github-token', { required: true })
     const title = core.getInput('title', { required: false })
     const badgeTitle = core.getInput('badge-title', { required: false })
-    // const hideReport = core.getBooleanInput('hide-report', { required: false })
+    const hideSummaryReport = core.getBooleanInput('hide-summary-report', {
+      required: false,
+    })
     const summaryTitle = core.getInput('summary-title', { required: false })
     const summaryFile = core.getInput('coverage-summary-path', {
       required: false,
@@ -37,7 +39,7 @@ async function main(): Promise<void> {
       summaryFile,
       summaryTitle,
       badgeTitle,
-      // hideReport,
+      hideSummaryReport,
       createNewComment,
       hideComment,
     }
@@ -65,8 +67,6 @@ async function main(): Promise<void> {
       // report = getSummaryReport({ ...options, hideReport: true })
     }
 
-    finalHtml += title ? `# ${title}\n\n${summaryHtml}` : summaryHtml
-
     if (coverage || summaryHtml) {
       core.startGroup(options.summaryTitle || 'Summary Title')
       core.info(`coverage: ${coverage}`)
@@ -77,6 +77,14 @@ async function main(): Promise<void> {
       core.setOutput('color', color)
       core.setOutput('summaryHtml', summaryHtml)
       core.endGroup()
+    }
+
+    if (title) {
+      finalHtml += `# ${title}\n\n`
+    }
+
+    if (!options.hideSummaryReport) {
+      finalHtml += summaryHtml
     }
 
     if (!finalHtml || options.hideComment) {

@@ -35,13 +35,9 @@ inputs:
     default: 'Coverage'
     required: false
 
-  # hide-badge:
-  #   description: 'Hide badge with percentage'
-  #   default: 'false'
-  #   required: false
 
-  hide-report:
-    description: 'Hide coverage report'
+  hide-summary-report:
+    description: 'Hide coverage summary report'
     default: 'false'
     required: false
 
