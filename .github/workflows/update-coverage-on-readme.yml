@@ -1,6 +1,13 @@
 name: Update Coverage on Readme
 on:
   push:
+    paths-ignore:
+      - '**/*.md'
+      - '**/*.yml'
+      - '.github/**'
+      - 'data/**'
+      - 'dist/**'
+      - '**/app/local/**'
 
 jobs:
   update-coverage-on-readme:
@@ -36,7 +43,7 @@ jobs:
 
       - name: Jest coverage comment
         id: coverageComment
-        uses: MishaKav/jest-coverage-comment@first-release
+        uses: MishaKav/jest-coverage-comment@v1
         with:
           hide-comment: true
 
@@ -47,13 +54,13 @@ jobs:
           echo "Summary Html - ${{ steps.coverageComment.outputs.summaryHtml }}"
 
       - name: Create the Badge
-        # if: ${{ github.ref == 'refs/heads/main' }}
+        if: ${{ github.ref == 'refs/heads/main' }}
         uses: schneegans/dynamic-badges-action@v1.0.0
         with:
           auth: ${{ secrets.JEST_COVERAGE_COMMENT }}
           gistID: 5e90d640f8c212ab7bbac38f72323f80
           filename: jest-coverage-comment__main.json
-          label: Coverage Report
+          label: Coverage
           message: ${{ steps.coverageComment.outputs.coverage }}%
           color: ${{ steps.coverageComment.outputs.color }}
           namedLogo: javascript
