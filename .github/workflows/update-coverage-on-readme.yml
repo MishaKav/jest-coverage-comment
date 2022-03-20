@@ -54,6 +54,6 @@ jobs:
           gistID: 5e90d640f8c212ab7bbac38f72323f80
           filename: jest-coverage-comment__main.json
           label: Coverage Report
-          message: ${{ steps.coverageComment.outputs.coverage }}
+          message: ${{ steps.coverageComment.outputs.coverage }}%
           color: ${{ steps.coverageComment.outputs.color }}
           namedLogo: javascript
