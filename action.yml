@@ -25,11 +25,6 @@ inputs:
     default: ''
     required: false
 
-  # coverage-path-prefix:
-  #   description: 'Prefix for path when link to files in comment'
-  #   default: ''
-  #   required: false
-
   badge-title:
     description: 'Title for the badge icon'
     default: 'Coverage'
@@ -45,29 +40,10 @@ inputs:
     default: 'false'
     required: false
 
-  # report-only-changed-files:
-  #   description: 'Show in report only changed files for this commit, and not all files'
-  #   default: 'false'
-  #   required: false
-
   create-new-comment:
     description: 'When false, will update the same comment, otherwise will publish new comment on each run'
     default: 'false'
     required: false
-
-  # default-branch:
-  #   description: 'This branch name is usefull when generate "coverageHtml", it points direct links to files on this branch (instead of commit). Usually "main" or "master"'
-  #   default: 'main'
-  #   required: false
-
-  # multiple-files:
-  #   description: >
-  #     You can pass array of titles and files to generate single comment with table of results.
-  #     Single line should look like `Title, ./path/to/pytest-coverage.txt, ./path/to/pytest.xml`
-  #     example:
-  #       My Title 1, ./data/pytest-coverage_3.txt, ./data/pytest_1.xml
-  #   default: ''
-  #   required: false
 
 outputs:
   coverage:
@@ -76,20 +52,6 @@ outputs:
     description: 'color of coverage report'
   summaryHtml:
     description: 'The html of the coverage summary report (markdown table)'
-  # summaryReport:
-  #   description: 'Markdown with summaryof: Tests/Skipped/Failures/Errors/Time'
-  # warnings:
-  #   description: 'Number of warnings, get from pytest-cov'
-  # tests:
-  #   description: 'Total number of tests, get from `junitxml`'
-  # skipped:
-  #   description: 'Total number of skipped tests, get from `junitxml`'
-  # failures:
-  #   description: 'Total number of tests with failures, get from `junitxml`'
-  # errors:
-  #   description: 'Total number of tests with errors, get from `junitxml`'
-  # time:
-  #   description: 'Seconds the took to run all the tests, get from `junitxml`'
 
 runs:
   using: 'node16'
