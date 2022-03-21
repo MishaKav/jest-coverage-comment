@@ -46,7 +46,7 @@ inputs:
     required: false
 
   junitxml-path:
-    description: 'The location of the junitxml path'
+    description: 'The location of the junitxml path (npm package `jest-junit` should be installed)'
     default: ''
     required: false
 
