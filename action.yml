@@ -45,6 +45,16 @@ inputs:
     default: 'false'
     required: false
 
+  junitxml-path:
+    description: 'The location of the junitxml path'
+    default: ''
+    required: false
+
+  junitxml-title:
+    description: 'Title for summary for junitxml'
+    default: ''
+    required: false
+
 outputs:
   coverage:
     description: 'value indicating the coverage percentage of your report based on jest, example 78'
@@ -52,6 +62,16 @@ outputs:
     description: 'color of coverage report'
   summaryHtml:
     description: 'The html of the coverage summary report (markdown table)'
+  tests:
+    description: 'Total number of tests, get from `junitxml`'
+  skipped:
+    description: 'Total number of skipped tests, get from `junitxml`'
+  failures:
+    description: 'Total number of tests with failures, get from `junitxml`'
+  errors:
+    description: 'Total number of tests with errors, get from `junitxml`'
+  time:
+    description: 'Seconds the took to run all the tests, get from `junitxml`'
 
 runs:
   using: 'node16'

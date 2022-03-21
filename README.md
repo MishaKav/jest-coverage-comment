@@ -28,6 +28,8 @@ You can add this action to your GitHub workflow for Ubuntu runners (e.g. runs-on
 | `hide-summary`          |          | false                              | Hide coverage summary report                                                                           |
 | `create-new-comment`    |          | false                              | When false, will update the same comment, otherwise will publish new comment on each run.              |
 | `hide-comment`          |          | false                              | Hide the whole comment (use when you need only the `output`). Useful for auto-update bagdes in readme. |
+| `junitxml-path`         |          | ''                                 | The location of the junitxml path                                                                      |
+| `junitxml-title`        |          | ''                                 | Title for summary for junitxml                                                                         |
 
 ## Output Variables
 
@@ -36,6 +38,11 @@ You can add this action to your GitHub workflow for Ubuntu runners (e.g. runs-on
 | `coverage`    | 78      | Percentage of the coverage, get from `coverage-summary.json`                          |
 | `color`       | yellow  | Color of the percentage. You can see the whole list of [badge colors](#badges-colors) |
 | `summaryHtml` | ...     | Markdown table with coverage summary. See the [output-example](#output-example)       |
+| `tests`       | 9       | Total number of tests, get from `junitxml`                                            |
+| `skipped`     | 0       | Total number of skipped tests, get from `junitxml`                                    |
+| `failures`    | 0       | Total number of tests with failures, get from `junitxml`                              |
+| `errors`      | 0       | Total number of tests with errors, get from `junitxml`                                |
+| `time`        | 2.883   | Seconds the took to run all the tests, get from `junitxml`                            |
 
 ## Output example
 
