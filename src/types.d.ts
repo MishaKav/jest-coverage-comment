@@ -10,6 +10,8 @@ export interface Options {
   head?: string
   base?: string
   title?: string
+  junitFile?: string
+  junitTitle?: string
   hideSummary?: boolean
   createNewComment?: boolean
   hideComment?: boolean
@@ -51,7 +53,13 @@ export interface CoverageReport {
   color: CoverageColor
 }
 
-export interface FormattedCoverage {
-  summary?: string
-  details?: string
+export interface Junit {
+  skipped: number // calculated field
+  tests: number
+  failures: number
+  errors: number
+  time: number
+}
+export interface JunitReport extends Junit {
+  junitHtml: string
 }

@@ -1,6 +1,7 @@
 /* eslint-disable no-console */
 import { mkdirSync, writeFileSync } from 'fs'
 import { Options } from './types.d'
+import { getJunitReport } from './junit'
 import { getSummaryReport } from './summary'
 
 // import { getSummaryReport, getParsedXml } from './junitXml'
@@ -32,6 +33,7 @@ function getPathToFile(pathToFile: string): string {
 async function main(): Promise<void> {
   try {
     const summaryFile = './../data/coverage_1/coverage-summary.json'
+    const junitFile = './../data/coverage_1/junit.xml'
     const prefix = __dirname
 
     let finalHtml = ''
@@ -47,6 +49,8 @@ async function main(): Promise<void> {
       badgeTitle: 'Coverage',
       summaryFile: getPathToFile(summaryFile),
       summaryTitle: '',
+      junitFile: getPathToFile(junitFile),
+      junitTitle: '',
       // covFile: getPathToFile(covFile),
       // xmlFile: getPathToFile(xmlFile),
       // defaultBranch: 'main',
@@ -67,13 +71,17 @@ async function main(): Promise<void> {
       //   ],
       // },
     }
-
     const { summaryHtml } = getSummaryReport(options)
     // const summaryReport = null //getSummaryReport(options);
 
     finalHtml += options.title
       ? `# ${options.title}\n\n${summaryHtml}`
       : summaryHtml
+
+    if (options.junitFile) {
+      const { junitHtml } = await getJunitReport(options)
+      finalHtml += junitHtml ? `\n\n${junitHtml}` : ''
+    }
 
     if (!finalHtml || options.hideComment) {
       console.log('Nothing to report')
