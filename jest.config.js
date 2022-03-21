@@ -13,5 +13,6 @@ module.exports = {
     'text-summary',
     //   'lcov',
   ],
+  reporters: ['default', ['jest-junit', { outputDirectory: 'coverage' }]],
   verbose: true,
 }
