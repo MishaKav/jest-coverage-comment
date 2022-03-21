@@ -229,6 +229,12 @@ function main() {
                 core.setOutput('summaryHtml', summaryHtml);
                 core.endGroup();
             }
+            if (title) {
+                finalHtml += `# ${title}\n\n`;
+            }
+            if (!options.hideSummary) {
+                finalHtml += summaryHtml;
+            }
             if (options.junitFile) {
                 const junit = yield (0, junit_1.getJunitReport)(options);
                 const { junitHtml, tests, skipped, failures, errors, time } = junit;
@@ -249,12 +255,6 @@ function main() {
                     core.setOutput('junitHtml', junitHtml);
                     core.endGroup();
                 }
-            }
-            if (title) {
-                finalHtml += `# ${title}\n\n`;
-            }
-            if (!options.hideSummary) {
-                finalHtml += summaryHtml;
             }
             if (!finalHtml || options.hideComment) {
                 core.info('Nothing to report');

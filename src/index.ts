@@ -83,6 +83,14 @@ async function main(): Promise<void> {
       core.endGroup()
     }
 
+    if (title) {
+      finalHtml += `# ${title}\n\n`
+    }
+
+    if (!options.hideSummary) {
+      finalHtml += summaryHtml
+    }
+
     if (options.junitFile) {
       const junit = await getJunitReport(options)
       const { junitHtml, tests, skipped, failures, errors, time } = junit
@@ -105,14 +113,6 @@ async function main(): Promise<void> {
         core.setOutput('junitHtml', junitHtml)
         core.endGroup()
       }
-    }
-
-    if (title) {
-      finalHtml += `# ${title}\n\n`
-    }
-
-    if (!options.hideSummary) {
-      finalHtml += summaryHtml
     }
 
     if (!finalHtml || options.hideComment) {
