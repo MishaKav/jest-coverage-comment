@@ -51,7 +51,7 @@ describe('parse summary', () => {
   test('should return summary report', () => {
     const html = `| Lines | Statements | Branches | Functions |
 | ----- | ------- | -------- | -------- |
-| <a href="https://github.com/MishaKav/jest-coverage-comment/blob/05953710b21d222efa4f4535424a7af367be5a57/README.md"><img alt="Coverage" src="https://img.shields.io/badge/Coverage-78%25-yellow.svg" /></a><br/> | 76.74% (33/43) | 33.33% (2/6) | 100% (0/0) |
+| <a href="https://github.com/MishaKav/jest-coverage-comment/blob/05953710b21d222efa4f4535424a7af367be5a57/README.md"><img alt="Coverage: 78%" src="https://img.shields.io/badge/Coverage-78%25-yellow.svg" /></a><br/> | 76.74% (33/43) | 33.33% (2/6) | 100% (0/0) |
 `
 
     const { summaryHtml, coverage, color } = getSummaryReport(options)
