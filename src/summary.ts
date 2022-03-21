@@ -45,7 +45,7 @@ function summaryToMarkdown(summary: Summary, options: Options): string {
   const { statements, functions, branches } = summary
   const { color, coverage } = getCoverage(summary)
   const readmeHref = `https://github.com/${repository}/blob/${commit}/README.md`
-  const badge = `<a href="${readmeHref}"><img alt="${badgeTitle}" src="https://img.shields.io/badge/${badgeTitle}-${coverage}%25-${color}.svg" /></a><br/>`
+  const badge = `<a href="${readmeHref}"><img alt="${badgeTitle}: ${coverage}%" src="https://img.shields.io/badge/${badgeTitle}-${coverage}%25-${color}.svg" /></a><br/>`
 
   const table = `| Lines | Statements | Branches | Functions |
 | ----- | ------- | -------- | -------- |
