@@ -318,43 +318,6 @@ exports.getJunitReport = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const xml2js = __importStar(__nccwpck_require__(6189));
 const utils_1 = __nccwpck_require__(918);
-// return junit report
-function getJunitReport(options) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const { junitFile } = options;
-        try {
-            if (junitFile) {
-                const xmlContent = (0, utils_1.getContentFile)(junitFile);
-                const parsedXml = yield parseJunit(xmlContent);
-                if (parsedXml) {
-                    const junitHtml = junitToMarkdown(parsedXml, options);
-                    return {
-                        junitHtml,
-                        tests: 0,
-                        skipped: 0,
-                        failures: 0,
-                        errors: 0,
-                        time: 0,
-                    };
-                }
-            }
-        }
-        catch (error) {
-            if (error instanceof Error) {
-                core.error(`Error on generating junit report. ${error.message}`);
-            }
-        }
-        return {
-            junitHtml: '',
-            tests: 0,
-            skipped: 0,
-            failures: 0,
-            errors: 0,
-            time: 0,
-        };
-    });
-}
-exports.getJunitReport = getJunitReport;
 // parse junit.xml to Junit object
 function parseJunit(xmlContent) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -402,6 +365,44 @@ ${table}`;
     }
     return table;
 }
+// return junit report
+function getJunitReport(options) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const { junitFile } = options;
+        try {
+            if (junitFile) {
+                const xmlContent = (0, utils_1.getContentFile)(junitFile);
+                const parsedXml = yield parseJunit(xmlContent);
+                if (parsedXml) {
+                    const junitHtml = junitToMarkdown(parsedXml, options);
+                    const { skipped, errors, failures, tests, time } = parsedXml;
+                    return {
+                        junitHtml,
+                        tests,
+                        skipped,
+                        failures,
+                        errors,
+                        time,
+                    };
+                }
+            }
+        }
+        catch (error) {
+            if (error instanceof Error) {
+                core.error(`Error on generating junit report. ${error.message}`);
+            }
+        }
+        return {
+            junitHtml: '',
+            tests: 0,
+            skipped: 0,
+            failures: 0,
+            errors: 0,
+            time: 0,
+        };
+    });
+}
+exports.getJunitReport = getJunitReport;
 
 
 /***/ }),
