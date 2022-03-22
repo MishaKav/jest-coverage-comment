@@ -1,8 +1,8 @@
 import * as core from '@actions/core'
-import { MAX_COMMENT_LENGTH } from './consts'
 import { Options } from './types.d'
 import { context } from '@actions/github'
 import { createComment } from './create-comment'
+import { getJunitReport } from './junit'
 import { getSummaryReport } from './summary'
 
 async function main(): Promise<void> {
@@ -15,6 +15,10 @@ async function main(): Promise<void> {
     })
     const summaryTitle = core.getInput('summary-title', { required: false })
     const summaryFile = core.getInput('coverage-summary-path', {
+      required: false,
+    })
+    const junitTitle = core.getInput('junitxml-title', { required: false })
+    const junitFile = core.getInput('junitxml-path', {
       required: false,
     })
     const createNewComment = core.getBooleanInput('create-new-comment', {
@@ -36,9 +40,11 @@ async function main(): Promise<void> {
       commit: '',
       watermark,
       title,
+      badgeTitle,
       summaryFile,
       summaryTitle,
-      badgeTitle,
+      junitTitle,
+      junitFile,
       hideSummary,
       createNewComment,
       hideComment,
@@ -56,19 +62,17 @@ async function main(): Promise<void> {
     const report = getSummaryReport(options)
     const { coverage, color, summaryHtml } = report
 
-    if (summaryHtml.length > MAX_COMMENT_LENGTH) {
-      // generate new html without report
-      core.warning(
-        `Your comment is too long (maximum is ${MAX_COMMENT_LENGTH} characters), coverage summary report will not be added.`
-      )
-      // core.warning(
-      //   `Try add: "--cov-report=term-missing:skip-covered", or add "hide-report: true", or add "report-only-changed-files: true"`
-      // )
-      // report = getSummaryReport({ ...options, hideReport: true })
-    }
+    // if (summaryHtml.length > MAX_COMMENT_LENGTH) {
+    //   core.warning(
+    //     `Your comment is too long (maximum is ${MAX_COMMENT_LENGTH} characters), coverage summary report will not be added.`
+    //   )
+    // core.warning(
+    //   `Try add: "--cov-report=term-missing:skip-covered", or add "hide-report: true", or add "report-only-changed-files: true"`
+    // )
+    // }
 
     if (coverage || summaryHtml) {
-      core.startGroup(options.summaryTitle || 'Summary Title')
+      core.startGroup(options.summaryTitle || 'Summary')
       core.info(`coverage: ${coverage}`)
       core.info(`color: ${color}`)
       core.info(`summaryHtml: ${summaryHtml}`)
@@ -85,6 +89,30 @@ async function main(): Promise<void> {
 
     if (!options.hideSummary) {
       finalHtml += summaryHtml
+    }
+
+    if (options.junitFile) {
+      const junit = await getJunitReport(options)
+      const { junitHtml, tests, skipped, failures, errors, time } = junit
+      finalHtml += junitHtml ? `\n\n${junitHtml}` : ''
+
+      if (junitHtml) {
+        core.startGroup(options.junitTitle || 'Junit')
+        core.info(`tests: ${tests}`)
+        core.info(`skipped: ${skipped}`)
+        core.info(`failures: ${failures}`)
+        core.info(`errors: ${errors}`)
+        core.info(`time: ${time}`)
+        core.info(`junitHtml: ${junitHtml}`)
+
+        core.setOutput('tests', tests)
+        core.setOutput('skipped', skipped)
+        core.setOutput('failures', failures)
+        core.setOutput('errors', errors)
+        core.setOutput('time', time)
+        core.setOutput('junitHtml', junitHtml)
+        core.endGroup()
+      }
     }
 
     if (!finalHtml || options.hideComment) {

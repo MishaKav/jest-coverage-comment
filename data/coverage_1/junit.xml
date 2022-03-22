@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="jest tests" tests="6" failures="0" errors="0" time="0.732">
+  <testsuite name="should test controller" errors="0" failures="0" skipped="0" timestamp="2022-03-21T21:15:26" time="0.221" tests="2">
+    <testcase classname="should test controller when #getPost method method succeeds" name="should test controller when #getPost method method succeeds" time="0.004">
+    </testcase>
+    <testcase classname="should test controller when #getPost method method fails" name="should test controller when #getPost method method fails" time="0.001">
+    </testcase>
+  </testsuite>
+  <testsuite name="should test server configuration" errors="0" failures="0" skipped="0" timestamp="2022-03-21T21:15:26" time="0.194" tests="1">
+    <testcase classname="should test server configuration should run the express server" name="should test server configuration should run the express server" time="0.005">
+    </testcase>
+  </testsuite>
+  <testsuite name="should test Service" errors="0" failures="0" skipped="0" timestamp="2022-03-21T21:15:26" time="0.123" tests="2">
+    <testcase classname="should test Service when #list method succeeds" name="should test Service when #list method succeeds" time="0.006">
+    </testcase>
+    <testcase classname="should test Service when #list method fails" name="should test Service when #list method fails" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="should test router" errors="0" failures="0" skipped="0" timestamp="2022-03-21T21:15:26" time="0.108" tests="1">
+    <testcase classname="should test router should test get posts" name="should test router should test get posts" time="0.003">
+    </testcase>
+  </testsuite>
+</testsuites>

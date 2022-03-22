@@ -14,7 +14,7 @@ function getPathToFile(pathToFile: string): string {
 
 export function getContentFile(pathToFile: string): string {
   if (!pathToFile) {
-    core.warning(`Path to file was not prvided`)
+    core.warning(`Path to file was not provided`)
     return ''
   }
 

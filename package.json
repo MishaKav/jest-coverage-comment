@@ -1,6 +1,6 @@
 {
   "name": "jest-coverage-comment",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Comments a pull request or commit with the jest code coverage badge, full report and tests summary",
   "author": "Misha Kav <misha.kav@gmail.com>",
   "license": "MIT",
@@ -8,7 +8,10 @@
     "actions",
     "pull-request",
     "comment",
-    "message"
+    "message",
+    "coverage",
+    "jest",
+    "junit"
   ],
   "bugs": {
     "url": "https://github.com/MishaKav/jest-coverage-comment/issues"
@@ -27,17 +30,20 @@
   },
   "dependencies": {
     "@actions/core": "^1.6.0",
-    "@actions/github": "^5.0.0"
+    "@actions/github": "^5.0.0",
+    "xml2js": "^0.4.23"
   },
   "devDependencies": {
     "@types/node": "^17.0.21",
     "@types/rewire": "^2.5.28",
+    "@types/xml2js": "^0.4.9",
     "@typescript-eslint/parser": "^5.15.0",
     "@vercel/ncc": "^0.33.3",
     "babel-plugin-rewire": "^1.2.0",
     "eslint": "^8.11.0",
-    "eslint-plugin-github": "^4.3.5",
+    "eslint-plugin-github": "^4.1.2",
     "eslint-plugin-jest": "^26.1.1",
+    "jest-junit": "^13.0.0",
     "prettier": "^2.6.0",
     "rewire": "^6.0.0",
     "ts-jest": "^27.1.3",

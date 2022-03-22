@@ -28,6 +28,8 @@ You can add this action to your GitHub workflow for Ubuntu runners (e.g. runs-on
 | `hide-summary`          |          | false                              | Hide coverage summary report                                                                           |
 | `create-new-comment`    |          | false                              | When false, will update the same comment, otherwise will publish new comment on each run.              |
 | `hide-comment`          |          | false                              | Hide the whole comment (use when you need only the `output`). Useful for auto-update bagdes in readme. |
+| `junitxml-path`         |          | ''                                 | The location of the junitxml path (npm package `jest-junit` should be installed)                       |
+| `junitxml-title`        |          | ''                                 | Title for summary for junitxml                                                                         |
 
 ## Output Variables
 
@@ -36,12 +38,21 @@ You can add this action to your GitHub workflow for Ubuntu runners (e.g. runs-on
 | `coverage`    | 78      | Percentage of the coverage, get from `coverage-summary.json`                          |
 | `color`       | yellow  | Color of the percentage. You can see the whole list of [badge colors](#badges-colors) |
 | `summaryHtml` | ...     | Markdown table with coverage summary. See the [output-example](#output-example)       |
+| `tests`       | 9       | Total number of tests, get from `junitxml`                                            |
+| `skipped`     | 0       | Total number of skipped tests, get from `junitxml`                                    |
+| `failures`    | 0       | Total number of tests with failures, get from `junitxml`                              |
+| `errors`      | 0       | Total number of tests with errors, get from `junitxml`                                |
+| `time`        | 2.883   | Seconds the took to run all the tests, get from `junitxml`                            |
 
 ## Output example
 
 | Lines                                                                                                                                                                                                                    | Statements     | Branches     | Functions  |
 | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------- | ------------ | ---------- |
 | <a href="https://github.com/MishaKav/api-testing-example/blob/8e4041e07d7b5639c06bf245637abb6a55f3a694/README.md"><img alt="Jest Coverage" src="https://img.shields.io/badge/Jest Coverage-78%25-yellow.svg" /></a><br/> | 76.74% (33/43) | 33.33% (2/6) | 100% (0/0) |
+
+| Tests | Skipped | Failures | Errors   | Time               |
+| ----- | ------- | -------- | -------- | ------------------ |
+| 9     | 0 :zzz: | 0 :x:    | 0 :fire: | 2.709s :stopwatch: |
 
 ## Example usage
 
@@ -123,9 +134,31 @@ Example GitHub Action workflow that passes all params to Jest Coverage Comment
     hide-comment: false
     create-new-comment: false
     hide-summary: false
+    junitxml-path: ./coverage/junit.xml
+    junitxml-title: Junit
 ```
 
-![image](https://user-images.githubusercontent.com/289035/159186957-2a6d756e-0402-499f-bef1-caf2873362cb.png)
+![image](https://user-images.githubusercontent.com/289035/159379926-82491965-3f06-4116-907f-8f34353c208f.png)
+
+Example GitHub Action workflow that generate Junit report from `junit.xml`
+
+- you should install `jest-junit` package, and add the following entry in your jest config `jest.config.js`:
+
+```json
+{
+  "reporters": ["default", "jest-junit"]
+}
+```
+
+- or you can provide it directly to `jest` like `jest --reporters=default --reporters=jest-junit`
+
+```yaml
+- name: Jest coverage comment
+  uses: MishaKav/jest-coverage-comment@main
+  with:
+    junitxml-path: ./junit.xml
+    junitxml-title: Junit
+```
 
 Example GitHub Action workflow that will update your `README.md` with coverage summary, only on merge to `main` branch
 All you need is to add in your `README.md` the following lines wherever you want.
