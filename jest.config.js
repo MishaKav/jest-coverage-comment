@@ -5,6 +5,13 @@ module.exports = {
   transform: {
     '^.+\\.ts$': 'ts-jest',
   },
+  collectCoverageFrom: ['src/**/*.ts'],
+  coveragePathIgnorePatterns: [
+    'src/cli.ts',
+    'src/types.d.ts',
+    'src/index.ts',
+    'src/create-comment.ts',
+  ],
   coverageReporters: [
     //   'clover',
     //   'json',
