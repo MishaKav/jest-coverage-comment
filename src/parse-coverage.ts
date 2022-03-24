@@ -74,3 +74,12 @@ export function parseCoverage(content: string): CoverageLine[] {
 
   return result
 }
+
+export const exportedForTesting = {
+  parseLine,
+  isHeaderLine,
+  isTotalLine,
+  isFileLine,
+  isFolderLine,
+  arrToLine,
+}

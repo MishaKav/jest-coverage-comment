@@ -1,13 +1,17 @@
-import rewire from 'rewire'
 import { expect, test, describe } from '@jest/globals'
-import { parseCoverage } from '../src/parse-coverage'
+import { parseCoverage, exportedForTesting } from '../src/parse-coverage'
 import { CoverageLine } from '../src/types'
-
-const coverage = rewire('../lib/parse-coverage')
+const {
+  parseLine,
+  isHeaderLine,
+  isTotalLine,
+  isFileLine,
+  isFolderLine,
+  arrToLine,
+} = exportedForTesting
 
 describe('check coverage parsing', () => {
   test('should parse string line to array', () => {
-    const parseLine = coverage.__get__('parseLine')
     const header = `File | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s`
     const line = `consts.ts | 0 | 100 | 100 | 0 | 1-3`
     const parsedLine = parseLine(line) as string[]
@@ -25,11 +29,6 @@ describe('check coverage parsing', () => {
   })
 
   test('should check right type for each line', () => {
-    const isHeaderLine = coverage.__get__('isHeaderLine')
-    const isTotalLine = coverage.__get__('isTotalLine')
-    const isFileLine = coverage.__get__('isFileLine')
-    const isFolderLine = coverage.__get__('isFolderLine')
-
     expect(isHeaderLine(['File', 'Stmts', 'Lines'])).toBeTruthy()
     expect(isHeaderLine(['100'])).toBeFalsy()
 
@@ -44,8 +43,6 @@ describe('check coverage parsing', () => {
   })
 
   test('should convert string line to CoverageLine', () => {
-    const arrToLine = coverage.__get__('arrToLine')
-
     const result = arrToLine([
       'consts.ts',
       '0',
@@ -65,8 +62,6 @@ describe('check coverage parsing', () => {
   })
 
   test('should not report uncoveredLines', () => {
-    const arrToLine = coverage.__get__('arrToLine')
-
     const result = arrToLine(['consts.ts', '0', '12.34', '100', '99', ''])
     expect(result).toHaveProperty('uncoveredLines', null)
   })
