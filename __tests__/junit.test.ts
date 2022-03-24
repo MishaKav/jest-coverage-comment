@@ -1,5 +1,5 @@
 import rewire from 'rewire'
-import { expect, test, describe, jest } from '@jest/globals'
+import { expect, test, describe } from '@jest/globals'
 import { getJunitReport } from '../src/junit'
 
 const junit = rewire('../lib/junit')
