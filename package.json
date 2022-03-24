@@ -25,7 +25,8 @@
     "lint": "eslint src/**/*.ts",
     "package": "ncc build --source-map --license licenses.txt",
     "test": "jest",
-    "test:coverage": "npm test -- --coverage | tee ./coverage/covergate.txt",
+    "test:coverage": "npm test -- --coverage",
+    "test:coverage:tee": "npm run test:coverage | tee ./coverage/covergate.txt",
     "all": "npm run build && npm run format && npm run lint && npm run package && npm test"
   },
   "dependencies": {

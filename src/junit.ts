@@ -98,3 +98,7 @@ export async function getJunitReport(options: Options): Promise<JunitReport> {
     time: 0,
   }
 }
+
+export const exportedForTesting = {
+  parseJunit,
+}
