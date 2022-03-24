@@ -133,3 +133,10 @@ export function getSummaryReport(options: Options): CoverageReport {
 
   return { summaryHtml: '', coverage: 0, color: 'red' }
 }
+
+export const exportedForTesting = {
+  getCoverage,
+  lineSumamryToTd,
+  parseSummary,
+  getCoverageColor,
+}

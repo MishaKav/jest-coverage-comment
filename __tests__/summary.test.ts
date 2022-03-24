@@ -1,13 +1,11 @@
-import rewire from 'rewire'
 import { expect, test, describe } from '@jest/globals'
-import { getSummaryReport } from '../src/summary'
-
-const summary = rewire('../lib/summary')
+import { getSummaryReport, exportedForTesting } from '../src/summary'
+const { getCoverage, lineSumamryToTd, parseSummary, getCoverageColor } =
+  exportedForTesting
 
 describe('coverage from summary', () => {
-  const getCoverage = summary.__get__('getCoverage')
-
   test('should extract coverage from summary', () => {
+    // @ts-ignore
     const coverage = getCoverage({ lines: { pct: 78.57 } })
 
     expect(coverage.color).toBe('yellow')
@@ -15,6 +13,7 @@ describe('coverage from summary', () => {
   })
 
   test('should return default coverage from summary', () => {
+    // @ts-ignore
     const coverage = getCoverage({})
 
     expect(coverage.color).toBe('red')
@@ -23,14 +22,14 @@ describe('coverage from summary', () => {
 })
 
 describe('summary to td', () => {
-  const lineSumamryToTd = summary.__get__('lineSumamryToTd')
-
   test('should parse summary to td', () => {
+    // @ts-ignore
     const line = lineSumamryToTd({ total: 42, covered: 33, pct: 78.57 })
     expect(line).toBe(`78.57% (33/42)`)
   })
 
   test('should return default sumamry to td', () => {
+    // @ts-ignore
     const red = lineSumamryToTd({})
     expect(red).toBe('')
   })
@@ -79,8 +78,6 @@ describe('parse summary', () => {
 })
 
 test('should parse summary', () => {
-  const parseSummary = summary.__get__('parseSummary')
-
   const line = { total: 42, covered: 33, skipped: 0, pct: 78.57 }
   const total = {
     lines: line,
@@ -95,8 +92,6 @@ test('should parse summary', () => {
 })
 
 test('should return right colors', () => {
-  const getCoverageColor = summary.__get__('getCoverageColor')
-
   expect(getCoverageColor(35)).toBe('red')
   expect(getCoverageColor(50)).toBe('orange')
   expect(getCoverageColor(70)).toBe('yellow')
