@@ -73,5 +73,5 @@ export interface CoverageLine {
   branch: number
   funcs: number
   lines: number
-  uncoveredLines: string[]
+  uncoveredLines: string[] | null
 }
