@@ -1,4 +1,5 @@
-import { expect, test, describe } from '@jest/globals'
+import * as core from '@actions/core'
+import { expect, test, describe, jest } from '@jest/globals'
 import { getSummaryReport, exportedForTesting } from '../src/summary'
 const { getCoverage, lineSumamryToTd, parseSummary, getCoverageColor } =
   exportedForTesting
@@ -77,18 +78,31 @@ describe('parse summary', () => {
   })
 })
 
-test('should parse summary', () => {
-  const line = { total: 42, covered: 33, skipped: 0, pct: 78.57 }
-  const total = {
-    lines: line,
-    statements: line,
-    functions: line,
-    branches: line,
-    branchesTrue: line,
-  }
-  const summaryString = JSON.stringify({ total })
-  const parsedSummary = parseSummary(summaryString)
-  expect(parsedSummary).toEqual(expect.objectContaining(total))
+describe('should parse summary', () => {
+  test('should parse summary', () => {
+    const line = { total: 42, covered: 33, skipped: 0, pct: 78.57 }
+    const total = {
+      lines: line,
+      statements: line,
+      functions: line,
+      branches: line,
+      branchesTrue: line,
+    }
+    const summaryString = JSON.stringify({ total })
+    const parsedSummary = parseSummary(summaryString)
+    expect(parsedSummary).toEqual(expect.objectContaining(total))
+  })
+
+  test('should throw error on parsing', () => {
+    const spy = jest.spyOn(core, 'error')
+    const parsedSummary = parseSummary('bad content')
+
+    expect(parsedSummary).toBeNull()
+    expect(spy).toHaveBeenCalledTimes(1)
+    expect(spy).toHaveBeenCalledWith(
+      `Parse summary report. Unexpected token b in JSON at position 0`
+    )
+  })
 })
 
 test('should return right colors', () => {
