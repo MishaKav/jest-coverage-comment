@@ -34,6 +34,7 @@ async function main(): Promise<void> {
   try {
     const summaryFile = './../data/coverage_1/coverage-summary.json'
     const junitFile = './../data/coverage_1/junit.xml'
+    const coverageFile = './../data/coverage_1/coverage.txt'
     const prefix = __dirname
 
     let finalHtml = ''
@@ -51,6 +52,8 @@ async function main(): Promise<void> {
       summaryTitle: '',
       junitFile: getPathToFile(junitFile),
       junitTitle: '',
+      coverageFile: getPathToFile(coverageFile),
+      coverageTitle: '',
       // covFile: getPathToFile(covFile),
       // xmlFile: getPathToFile(xmlFile),
       // defaultBranch: 'main',

@@ -55,6 +55,16 @@ inputs:
     default: ''
     required: false
 
+  coverage-path:
+    description: 'The location of the coverage.txt (jest console output)'
+    default: ''
+    required: false
+
+  coverage-title:
+    description: 'Title for the coverage report'
+    default: ''
+    required: false
+
 outputs:
   coverage:
     description: 'value indicating the coverage percentage of your report based on jest, example 78'

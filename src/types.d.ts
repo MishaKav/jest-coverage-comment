@@ -12,6 +12,8 @@ export interface Options {
   title?: string
   junitFile?: string
   junitTitle?: string
+  coverageFile?: string
+  coverageTitle?: string
   hideSummary?: boolean
   createNewComment?: boolean
   hideComment?: boolean
@@ -60,6 +62,16 @@ export interface Junit {
   errors: number
   time: number
 }
+
 export interface JunitReport extends Junit {
   junitHtml: string
+}
+
+export interface CoverageLine {
+  file: string
+  stmts: number
+  branch: number
+  funcs: number
+  lines: number
+  uncoveredLines: string[]
 }

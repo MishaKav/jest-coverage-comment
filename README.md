@@ -30,6 +30,8 @@ You can add this action to your GitHub workflow for Ubuntu runners (e.g. runs-on
 | `hide-comment`          |          | false                              | Hide the whole comment (use when you need only the `output`). Useful for auto-update bagdes in readme. |
 | `junitxml-path`         |          | ''                                 | The location of the junitxml path (npm package `jest-junit` should be installed)                       |
 | `junitxml-title`        |          | ''                                 | Title for summary for junitxml                                                                         |
+| `coverage-path`         |          | ''                                 | The location of the coverage.txt (jest console output)                                                 |
+| `coverage-title`        |          | ''                                 | Title for the coverage report                                                                          |
 
 ## Output Variables
 

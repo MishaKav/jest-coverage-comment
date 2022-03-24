@@ -21,6 +21,10 @@ async function main(): Promise<void> {
     const junitFile = core.getInput('junitxml-path', {
       required: false,
     })
+    const coverageTitle = core.getInput('coverage-title', { required: false })
+    const coverageFile = core.getInput('coverage-path', {
+      required: false,
+    })
     const createNewComment = core.getBooleanInput('create-new-comment', {
       required: false,
     })
@@ -45,6 +49,8 @@ async function main(): Promise<void> {
       summaryTitle,
       junitTitle,
       junitFile,
+      coverageTitle,
+      coverageFile,
       hideSummary,
       createNewComment,
       hideComment,
