@@ -1,7 +1,7 @@
 import * as core from '@actions/core'
 import { existsSync, readFileSync } from 'fs'
 
-function getPathToFile(pathToFile: string): string {
+export function getPathToFile(pathToFile: string): string {
   if (!pathToFile) {
     return ''
   }
