@@ -111,4 +111,5 @@ test('should return right colors', () => {
   expect(getCoverageColor(70)).toBe('yellow')
   expect(getCoverageColor(85)).toBe('green')
   expect(getCoverageColor(95)).toBe('brightgreen')
+  expect(getCoverageColor(-1)).toBe('red')
 })
