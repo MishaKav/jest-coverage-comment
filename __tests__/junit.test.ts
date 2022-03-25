@@ -1,4 +1,5 @@
-import { expect, test, describe } from '@jest/globals'
+import * as core from '@actions/core'
+import { expect, test, describe, jest } from '@jest/globals'
 import { getJunitReport, exportedForTesting } from '../src/junit'
 
 const { parseJunit } = exportedForTesting
@@ -25,10 +26,36 @@ describe('parsing junit', () => {
   })
 
   test('should return null when no content', async () => {
+    const spy = jest.spyOn(core, 'warning')
     // @ts-ignore
     const junit = await parseJunit(null)
 
     expect(junit).toBeNull()
+    expect(spy).toHaveBeenCalledTimes(1)
+    expect(spy).toHaveBeenCalledWith(`Junit xml was not prvided`)
+  })
+
+  test('should return null on not well formed files', async () => {
+    const spy = jest.spyOn(core, 'warning')
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>`
+    const junit = await parseJunit(xml)
+
+    expect(junit).toBeNull()
+    expect(spy).toHaveBeenCalledTimes(1)
+    expect(spy).toHaveBeenCalledWith(
+      `Junit xml file is not XML or not well formed`
+    )
+  })
+
+  test('should throw error on non XML files', async () => {
+    const spy = jest.spyOn(core, 'error')
+    const junit = await parseJunit('bad content')
+
+    expect(junit).toBeNull()
+    expect(spy).toHaveBeenCalledTimes(1)
+    expect(spy).toHaveBeenCalledWith(
+      `Parse junit report. Non-whitespace before first tag.\nLine: 0\nColumn: 1\nChar: b`
+    )
   })
 })
 
