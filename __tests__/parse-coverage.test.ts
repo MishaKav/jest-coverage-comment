@@ -90,6 +90,14 @@ Lines        : 78.57% ( 33/42 )
 `
     const result: CoverageLine[] = [
       {
+        file: 'All files',
+        stmts: 70.21,
+        branch: 100,
+        funcs: 28.57,
+        lines: 71.73,
+        uncoveredLines: null,
+      },
+      {
         file: 'src',
         stmts: 68.29,
         branch: 100,

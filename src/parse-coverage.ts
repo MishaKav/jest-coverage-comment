@@ -29,7 +29,7 @@ function isFileLine(arr: string[]): boolean {
 }
 
 function isFolderLine(arr: string[]): boolean {
-  return !isFileLine(arr) && !isTotalLine(arr) && !isHeaderLine(arr)
+  return !isFileLine(arr) && !isHeaderLine(arr)
 }
 
 export function parseCoverage(content: string): CoverageLine[] {

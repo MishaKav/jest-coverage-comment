@@ -8,7 +8,7 @@ import {
   beforeAll,
   afterAll,
 } from '@jest/globals'
-import { getContentFile, getPathToFile } from '../src/utils'
+import { getContentFile, getCoverageColor, getPathToFile } from '../src/utils'
 
 describe('should check all utils functions', () => {
   const GITHUB_WORKSPACE = process.cwd()
@@ -96,6 +96,20 @@ describe('should check all utils functions', () => {
       expect(spy).toHaveBeenCalledTimes(1)
       expect(content).toEqual(originalContent)
       expect(spy).toHaveBeenCalledWith(`File read successfully "${pathToFile}"`)
+    })
+  })
+
+  describe('should check colors', () => {
+    test('should return right colors', () => {
+      expect(getCoverageColor(35)).toBe('red')
+      expect(getCoverageColor(50)).toBe('orange')
+      expect(getCoverageColor(70)).toBe('yellow')
+      expect(getCoverageColor(85)).toBe('green')
+      expect(getCoverageColor(95)).toBe('brightgreen')
+    })
+
+    test('should return default color', () => {
+      expect(getCoverageColor(-1)).toBe('red')
     })
   })
 })
