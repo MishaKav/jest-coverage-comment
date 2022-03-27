@@ -2,6 +2,8 @@ import { expect, test, describe } from '@jest/globals'
 import {
   parseCoverage,
   getTotalLine,
+  isFile,
+  isFolder,
   exportedForTesting,
 } from '../src/parse-coverage'
 import { CoverageLine } from '../src/types'
@@ -67,6 +69,22 @@ describe('check coverage parsing', () => {
     ]
     const result = getTotalLine(coverageArr)
     expect(result).toMatchObject(coverageArr[0])
+  })
+
+  test('should check right type for folder', () => {
+    // @ts-ignore
+    expect(isFolder({ file: 'some-folder' })).toBeTruthy()
+
+    //@ts-ignore
+    expect(isFolder({ file: 'some-file.js' })).toBeFalsy()
+  })
+
+  test('should check right type for file', () => {
+    // @ts-ignore
+    expect(isFile({ file: 'some-folder' })).toBeFalsy()
+
+    //@ts-ignore
+    expect(isFile({ file: 'some-file.js' })).toBeTruthy()
   })
 
   test('should return undefined on missing total line', () => {

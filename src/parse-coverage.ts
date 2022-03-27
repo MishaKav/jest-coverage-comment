@@ -38,6 +38,14 @@ export function getTotalLine(
   return coverageArr.find((c) => c.file === 'All files')
 }
 
+export function isFile(line: CoverageLine): boolean {
+  return line?.file.includes('.')
+}
+
+export function isFolder(line: CoverageLine): boolean {
+  return !isFile(line)
+}
+
 export function parseCoverage(content: string): CoverageLine[] {
   const arr = content.split('\n')
   const result: CoverageLine[] = []
