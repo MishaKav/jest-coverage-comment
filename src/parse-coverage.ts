@@ -65,11 +65,11 @@ export function parseCoverage(content: string): CoverageLine[] {
     }
 
     const parsedLine = parseLine(line)
-    const isFolder = isFolderLine(parsedLine)
-    const isFile = isFileLine(parsedLine)
+    const isCurrentFolder = isFolderLine(parsedLine)
+    const isCurrentFile = isFileLine(parsedLine)
     const [fileName] = parsedLine
 
-    if (isFolder) {
+    if (isCurrentFolder) {
       if (folders.length) {
         folders.pop()
       }
@@ -77,11 +77,11 @@ export function parseCoverage(content: string): CoverageLine[] {
       folders.push(fileName)
     }
 
-    if (!isFolder && folders.length) {
+    if (!isCurrentFolder && folders.length) {
       parsedLine[0] = `${folders.at(-1)}/${parsedLine.at(0)}`
     }
 
-    if (isFolder || isFile) {
+    if (isCurrentFolder || isCurrentFile) {
       result.push(arrToLine(parsedLine))
     }
   }
