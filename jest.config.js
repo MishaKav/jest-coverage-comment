@@ -15,6 +15,7 @@ module.exports = {
   coverageReporters: [
     //   'clover',
     //   'json',
+    'html',
     'json-summary',
     'text',
     'text-summary',
