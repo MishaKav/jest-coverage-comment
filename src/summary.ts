@@ -1,7 +1,7 @@
 import * as core from '@actions/core'
 import {
   CoverageColor,
-  CoverageReport,
+  SummaryReport,
   LineSummary,
   Options,
   Summary,
@@ -98,7 +98,7 @@ function getCoverageColor(percentage: number): CoverageColor {
 }
 
 // get coverage and color from summary
-function getCoverage(summary: Summary): Omit<CoverageReport, 'summaryHtml'> {
+function getCoverage(summary: Summary): Omit<SummaryReport, 'summaryHtml'> {
   if (!summary?.lines) {
     return { coverage: 0, color: 'red' }
   }
@@ -112,7 +112,7 @@ function getCoverage(summary: Summary): Omit<CoverageReport, 'summaryHtml'> {
 }
 
 // return full html coverage report and coverage percenatge
-export function getSummaryReport(options: Options): CoverageReport {
+export function getSummaryReport(options: Options): SummaryReport {
   const { summaryFile } = options
 
   try {

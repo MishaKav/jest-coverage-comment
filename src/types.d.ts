@@ -49,7 +49,7 @@ export type CoverageColor =
   | 'green'
   | 'brightgreen'
 
-export interface CoverageReport {
+export interface SummaryReport {
   summaryHtml: string
   coverage: number
   color: CoverageColor
@@ -74,4 +74,10 @@ export interface CoverageLine {
   funcs: number
   lines: number
   uncoveredLines: string[] | null
+}
+
+export interface CoverageReport {
+  coverageHtml: string
+  coverage: number
+  color: CoverageColor
 }
