@@ -1,5 +1,9 @@
 import { expect, test, describe } from '@jest/globals'
-import { parseCoverage, exportedForTesting } from '../src/parse-coverage'
+import {
+  parseCoverage,
+  getTotalLine,
+  exportedForTesting,
+} from '../src/parse-coverage'
 import { CoverageLine } from '../src/types'
 const {
   parseLine,
@@ -40,6 +44,44 @@ describe('check coverage parsing', () => {
 
     expect(isFolderLine(['some-folder'])).toBeTruthy()
     expect(isFolderLine(['some-file.js'])).toBeFalsy()
+  })
+
+  test('should find total line', () => {
+    const coverageArr = [
+      {
+        file: 'All files',
+        stmts: 70.21,
+        branch: 100,
+        funcs: 28.57,
+        lines: 71.73,
+        uncoveredLines: null,
+      },
+      {
+        file: 'src/controller.js',
+        stmts: 46.66,
+        branch: 100,
+        funcs: 33.33,
+        lines: 46.66,
+        uncoveredLines: ['5-9', '23-27'],
+      },
+    ]
+    const result = getTotalLine(coverageArr)
+    expect(result).toMatchObject(coverageArr[0])
+  })
+
+  test('should return undefined on missing total line', () => {
+    const coverageArr = [
+      {
+        file: 'src/controller.js',
+        stmts: 46.66,
+        branch: 100,
+        funcs: 33.33,
+        lines: 46.66,
+        uncoveredLines: ['5-9', '23-27'],
+      },
+    ]
+    const result = getTotalLine(coverageArr)
+    expect(result).toBeUndefined()
   })
 
   test('should convert string line to CoverageLine', () => {

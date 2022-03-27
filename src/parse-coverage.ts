@@ -32,6 +32,12 @@ function isFolderLine(arr: string[]): boolean {
   return !isFileLine(arr) && !isHeaderLine(arr)
 }
 
+export function getTotalLine(
+  coverageArr: CoverageLine[]
+): CoverageLine | undefined {
+  return coverageArr.find((c) => c.file === 'All files')
+}
+
 export function parseCoverage(content: string): CoverageLine[] {
   const arr = content.split('\n')
   const result: CoverageLine[] = []
