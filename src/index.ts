@@ -25,6 +25,9 @@ async function main(): Promise<void> {
     const coverageFile = core.getInput('coverage-path', {
       required: false,
     })
+    const coveragePathPrefix = core.getInput('coverage-path-prefix', {
+      required: false,
+    })
     const createNewComment = core.getBooleanInput('create-new-comment', {
       required: false,
     })
@@ -51,6 +54,7 @@ async function main(): Promise<void> {
       junitFile,
       coverageTitle,
       coverageFile,
+      coveragePathPrefix,
       hideSummary,
       createNewComment,
       hideComment,

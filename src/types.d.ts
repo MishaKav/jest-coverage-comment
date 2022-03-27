@@ -14,6 +14,7 @@ export interface Options {
   junitTitle?: string
   coverageFile?: string
   coverageTitle?: string
+  coveragePathPrefix?: string
   hideSummary?: boolean
   createNewComment?: boolean
   hideComment?: boolean

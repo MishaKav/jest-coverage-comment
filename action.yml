@@ -65,6 +65,11 @@ inputs:
     default: ''
     required: false
 
+  coverage-path-prefix:
+    description: 'Prefix for path when link to files in comment'
+    default: ''
+    required: false
+
 outputs:
   coverage:
     description: 'value indicating the coverage percentage of your report based on jest, example 78'
