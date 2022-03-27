@@ -81,4 +81,8 @@ export interface CoverageReport {
   coverageHtml: string
   coverage: number
   color: CoverageColor
+  branches: number
+  functions: number
+  lines: number
+  statements: number
 }

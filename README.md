@@ -33,6 +33,7 @@ You can add this action to your GitHub workflow for Ubuntu runners (e.g. runs-on
 | `coverage-path`         |          | ''                                 | The location of the coverage.txt (jest console output)                                                 |
 | `coverage-title`        |          | 'Coverage Report'                  | Title for the coverage report                                                                          |
 | `coverage-path-prefix`  |          | ''                                 | Prefix for path when link to files in comment                                                          |
+| `coverage-path-prefix`  |          | ''                                 | Prefix for path when link to files in comment                                                          |
 
 ## Output Variables
 
@@ -46,6 +47,10 @@ You can add this action to your GitHub workflow for Ubuntu runners (e.g. runs-on
 | `failures`    | 0       | Total number of tests with failures, get from `junitxml`                              |
 | `errors`      | 0       | Total number of tests with errors, get from `junitxml`                                |
 | `time`        | 2.883   | Seconds the took to run all the tests, get from `junitxml`                            |
+| `lines`       | 71      | Lines covered, get from jest text report                                              |
+| `branches`    | 100     | Branches covered, get from jest text report                                           |
+| `functions`   | 28      | Functions covered, get from jest text report                                          |
+| `statements`  | 100     | Statements covered, get from jest text report                                         |
 
 ## Output example
 
