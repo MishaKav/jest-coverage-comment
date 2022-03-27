@@ -31,7 +31,7 @@ You can add this action to your GitHub workflow for Ubuntu runners (e.g. runs-on
 | `junitxml-path`         |          | ''                                 | The location of the junitxml path (npm package `jest-junit` should be installed)                       |
 | `junitxml-title`        |          | ''                                 | Title for summary for junitxml                                                                         |
 | `coverage-path`         |          | ''                                 | The location of the coverage.txt (jest console output)                                                 |
-| `coverage-title`        |          | ''                                 | Title for the coverage report                                                                          |
+| `coverage-title`        |          | 'Coverage Report'                  | Title for the coverage report                                                                          |
 | `coverage-path-prefix`  |          | ''                                 | Prefix for path when link to files in comment                                                          |
 
 ## Output Variables

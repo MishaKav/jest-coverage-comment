@@ -62,7 +62,7 @@ inputs:
 
   coverage-title:
     description: 'Title for the coverage report'
-    default: ''
+    default: 'Coverage Report'
     required: false
 
   coverage-path-prefix:
