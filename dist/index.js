@@ -1,149 +1,6 @@
 require('./sourcemap-register.js');/******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
-/***/ 6503:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getChangedFiles = void 0;
-const core = __importStar(__nccwpck_require__(2186));
-const github_1 = __nccwpck_require__(5438);
-const types_d_1 = __nccwpck_require__(5778);
-// generate object of all files that changed based on commit through Github API
-function getChangedFiles(options) {
-    var _a, _b;
-    return __awaiter(this, void 0, void 0, function* () {
-        const all = [], added = [], modified = [], removed = [], renamed = [], addedModified = [];
-        try {
-            const { eventName, payload } = github_1.context;
-            const { repo, owner } = github_1.context.repo;
-            const octokit = (0, github_1.getOctokit)(options.token);
-            // Define the base and head commits to be extracted from the payload
-            let base, head;
-            switch (eventName) {
-                case 'pull_request':
-                    base = (_a = payload.pull_request) === null || _a === void 0 ? void 0 : _a.base.sha;
-                    head = (_b = payload.pull_request) === null || _b === void 0 ? void 0 : _b.head.sha;
-                    break;
-                case 'push':
-                    base = payload.before;
-                    head = payload.after;
-                    break;
-                default:
-                    core.setFailed(`This action only supports pull requests and pushes, ${eventName} events are not supported. ` +
-                        "Please submit an issue on this action's GitHub repo if you believe this in correct.");
-            }
-            core.startGroup('Changed files');
-            // Log the base and head commits
-            core.info(`Base commit: ${base}`);
-            core.info(`Head commit: ${head}`);
-            // Use GitHub's compare two commits API.
-            // https://developer.github.com/v3/repos/commits/#compare-two-commits
-            const response = yield octokit.rest.repos.compareCommits({
-                base,
-                head,
-                owner,
-                repo,
-            });
-            // Ensure that the request was successful.
-            if (response.status !== 200) {
-                core.setFailed(`The GitHub API for comparing the base and head commits for this ${eventName} event returned ${response.status}, expected 200. ` +
-                    "Please submit an issue on this action's GitHub repo.");
-            }
-            // Ensure that the head commit is ahead of the base commit.
-            if (response.data.status !== 'ahead') {
-                core.setFailed(`The head commit for this ${eventName} event is not ahead of the base commit. ` +
-                    "Please submit an issue on this action's GitHub repo.");
-            }
-            // Get the changed files from the response payload.
-            const files = response.data.files;
-            if (files === null || files === void 0 ? void 0 : files.length) {
-                for (const file of files) {
-                    const { filename: filenameOriginal, status } = file;
-                    const filename = filenameOriginal.replace(options.coveragePathPrefix || '', '');
-                    all.push(filename);
-                    switch (status) {
-                        case types_d_1.FILE_STATUSES.ADDED:
-                            added.push(filename);
-                            addedModified.push(filename);
-                            break;
-                        case types_d_1.FILE_STATUSES.MODIFIED:
-                            modified.push(filename);
-                            addedModified.push(filename);
-                            break;
-                        case types_d_1.FILE_STATUSES.REMOVED:
-                            removed.push(filename);
-                            break;
-                        case types_d_1.FILE_STATUSES.RENAMED:
-                            renamed.push(filename);
-                            break;
-                        default:
-                            core.setFailed(`One of your files includes an unsupported file status '${status}', expected ${Object.values(types_d_1.FILE_STATUSES).join(',')}.`);
-                    }
-                }
-            }
-            core.info(`All: ${all.join(',')}`);
-            core.info(`Added: ${added.join(', ')}`);
-            core.info(`Modified: ${modified.join(', ')}`);
-            core.info(`Removed: ${removed.join(', ')}`);
-            core.info(`Renamed: ${renamed.join(', ')}`);
-            core.info(`Added or modified: ${addedModified.join(', ')}`);
-            core.endGroup();
-        }
-        catch (error) {
-            if (error instanceof Error) {
-                core.setFailed(error.message);
-            }
-        }
-        return {
-            all,
-            [types_d_1.FILE_STATUSES.ADDED]: added,
-            [types_d_1.FILE_STATUSES.MODIFIED]: modified,
-            [types_d_1.FILE_STATUSES.REMOVED]: removed,
-            [types_d_1.FILE_STATUSES.RENAMED]: renamed,
-            addedOrModified: addedModified,
-        };
-    });
-}
-exports.getChangedFiles = getChangedFiles;
-
-
-/***/ }),
-
 /***/ 4831:
 /***/ ((__unused_webpack_module, exports) => {
 
@@ -491,7 +348,7 @@ const create_comment_1 = __nccwpck_require__(5192);
 const junit_1 = __nccwpck_require__(2876);
 const coverage_1 = __nccwpck_require__(5730);
 const summary_1 = __nccwpck_require__(8608);
-const changed_files_1 = __nccwpck_require__(6503);
+// import { getChangedFiles } from './changed-files'
 function main() {
     var _a, _b, _c;
     return __awaiter(this, void 0, void 0, function* () {
@@ -557,10 +414,10 @@ function main() {
                 options.commit = payload.after;
                 options.head = github_1.context.ref;
             }
-            if (options.reportOnlyChangedFiles) {
-                const changedFiles = yield (0, changed_files_1.getChangedFiles)(options);
-                options.changedFiles = changedFiles;
-            }
+            // if (options.reportOnlyChangedFiles) {
+            //   const changedFiles = await getChangedFiles(options)
+            //   options.changedFiles = changedFiles
+            // }
             const report = (0, summary_1.getSummaryReport)(options);
             const { coverage, color, summaryHtml } = report;
             // if (summaryHtml.length > MAX_COMMENT_LENGTH) {
@@ -15958,14 +15815,6 @@ function wrappy (fn, cb) {
   module.exports.writerState = WriterState;
 
 }).call(this);
-
-
-/***/ }),
-
-/***/ 5778:
-/***/ ((module) => {
-
-module.exports = eval("require")("./types.d");
 
 
 /***/ }),
