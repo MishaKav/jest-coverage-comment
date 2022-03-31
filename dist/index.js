@@ -174,6 +174,13 @@ function main() {
             const junitFile = core.getInput('junitxml-path', {
                 required: false,
             });
+            const coverageTitle = core.getInput('coverage-title', { required: false });
+            const coverageFile = core.getInput('coverage-path', {
+                required: false,
+            });
+            const coveragePathPrefix = core.getInput('coverage-path-prefix', {
+                required: false,
+            });
             const createNewComment = core.getBooleanInput('create-new-comment', {
                 required: false,
             });
@@ -196,6 +203,9 @@ function main() {
                 summaryTitle,
                 junitTitle,
                 junitFile,
+                coverageTitle,
+                coverageFile,
+                coveragePathPrefix,
                 hideSummary,
                 createNewComment,
                 hideComment,
@@ -313,7 +323,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getJunitReport = void 0;
+exports.exportedForTesting = exports.getJunitReport = void 0;
 /* eslint-disable  @typescript-eslint/no-explicit-any */
 const core = __importStar(__nccwpck_require__(2186));
 const xml2js = __importStar(__nccwpck_require__(6189));
@@ -403,6 +413,9 @@ function getJunitReport(options) {
     });
 }
 exports.getJunitReport = getJunitReport;
+exports.exportedForTesting = {
+    parseJunit,
+};
 
 
 /***/ }),
@@ -436,7 +449,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getSummaryReport = void 0;
+exports.exportedForTesting = exports.getSummaryReport = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const utils_1 = __nccwpck_require__(918);
 // parse coverage-summary.json to Sumamry object
@@ -485,41 +498,13 @@ ${table}`;
     }
     return table;
 }
-// get coverage color
-function getCoverageColor(percentage) {
-    // https://shields.io/category/coverage
-    const rangeColors = [
-        {
-            color: 'red',
-            range: [0, 40],
-        },
-        {
-            color: 'orange',
-            range: [40, 60],
-        },
-        {
-            color: 'yellow',
-            range: [60, 80],
-        },
-        {
-            color: 'green',
-            range: [80, 90],
-        },
-        {
-            color: 'brightgreen',
-            range: [90, 101],
-        },
-    ];
-    const { color } = rangeColors.find(({ range: [min, max] }) => percentage >= min && percentage < max) || rangeColors[0];
-    return color;
-}
 // get coverage and color from summary
 function getCoverage(summary) {
     if (!(summary === null || summary === void 0 ? void 0 : summary.lines)) {
         return { coverage: 0, color: 'red' };
     }
     const { lines } = summary;
-    const color = getCoverageColor(lines.pct);
+    const color = (0, utils_1.getCoverageColor)(lines.pct);
     const coverage = parseInt(lines.pct.toString());
     return { color, coverage };
 }
@@ -543,6 +528,12 @@ function getSummaryReport(options) {
     return { summaryHtml: '', coverage: 0, color: 'red' };
 }
 exports.getSummaryReport = getSummaryReport;
+exports.exportedForTesting = {
+    getCoverage,
+    lineSumamryToTd,
+    parseSummary,
+    getCoverageColor: utils_1.getCoverageColor,
+};
 
 
 /***/ }),
@@ -576,7 +567,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getContentFile = void 0;
+exports.getCoverageColor = exports.getContentFile = exports.getPathToFile = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const fs_1 = __nccwpck_require__(7147);
 function getPathToFile(pathToFile) {
@@ -588,6 +579,7 @@ function getPathToFile(pathToFile) {
         ? pathToFile
         : `${process.env.GITHUB_WORKSPACE}/${pathToFile}`;
 }
+exports.getPathToFile = getPathToFile;
 function getContentFile(pathToFile) {
     if (!pathToFile) {
         core.warning(`Path to file was not provided`);
@@ -608,6 +600,35 @@ function getContentFile(pathToFile) {
     return content;
 }
 exports.getContentFile = getContentFile;
+// get coverage color from percentage
+function getCoverageColor(percentage) {
+    // https://shields.io/category/coverage
+    const rangeColors = [
+        {
+            color: 'red',
+            range: [0, 40],
+        },
+        {
+            color: 'orange',
+            range: [40, 60],
+        },
+        {
+            color: 'yellow',
+            range: [60, 80],
+        },
+        {
+            color: 'green',
+            range: [80, 90],
+        },
+        {
+            color: 'brightgreen',
+            range: [90, 101],
+        },
+    ];
+    const { color } = rangeColors.find(({ range: [min, max] }) => percentage >= min && percentage < max) || rangeColors[0];
+    return color;
+}
+exports.getCoverageColor = getCoverageColor;
 
 
 /***/ }),
