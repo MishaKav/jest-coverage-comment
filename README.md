@@ -33,24 +33,24 @@ You can add this action to your GitHub workflow for Ubuntu runners (e.g. runs-on
 | `coverage-path`         |          | ''                                 | The location of the coverage.txt (jest console output)                                                 |
 | `coverage-title`        |          | 'Coverage Report'                  | Title for the coverage report                                                                          |
 | `coverage-path-prefix`  |          | ''                                 | Prefix for path when link to files in comment                                                          |
-| `coverage-path-prefix`  |          | ''                                 | Prefix for path when link to files in comment                                                          |
 
 ## Output Variables
 
-| Name          | Example | Description                                                                           |
-| ------------- | ------- | ------------------------------------------------------------------------------------- |
-| `coverage`    | 78      | Percentage of the coverage, get from `coverage-summary.json`                          |
-| `color`       | yellow  | Color of the percentage. You can see the whole list of [badge colors](#badges-colors) |
-| `summaryHtml` | ...     | Markdown table with coverage summary. See the [output-example](#output-example)       |
-| `tests`       | 9       | Total number of tests, get from `junitxml`                                            |
-| `skipped`     | 0       | Total number of skipped tests, get from `junitxml`                                    |
-| `failures`    | 0       | Total number of tests with failures, get from `junitxml`                              |
-| `errors`      | 0       | Total number of tests with errors, get from `junitxml`                                |
-| `time`        | 2.883   | Seconds the took to run all the tests, get from `junitxml`                            |
-| `lines`       | 71      | Lines covered, get from jest text report                                              |
-| `branches`    | 100     | Branches covered, get from jest text report                                           |
-| `functions`   | 28      | Functions covered, get from jest text report                                          |
-| `statements`  | 100     | Statements covered, get from jest text report                                         |
+| Name           | Example | Description                                                                           |
+| -------------- | ------- | ------------------------------------------------------------------------------------- |
+| `coverage`     | 78      | Percentage of the coverage, get from `coverage-summary.json`                          |
+| `color`        | yellow  | Color of the percentage. You can see the whole list of [badge colors](#badges-colors) |
+| `summaryHtml`  | ...     | Markdown table with summary. See the [output-example](#output-example)                |
+| `tests`        | 9       | Total number of tests, get from `junitxml`                                            |
+| `skipped`      | 0       | Total number of skipped tests, get from `junitxml`                                    |
+| `failures`     | 0       | Total number of tests with failures, get from `junitxml`                              |
+| `errors`       | 0       | Total number of tests with errors, get from `junitxml`                                |
+| `time`         | 2.883   | Seconds the took to run all the tests, get from `junitxml`                            |
+| `lines`        | 71      | Lines covered, get from jest text report                                              |
+| `branches`     | 100     | Branches covered, get from jest text report                                           |
+| `functions`    | 28      | Functions covered, get from jest text report                                          |
+| `statements`   | 100     | Statements covered, get from jest text report                                         |
+| `coverageHtml` | ...     | Markdown table with coverage summary. See the [output-example](#output-example)       |
 
 ## Output example
 
