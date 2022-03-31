@@ -18,14 +18,24 @@ export interface Options {
   hideSummary?: boolean
   createNewComment?: boolean
   hideComment?: boolean
-  // pathPrefix: string
-  // covFile: string
-  // xmlFile: string
-  // hideBadge: boolean
-  // reportOnlyChangedFiles: boolean
-  // defaultBranch: string
-  // xmlTitle: string
-  // multipleFiles: string[]
+  reportOnlyChangedFiles?: boolean
+  changedFiles?: ChangedFiles
+}
+
+// eslint-disable-next-line no-shadow
+export enum FILE_STATUSES {
+  ADDED = 'added',
+  MODIFIED = 'modified',
+  REMOVED = 'removed',
+  RENAMED = 'renamed',
+}
+export type ChangedFiles = {
+  all: string[]
+  [FILE_STATUSES.ADDED]?: string[]
+  [FILE_STATUSES.MODIFIED]?: string[]
+  [FILE_STATUSES.REMOVED]?: string[]
+  [FILE_STATUSES.RENAMED]?: string[]
+  addedOrModified?: string[]
 }
 
 export interface LineSummary {
