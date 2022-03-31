@@ -54,13 +54,23 @@ You can add this action to your GitHub workflow for Ubuntu runners (e.g. runs-on
 
 ## Output example
 
-| Lines                                                                                                                                                                                                                    | Statements     | Branches     | Functions  |
-| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------- | ------------ | ---------- |
-| <a href="https://github.com/MishaKav/api-testing-example/blob/8e4041e07d7b5639c06bf245637abb6a55f3a694/README.md"><img alt="Jest Coverage" src="https://img.shields.io/badge/Jest Coverage-78%25-yellow.svg" /></a><br/> | 76.74% (33/43) | 33.33% (2/6) | 100% (0/0) |
+<!-- Jest Coverage Comment: jest-coverage-comment -->
+
+# My Jest Coverage Comment
+
+## My Summary Title
+
+| Lines                                                                                                                                                                                                               | Statements     | Branches     | Functions  |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------- | ------------ | ---------- |
+| <a href="https://github.com/MishaKav/api-testing-example/blob/725508e4be6d3bc9d49fa611bd9fba96d5374a13/README.md"><img alt="Coverage: 78%" src="https://img.shields.io/badge/Coverage-78%25-yellow.svg" /></a><br/> | 76.74% (33/43) | 33.33% (2/6) | 100% (0/0) |
+
+## My Junit Title
 
 | Tests | Skipped | Failures | Errors   | Time               |
 | ----- | ------- | -------- | -------- | ------------------ |
-| 9     | 0 :zzz: | 0 :x:    | 0 :fire: | 2.709s :stopwatch: |
+| 6     | 0 :zzz: | 0 :x:    | 0 :fire: | 1.032s :stopwatch: |
+
+<details><summary>My Coverage Title (<b>78%</b>)</summary><table><tr><th>File</th><th>% Stmts</th><th>% Branch</th><th>% Funcs</th><th>% Lines</th><th>Uncovered Line #s</th></tr><tbody><tr><td><b>All files</b></td><td><b>76.74</b></td><td><b>100</b></td><td><b>33.33</b></td><td><b>78.57</b></td><td>&nbsp;</td></tr><tr><td>src</td><td>75.67</td><td>100</td><td>40</td><td>75.67</td><td>&nbsp;</td></tr><tr><td>&nbsp; &nbsp;<a href="https://github.com/MishaKav/api-testing-example/blob/725508e4be6d3bc9d49fa611bd9fba96d5374a13/src/controller.js">controller.js</a></td><td>63.63</td><td>100</td><td>50</td><td>63.63</td><td><a href="https://github.com/MishaKav/api-testing-example/blob/725508e4be6d3bc9d49fa611bd9fba96d5374a13/src/controller.js#L14-L18">14&ndash;18</a></td></tr><tr><td>&nbsp; &nbsp;<a href="https://github.com/MishaKav/api-testing-example/blob/725508e4be6d3bc9d49fa611bd9fba96d5374a13/src/index.js">index.js</a></td><td>85.71</td><td>100</td><td>0</td><td>85.71</td><td><a href="https://github.com/MishaKav/api-testing-example/blob/725508e4be6d3bc9d49fa611bd9fba96d5374a13/src/index.js#L9">9</a></td></tr><tr><td>&nbsp; &nbsp;<a href="https://github.com/MishaKav/api-testing-example/blob/725508e4be6d3bc9d49fa611bd9fba96d5374a13/src/router.js">router.js</a></td><td>100</td><td>100</td><td>100</td><td>100</td><td>&nbsp;</td></tr><tr><td>&nbsp; &nbsp;<a href="https://github.com/MishaKav/api-testing-example/blob/725508e4be6d3bc9d49fa611bd9fba96d5374a13/src/service.js">service.js</a></td><td>69.23</td><td>100</td><td>50</td><td>69.23</td><td><a href="https://github.com/MishaKav/api-testing-example/blob/725508e4be6d3bc9d49fa611bd9fba96d5374a13/src/service.js#L16-L20">16&ndash;20</a></td></tr><tr><td>src/utils</td><td>83.33</td><td>100</td><td>0</td><td>100</td><td>&nbsp;</td></tr><tr><td>&nbsp; &nbsp;<a href="https://github.com/MishaKav/api-testing-example/blob/725508e4be6d3bc9d49fa611bd9fba96d5374a13/src/utils/config.js">config.js</a></td><td>100</td><td>100</td><td>100</td><td>100</td><td>&nbsp;</td></tr><tr><td>&nbsp; &nbsp;<a href="https://github.com/MishaKav/api-testing-example/blob/725508e4be6d3bc9d49fa611bd9fba96d5374a13/src/utils/utils.js">utils.js</a></td><td>75</td><td>100</td><td>0</td><td>100</td><td>&nbsp;</td></tr></tbody></table></details>
 
 ## Example usage
 
@@ -136,17 +146,19 @@ Example GitHub Action workflow that passes all params to Jest Coverage Comment
   uses: MishaKav/jest-coverage-comment@main
   with:
     coverage-summary-path: ./coverage/coverage-summary.json
-    title: Jest Coverage Comment
-    summary-title: Summary
-    badge-title: Jest Coverage
+    title: My Jest Coverage Comment
+    summary-title: My Summary Title
+    badge-title: Coverage
     hide-comment: false
     create-new-comment: false
     hide-summary: false
+    junitxml-title: My Junit Title
     junitxml-path: ./coverage/junit.xml
-    junitxml-title: Junit
+    coverage-title: My Coverage Title
+    coverage-path: ./coverage.txt
 ```
 
-![image](https://user-images.githubusercontent.com/289035/159379926-82491965-3f06-4116-907f-8f34353c208f.png)
+![image](https://user-images.githubusercontent.com/289035/161066760-40876696-c2cc-432a-9a7c-0952239941f3.png)
 
 Example GitHub Action workflow that generate Junit report from `junit.xml`
 
@@ -166,6 +178,58 @@ Example GitHub Action workflow that generate Junit report from `junit.xml`
   with:
     junitxml-path: ./junit.xml
     junitxml-title: Junit
+```
+
+### Summary Report
+
+Generated from `json-summary`
+
+![image](https://user-images.githubusercontent.com/289035/161067781-b162f85f-5ff4-4e00-b0f9-e487b3a10f9f.png)
+
+```yaml
+- name: Run tests
+  run: |
+    npx jest --coverage --reporters=default --reporters=jest-junit'
+
+- name: Jest coverage comment
+  uses: MishaKav/jest-coverage-comment@main
+  with:
+    coverage-summary-path: ./coverage/coverage-summary.json
+```
+
+### Coverage Report
+
+Generated from jest output by writing the output to file `| tee ./coverage.txt`
+The nice thing, is that will link all your files inside that commit and ability to click by missing lines and go inside file directly to missing lines
+
+![image](https://user-images.githubusercontent.com/289035/161068864-25d8878a-2c82-4f83-b7dc-70a5a955b877.png)
+
+```yaml
+- name: Run tests
+  run: |
+    npx jest --coverage | tee ./coverage.txt
+
+- name: Jest coverage comment
+  uses: MishaKav/jest-coverage-comment@main
+  with:
+    coverage-path: ./coverage.txt
+```
+
+### Junit Report
+
+Generated from `junit.xml` by [jest-junit](https://www.npmjs.com/package/jest-junit)
+
+![image](https://user-images.githubusercontent.com/289035/161068120-303b47a9-c8e2-4fa6-80db-21aefbf9033b.png)
+
+```yaml
+- name: Run tests
+  run: |
+    npx jest --coverage --config='{ "coverageReporters": ["json-summary"] }'
+
+- name: Jest coverage comment
+  uses: MishaKav/jest-coverage-comment@main
+  with:
+    junitxml-path: ./junit.xml
 ```
 
 Example GitHub Action workflow that will update your `README.md` with coverage summary, only on merge to `main` branch
