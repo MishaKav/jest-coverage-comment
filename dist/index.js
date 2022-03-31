@@ -1,7 +1,7 @@
 require('./sourcemap-register.js');/******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
-/***/ 7358:
+/***/ 6503:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -491,7 +491,7 @@ const create_comment_1 = __nccwpck_require__(5192);
 const junit_1 = __nccwpck_require__(2876);
 const coverage_1 = __nccwpck_require__(5730);
 const summary_1 = __nccwpck_require__(8608);
-const changedFiles_1 = __nccwpck_require__(7358);
+const changed_files_1 = __nccwpck_require__(6503);
 function main() {
     var _a, _b, _c;
     return __awaiter(this, void 0, void 0, function* () {
@@ -558,7 +558,7 @@ function main() {
                 options.head = github_1.context.ref;
             }
             if (options.reportOnlyChangedFiles) {
-                const changedFiles = yield (0, changedFiles_1.getChangedFiles)(options);
+                const changedFiles = yield (0, changed_files_1.getChangedFiles)(options);
                 options.changedFiles = changedFiles;
             }
             const report = (0, summary_1.getSummaryReport)(options);

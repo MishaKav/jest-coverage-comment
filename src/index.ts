@@ -5,7 +5,7 @@ import { createComment } from './create-comment'
 import { getJunitReport } from './junit'
 import { getCoverageReport } from './coverage'
 import { getSummaryReport } from './summary'
-import { getChangedFiles } from './changedFiles'
+import { getChangedFiles } from './changed-files'
 
 async function main(): Promise<void> {
   try {
