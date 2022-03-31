@@ -1,6 +1,6 @@
 import * as core from '@actions/core'
 import { context, getOctokit } from '@actions/github'
-import { FILE_STATUSES, ChangedFiles, Options } from './types.d'
+import { ChangedFiles, Options } from './types.d'
 
 // generate object of all files that changed based on commit through Github API
 export async function getChangedFiles(options: Options): Promise<ChangedFiles> {
@@ -9,7 +9,7 @@ export async function getChangedFiles(options: Options): Promise<ChangedFiles> {
     modified = [],
     removed = [],
     renamed = [],
-    addedModified = []
+    addedOrModified = []
 
   try {
     const { eventName, payload } = context
@@ -79,25 +79,23 @@ export async function getChangedFiles(options: Options): Promise<ChangedFiles> {
         all.push(filename)
 
         switch (status) {
-          case FILE_STATUSES.ADDED:
+          case 'added':
             added.push(filename)
-            addedModified.push(filename)
+            addedOrModified.push(filename)
             break
-          case FILE_STATUSES.MODIFIED:
+          case 'modified':
             modified.push(filename)
-            addedModified.push(filename)
+            addedOrModified.push(filename)
             break
-          case FILE_STATUSES.REMOVED:
+          case 'removed':
             removed.push(filename)
             break
-          case FILE_STATUSES.RENAMED:
+          case 'renamed':
             renamed.push(filename)
             break
           default:
             core.setFailed(
-              `One of your files includes an unsupported file status '${status}', expected ${Object.values(
-                FILE_STATUSES
-              ).join(',')}.`
+              `One of your files includes an unsupported file status '${status}', expected added, modified, removed, renamed`
             )
         }
       }
@@ -108,7 +106,7 @@ export async function getChangedFiles(options: Options): Promise<ChangedFiles> {
     core.info(`Modified: ${modified.join(', ')}`)
     core.info(`Removed: ${removed.join(', ')}`)
     core.info(`Renamed: ${renamed.join(', ')}`)
-    core.info(`Added or modified: ${addedModified.join(', ')}`)
+    core.info(`Added or modified: ${addedOrModified.join(', ')}`)
 
     core.endGroup()
   } catch (error) {
@@ -119,10 +117,10 @@ export async function getChangedFiles(options: Options): Promise<ChangedFiles> {
 
   return {
     all,
-    [FILE_STATUSES.ADDED]: added,
-    [FILE_STATUSES.MODIFIED]: modified,
-    [FILE_STATUSES.REMOVED]: removed,
-    [FILE_STATUSES.RENAMED]: renamed,
-    addedOrModified: addedModified,
+    added,
+    modified,
+    removed,
+    renamed,
+    addedOrModified,
   }
 }

@@ -22,19 +22,12 @@ export interface Options {
   changedFiles?: ChangedFiles
 }
 
-// eslint-disable-next-line no-shadow
-export enum FILE_STATUSES {
-  ADDED = 'added',
-  MODIFIED = 'modified',
-  REMOVED = 'removed',
-  RENAMED = 'renamed',
-}
 export interface ChangedFiles {
   all: string[]
-  [FILE_STATUSES.ADDED]?: string[]
-  [FILE_STATUSES.MODIFIED]?: string[]
-  [FILE_STATUSES.REMOVED]?: string[]
-  [FILE_STATUSES.RENAMED]?: string[]
+  added?: string[]
+  modified?: string[]
+  removed?: string[]
+  renamed?: string[]
   addedOrModified?: string[]
 }
 

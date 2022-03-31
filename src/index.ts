@@ -5,7 +5,7 @@ import { createComment } from './create-comment'
 import { getJunitReport } from './junit'
 import { getCoverageReport } from './coverage'
 import { getSummaryReport } from './summary'
-// import { getChangedFiles } from './changed-files'
+import { getChangedFiles } from './changed-files'
 
 async function main(): Promise<void> {
   try {
@@ -76,10 +76,10 @@ async function main(): Promise<void> {
       options.head = context.ref
     }
 
-    // if (options.reportOnlyChangedFiles) {
-    //   const changedFiles = await getChangedFiles(options)
-    //   options.changedFiles = changedFiles
-    // }
+    if (options.reportOnlyChangedFiles) {
+      const changedFiles = await getChangedFiles(options)
+      options.changedFiles = changedFiles
+    }
 
     const report = getSummaryReport(options)
     const { coverage, color, summaryHtml } = report
