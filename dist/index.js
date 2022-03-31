@@ -675,7 +675,8 @@ function parseCoverage(content) {
     const arr = content.split('\n');
     const result = [];
     const folders = [];
-    for (const line of arr) {
+    const startFrom = arr.findIndex((l) => l.includes(consts_1.BUNCH_OF_DASHES));
+    for (const line of arr.slice(startFrom)) {
         if (line.includes('Coverage summary')) {
             break;
         }

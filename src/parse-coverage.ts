@@ -50,8 +50,9 @@ export function parseCoverage(content: string): CoverageLine[] {
   const arr = content.split('\n')
   const result: CoverageLine[] = []
   const folders = []
+  const startFrom = arr.findIndex((l) => l.includes(BUNCH_OF_DASHES))
 
-  for (const line of arr) {
+  for (const line of arr.slice(startFrom)) {
     if (line.includes('Coverage summary')) {
       break
     }
