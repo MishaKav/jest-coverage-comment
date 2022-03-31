@@ -20,7 +20,8 @@ function coverageToMarkdown(
   const { coverage } = getCoverage(coverageArr)
 
   const table = toTable(coverageArr, options)
-  const reportHtml = `<details><summary>${options.coverageTitle} (<b>${coverage}%</b>)</summary>${table}</details>`
+  const onlyChnaged = options.reportOnlyChangedFiles ? '• ' : ''
+  const reportHtml = `<details><summary>${options.coverageTitle} ${onlyChnaged}(<b>${coverage}%</b>)</summary>${table}</details>`
 
   return reportHtml
 }
@@ -63,7 +64,15 @@ function toTable(coverageArr: CoverageLine[], options: Options): string {
   const rows = [totalTr]
 
   for (const key of Object.keys(folders)) {
-    const files = folders[key].map((line) => toRow(line, isFile(line), options))
+    const files = folders[key]
+      .filter((line) => {
+        if (!options.reportOnlyChangedFiles) {
+          return true
+        }
+
+        return options.changedFiles?.all.some((c) => c.includes(line.file))
+      })
+      .map((line) => toRow(line, isFile(line), options))
     rows.push(...files)
   }
 

@@ -5,6 +5,7 @@ import { createComment } from './create-comment'
 import { getJunitReport } from './junit'
 import { getCoverageReport } from './coverage'
 import { getSummaryReport } from './summary'
+import { getChangedFiles } from './changed-files'
 
 async function main(): Promise<void> {
   try {
@@ -35,6 +36,10 @@ async function main(): Promise<void> {
     const hideComment = core.getBooleanInput('hide-comment', {
       required: false,
     })
+    const reportOnlyChangedFiles = core.getBooleanInput(
+      'report-only-changed-files',
+      { required: false }
+    )
 
     const { repo, owner } = context.repo
     const { eventName, payload } = context
@@ -59,6 +64,7 @@ async function main(): Promise<void> {
       hideSummary,
       createNewComment,
       hideComment,
+      reportOnlyChangedFiles,
     }
 
     if (eventName === 'pull_request' && payload) {
@@ -68,6 +74,11 @@ async function main(): Promise<void> {
     } else if (eventName === 'push') {
       options.commit = payload.after
       options.head = context.ref
+    }
+
+    if (options.reportOnlyChangedFiles) {
+      const changedFiles = await getChangedFiles(options)
+      options.changedFiles = changedFiles
     }
 
     const report = getSummaryReport(options)

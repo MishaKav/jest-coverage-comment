@@ -55,7 +55,12 @@ async function main(): Promise<void> {
       coverageFile: getPathToFile(coverageFile),
       coverageTitle: 'Coverage Report',
       coveragePathPrefix: '',
+      reportOnlyChangedFiles: true,
+      changedFiles: {
+        all: ['src/router.js', 'src/service.js', 'src/utils/config.js'],
+      },
     }
+
     const { summaryHtml } = getSummaryReport(options)
 
     finalHtml += options.title

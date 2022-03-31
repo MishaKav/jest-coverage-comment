@@ -18,14 +18,17 @@ export interface Options {
   hideSummary?: boolean
   createNewComment?: boolean
   hideComment?: boolean
-  // pathPrefix: string
-  // covFile: string
-  // xmlFile: string
-  // hideBadge: boolean
-  // reportOnlyChangedFiles: boolean
-  // defaultBranch: string
-  // xmlTitle: string
-  // multipleFiles: string[]
+  reportOnlyChangedFiles?: boolean
+  changedFiles?: ChangedFiles
+}
+
+export interface ChangedFiles {
+  all: string[]
+  added?: string[]
+  modified?: string[]
+  removed?: string[]
+  renamed?: string[]
+  addedOrModified?: string[]
 }
 
 export interface LineSummary {
