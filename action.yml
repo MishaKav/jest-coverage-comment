@@ -70,6 +70,11 @@ inputs:
     default: ''
     required: false
 
+  report-only-changed-files:
+    description: 'Show in report only changed files for this commit, and not all files'
+    default: 'false'
+    required: false
+
 outputs:
   coverage:
     description: 'value indicating the coverage percentage of your report based on jest, example 78'
