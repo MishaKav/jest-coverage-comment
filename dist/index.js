@@ -1,6 +1,188 @@
 require('./sourcemap-register.js');/******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
+/***/ 4831:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.MAX_COMMENT_LENGTH = exports.BUNCH_OF_EQUALS = exports.BUNCH_OF_DASHES = void 0;
+exports.BUNCH_OF_DASHES = '----------';
+exports.BUNCH_OF_EQUALS = '==========';
+exports.MAX_COMMENT_LENGTH = 65536;
+
+
+/***/ }),
+
+/***/ 5730:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.getCoverageReport = void 0;
+const core = __importStar(__nccwpck_require__(2186));
+const utils_1 = __nccwpck_require__(918);
+const parse_coverage_1 = __nccwpck_require__(715);
+const DEFAULT_COVERAGE = {
+    coverage: 0,
+    color: 'red',
+    branches: 0,
+    functions: 0,
+    lines: 0,
+    statements: 0,
+};
+// convert coverage to md
+function coverageToMarkdown(coverageArr, options) {
+    const { coverage } = getCoverage(coverageArr);
+    const table = toTable(coverageArr, options);
+    const reportHtml = `<details><summary>${options.coverageTitle} (<b>${coverage}%</b>)</summary>${table}</details>`;
+    return reportHtml;
+}
+// get coverage and color from CoverageLine[]
+function getCoverage(coverageArr) {
+    const allFilesLine = (0, parse_coverage_1.getTotalLine)(coverageArr);
+    if (!allFilesLine) {
+        return DEFAULT_COVERAGE;
+    }
+    const { lines, branch, funcs, stmts } = allFilesLine;
+    const color = (0, utils_1.getCoverageColor)(lines);
+    const coverage = parseInt(lines.toString());
+    const branches = parseInt(branch.toString());
+    const functions = parseInt(funcs.toString());
+    const statements = parseInt(stmts.toString());
+    return {
+        color,
+        coverage,
+        branches,
+        functions,
+        statements,
+        lines: coverage,
+    };
+}
+// make html table from coverage.txt
+function toTable(coverageArr, options) {
+    const headTr = toHeadRow();
+    const totalRow = (0, parse_coverage_1.getTotalLine)(coverageArr);
+    const totalTr = toTotalRow(totalRow);
+    const folders = makeFolders(coverageArr, options);
+    const rows = [totalTr];
+    for (const key of Object.keys(folders)) {
+        const files = folders[key].map((line) => toRow(line, (0, parse_coverage_1.isFile)(line), options));
+        rows.push(...files);
+    }
+    return `<table>${headTr}<tbody>${rows.join('')}</tbody></table>`;
+}
+// make html head row - th
+function toHeadRow() {
+    return `<tr><th>File</th><th>% Stmts</th><th>% Branch</th><th>% Funcs</th><th>% Lines</th><th>Uncovered Line #s</th></tr>`;
+}
+// make html row - tr
+function toRow(line, indent = false, options) {
+    const { stmts, branch, funcs, lines } = line;
+    const fileName = toFileNameTd(line, indent, options);
+    const missing = toMissingTd(line, options);
+    return `<tr><td>${(0, parse_coverage_1.isFolder)(line) ? line.file : fileName}</td><td>${stmts}</td><td>${branch}</td><td>${funcs}</td><td>${lines}</td><td>${missing}</td></tr>`;
+}
+// make summary row - tr
+function toTotalRow(line) {
+    if (!line) {
+        return '&nbsp;';
+    }
+    const { file, stmts, branch, funcs, lines } = line;
+    return `<tr><td><b>${file}</b></td><td><b>${stmts}</b></td><td><b>${branch}</b></td><td><b>${funcs}</b></td><td><b>${lines}</b></td><td>&nbsp;</td></tr>`;
+}
+// make fileName cell - td
+function toFileNameTd(line, indent = false, options) {
+    const relative = line.file.replace(options.prefix, '');
+    const href = `https://github.com/${options.repository}/blob/${options.commit}/${options.coveragePathPrefix}${relative}`;
+    const parts = relative.split('/');
+    const last = parts[parts.length - 1];
+    const space = indent ? '&nbsp; &nbsp;' : '';
+    return `${space}<a href="${href}">${last}</a>`;
+}
+// make missing cell - td
+function toMissingTd(line, options) {
+    var _a;
+    if (!((_a = line === null || line === void 0 ? void 0 : line.uncoveredLines) === null || _a === void 0 ? void 0 : _a.length)) {
+        return '&nbsp;';
+    }
+    return line.uncoveredLines
+        .map((range) => {
+        const [start, end = start] = range.split('-');
+        const fragment = start === end ? `L${start}` : `L${start}-L${end}`;
+        const relative = line.file;
+        const href = `https://github.com/${options.repository}/blob/${options.commit}/${options.coveragePathPrefix}${relative}#${fragment}`;
+        const text = start === end ? start : `${start}&ndash;${end}`;
+        return `<a href="${href}">${text}</a>`;
+    })
+        .join(', ');
+}
+// collapse all lines to folders structure
+function makeFolders(coverageArr, options) {
+    const folders = {};
+    for (const line of coverageArr) {
+        if (line.file === 'All files') {
+            continue;
+        }
+        const parts = line.file.replace(options.prefix, '').split('/');
+        const folder = (0, parse_coverage_1.isFile)(line) ? parts.slice(0, -1).join('/') : line.file;
+        folders[folder] = folders[folder] || [];
+        folders[folder].push(line);
+    }
+    return folders;
+}
+// return full html coverage report and coverage percenatge
+function getCoverageReport(options) {
+    const { coverageFile } = options;
+    try {
+        if (!coverageFile) {
+            return Object.assign(Object.assign({}, DEFAULT_COVERAGE), { coverageHtml: '' });
+        }
+        const txtContent = (0, utils_1.getContentFile)(coverageFile);
+        const coverageArr = (0, parse_coverage_1.parseCoverage)(txtContent);
+        if (coverageArr) {
+            const coverage = getCoverage(coverageArr);
+            const coverageHtml = coverageToMarkdown(coverageArr, options);
+            return Object.assign(Object.assign({}, coverage), { coverageHtml });
+        }
+    }
+    catch (error) {
+        if (error instanceof Error) {
+            core.error(`Generating coverage report. ${error.message}`);
+        }
+    }
+    return Object.assign(Object.assign({}, DEFAULT_COVERAGE), { coverageHtml: '' });
+}
+exports.getCoverageReport = getCoverageReport;
+
+
+/***/ }),
+
 /***/ 5192:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -155,6 +337,7 @@ const core = __importStar(__nccwpck_require__(2186));
 const github_1 = __nccwpck_require__(5438);
 const create_comment_1 = __nccwpck_require__(5192);
 const junit_1 = __nccwpck_require__(2876);
+const coverage_1 = __nccwpck_require__(5730);
 const summary_1 = __nccwpck_require__(8608);
 function main() {
     var _a, _b, _c;
@@ -263,6 +446,29 @@ function main() {
                     core.setOutput('errors', errors);
                     core.setOutput('time', time);
                     core.setOutput('junitHtml', junitHtml);
+                    core.endGroup();
+                }
+            }
+            if (options.coverageFile) {
+                const coverageReport = (0, coverage_1.getCoverageReport)(options);
+                const { coverageHtml, coverage: reportCoverage, color: coverageColor, branches, functions, lines, statements, } = coverageReport;
+                finalHtml += coverageHtml ? `\n\n${coverageHtml}` : '';
+                if (lines || coverageHtml) {
+                    core.startGroup(options.coverageTitle || 'Coverage');
+                    core.info(`coverage: ${reportCoverage}`);
+                    core.info(`color: ${coverageColor}`);
+                    core.info(`branches: ${branches}`);
+                    core.info(`functions: ${functions}`);
+                    core.info(`lines: ${lines}`);
+                    core.info(`statements: ${statements}`);
+                    core.info(`coverageHtml: ${coverageHtml}`);
+                    core.setOutput('coverage', reportCoverage);
+                    core.setOutput('color', coverageColor);
+                    core.setOutput('branches', branches);
+                    core.setOutput('functions', functions);
+                    core.setOutput('lines', lines);
+                    core.setOutput('statements', statements);
+                    core.setOutput('coverageHtml', coverageHtml);
                     core.endGroup();
                 }
             }
@@ -415,6 +621,96 @@ function getJunitReport(options) {
 exports.getJunitReport = getJunitReport;
 exports.exportedForTesting = {
     parseJunit,
+};
+
+
+/***/ }),
+
+/***/ 715:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.exportedForTesting = exports.parseCoverage = exports.isFolder = exports.isFile = exports.getTotalLine = void 0;
+const consts_1 = __nccwpck_require__(4831);
+function parseLine(line) {
+    return line.split('|').map((l) => l.replace('%', '').replace('#s', '').trim());
+}
+function arrToLine(arr) {
+    return {
+        file: arr[0],
+        stmts: Number(arr[1]),
+        branch: Number(arr[2]),
+        funcs: Number(arr[3]),
+        lines: Number(arr[4]),
+        uncoveredLines: arr[5].length ? arr[5].split(',') : null,
+    };
+}
+function isHeaderLine(arr) {
+    return ['File', 'Stmts', 'Lines'].every((s) => arr.includes(s));
+}
+function isTotalLine(arr) {
+    return arr.includes('All files');
+}
+function isFileLine(arr) {
+    return arr[0].includes('.');
+}
+function isFolderLine(arr) {
+    return !isFileLine(arr) && !isHeaderLine(arr);
+}
+function getTotalLine(coverageArr) {
+    return coverageArr.find((c) => c.file === 'All files');
+}
+exports.getTotalLine = getTotalLine;
+function isFile(line) {
+    return line === null || line === void 0 ? void 0 : line.file.includes('.');
+}
+exports.isFile = isFile;
+function isFolder(line) {
+    return !isFile(line);
+}
+exports.isFolder = isFolder;
+function parseCoverage(content) {
+    const arr = content.split('\n');
+    const result = [];
+    const folders = [];
+    for (const line of arr) {
+        if (line.includes('Coverage summary')) {
+            break;
+        }
+        if (line.includes(consts_1.BUNCH_OF_EQUALS) ||
+            line.includes(consts_1.BUNCH_OF_DASHES) ||
+            !line.trim().length) {
+            continue;
+        }
+        const parsedLine = parseLine(line);
+        const isCurrentFolder = isFolderLine(parsedLine);
+        const isCurrentFile = isFileLine(parsedLine);
+        const [fileName] = parsedLine;
+        if (isCurrentFolder) {
+            if (folders.length) {
+                folders.pop();
+            }
+            folders.push(fileName);
+        }
+        if (!isCurrentFolder && folders.length) {
+            parsedLine[0] = `${folders.at(-1)}/${parsedLine.at(0)}`;
+        }
+        if (isCurrentFolder || isCurrentFile) {
+            result.push(arrToLine(parsedLine));
+        }
+    }
+    return result;
+}
+exports.parseCoverage = parseCoverage;
+exports.exportedForTesting = {
+    parseLine,
+    isHeaderLine,
+    isTotalLine,
+    isFileLine,
+    isFolderLine,
+    arrToLine,
 };
 
 
