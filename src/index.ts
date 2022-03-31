@@ -3,6 +3,7 @@ import { Options } from './types.d'
 import { context } from '@actions/github'
 import { createComment } from './create-comment'
 import { getJunitReport } from './junit'
+import { getCoverageReport } from './coverage'
 import { getSummaryReport } from './summary'
 
 async function main(): Promise<void> {
@@ -19,6 +20,13 @@ async function main(): Promise<void> {
     })
     const junitTitle = core.getInput('junitxml-title', { required: false })
     const junitFile = core.getInput('junitxml-path', {
+      required: false,
+    })
+    const coverageTitle = core.getInput('coverage-title', { required: false })
+    const coverageFile = core.getInput('coverage-path', {
+      required: false,
+    })
+    const coveragePathPrefix = core.getInput('coverage-path-prefix', {
       required: false,
     })
     const createNewComment = core.getBooleanInput('create-new-comment', {
@@ -45,6 +53,9 @@ async function main(): Promise<void> {
       summaryTitle,
       junitTitle,
       junitFile,
+      coverageTitle,
+      coverageFile,
+      coveragePathPrefix,
       hideSummary,
       createNewComment,
       hideComment,
@@ -111,6 +122,40 @@ async function main(): Promise<void> {
         core.setOutput('errors', errors)
         core.setOutput('time', time)
         core.setOutput('junitHtml', junitHtml)
+        core.endGroup()
+      }
+    }
+
+    if (options.coverageFile) {
+      const coverageReport = getCoverageReport(options)
+      const {
+        coverageHtml,
+        coverage: reportCoverage,
+        color: coverageColor,
+        branches,
+        functions,
+        lines,
+        statements,
+      } = coverageReport
+      finalHtml += coverageHtml ? `\n\n${coverageHtml}` : ''
+
+      if (lines || coverageHtml) {
+        core.startGroup(options.coverageTitle || 'Coverage')
+        core.info(`coverage: ${reportCoverage}`)
+        core.info(`color: ${coverageColor}`)
+        core.info(`branches: ${branches}`)
+        core.info(`functions: ${functions}`)
+        core.info(`lines: ${lines}`)
+        core.info(`statements: ${statements}`)
+        core.info(`coverageHtml: ${coverageHtml}`)
+
+        core.setOutput('coverage', reportCoverage)
+        core.setOutput('color', coverageColor)
+        core.setOutput('branches', branches)
+        core.setOutput('functions', functions)
+        core.setOutput('lines', lines)
+        core.setOutput('statements', statements)
+        core.setOutput('coverageHtml', coverageHtml)
         core.endGroup()
       }
     }

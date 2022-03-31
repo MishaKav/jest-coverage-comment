@@ -1,16 +1,14 @@
-import rewire from 'rewire'
+import * as core from '@actions/core'
 import { expect, test, describe, jest } from '@jest/globals'
-import { getJunitReport } from '../src/junit'
+import { getJunitReport, exportedForTesting } from '../src/junit'
 
-const junit = rewire('../lib/junit')
+const { parseJunit } = exportedForTesting
 
 describe('parsing junit', () => {
-  const parseJunit = junit.__get__('parseJunit')
-
   test('should parse xml string to junit', async () => {
     const xml = `<?xml version="1.0" encoding="UTF-8"?><testsuites tests="6" failures="5" errors="4" time="0.732"></testsuites>`
     const junit = await parseJunit(xml)
-    const { skipped, errors, failures, tests, time } = junit
+    const { skipped, errors, failures, tests, time } = junit!
 
     expect(skipped).toBe(0)
     expect(errors).toBe(4)
@@ -21,15 +19,43 @@ describe('parsing junit', () => {
 
   test('should count skipped testsuites', async () => {
     const xml = `<?xml version="1.0" encoding="UTF-8"?><testsuites name="jest tests"><testsuite skipped="3"></testsuite><testsuite skipped="2"></testsuite><testsuite skipped="1"></testsuite></testsuites>`
-    const { skipped } = await parseJunit(xml)
+    const junit = await parseJunit(xml)
+    const { skipped } = junit!
 
     expect(skipped).toBe(6)
   })
 
   test('should return null when no content', async () => {
+    const spy = jest.spyOn(core, 'warning')
+    // @ts-ignore
     const junit = await parseJunit(null)
 
-    expect(junit).toBe(null)
+    expect(junit).toBeNull()
+    expect(spy).toHaveBeenCalledTimes(1)
+    expect(spy).toHaveBeenCalledWith(`Junit xml was not prvided`)
+  })
+
+  test('should return null on not well formed files', async () => {
+    const spy = jest.spyOn(core, 'warning')
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>`
+    const junit = await parseJunit(xml)
+
+    expect(junit).toBeNull()
+    expect(spy).toHaveBeenCalledTimes(1)
+    expect(spy).toHaveBeenCalledWith(
+      `Junit xml file is not XML or not well formed`
+    )
+  })
+
+  test('should throw error on non XML files', async () => {
+    const spy = jest.spyOn(core, 'error')
+    const junit = await parseJunit('bad content')
+
+    expect(junit).toBeNull()
+    expect(spy).toHaveBeenCalledTimes(1)
+    expect(spy).toHaveBeenCalledWith(
+      `Parse junit report. Non-whitespace before first tag.\nLine: 0\nColumn: 1\nChar: b`
+    )
   })
 })
 

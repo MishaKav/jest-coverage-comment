@@ -12,6 +12,9 @@ export interface Options {
   title?: string
   junitFile?: string
   junitTitle?: string
+  coverageFile?: string
+  coverageTitle?: string
+  coveragePathPrefix?: string
   hideSummary?: boolean
   createNewComment?: boolean
   hideComment?: boolean
@@ -47,7 +50,7 @@ export type CoverageColor =
   | 'green'
   | 'brightgreen'
 
-export interface CoverageReport {
+export interface SummaryReport {
   summaryHtml: string
   coverage: number
   color: CoverageColor
@@ -60,6 +63,26 @@ export interface Junit {
   errors: number
   time: number
 }
+
 export interface JunitReport extends Junit {
   junitHtml: string
+}
+
+export interface CoverageLine {
+  file: string
+  stmts: number
+  branch: number
+  funcs: number
+  lines: number
+  uncoveredLines: string[] | null
+}
+
+export interface CoverageReport {
+  coverageHtml: string
+  coverage: number
+  color: CoverageColor
+  branches: number
+  functions: number
+  lines: number
+  statements: number
 }

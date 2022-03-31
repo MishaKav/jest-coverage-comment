@@ -1,12 +1,6 @@
 import * as core from '@actions/core'
-import {
-  CoverageColor,
-  CoverageReport,
-  LineSummary,
-  Options,
-  Summary,
-} from './types.d'
-import { getContentFile } from './utils'
+import { SummaryReport, LineSummary, Options, Summary } from './types.d'
+import { getContentFile, getCoverageColor } from './utils'
 
 // parse coverage-summary.json to Sumamry object
 function parseSummary(jsonContent: string): Summary | null {
@@ -63,42 +57,8 @@ ${table}`
   return table
 }
 
-// get coverage color
-function getCoverageColor(percentage: number): CoverageColor {
-  // https://shields.io/category/coverage
-  const rangeColors: { color: CoverageColor; range: [number, number] }[] = [
-    {
-      color: 'red',
-      range: [0, 40],
-    },
-    {
-      color: 'orange',
-      range: [40, 60],
-    },
-    {
-      color: 'yellow',
-      range: [60, 80],
-    },
-    {
-      color: 'green',
-      range: [80, 90],
-    },
-    {
-      color: 'brightgreen',
-      range: [90, 101],
-    },
-  ]
-
-  const { color } =
-    rangeColors.find(
-      ({ range: [min, max] }) => percentage >= min && percentage < max
-    ) || rangeColors[0]
-
-  return color
-}
-
 // get coverage and color from summary
-function getCoverage(summary: Summary): Omit<CoverageReport, 'summaryHtml'> {
+function getCoverage(summary: Summary): Omit<SummaryReport, 'summaryHtml'> {
   if (!summary?.lines) {
     return { coverage: 0, color: 'red' }
   }
@@ -112,7 +72,7 @@ function getCoverage(summary: Summary): Omit<CoverageReport, 'summaryHtml'> {
 }
 
 // return full html coverage report and coverage percenatge
-export function getSummaryReport(options: Options): CoverageReport {
+export function getSummaryReport(options: Options): SummaryReport {
   const { summaryFile } = options
 
   try {
@@ -132,4 +92,11 @@ export function getSummaryReport(options: Options): CoverageReport {
   }
 
   return { summaryHtml: '', coverage: 0, color: 'red' }
+}
+
+export const exportedForTesting = {
+  getCoverage,
+  lineSumamryToTd,
+  parseSummary,
+  getCoverageColor,
 }

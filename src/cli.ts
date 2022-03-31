@@ -2,6 +2,7 @@
 import { mkdirSync, writeFileSync } from 'fs'
 import { Options } from './types.d'
 import { getJunitReport } from './junit'
+import { getCoverageReport } from './coverage'
 import { getSummaryReport } from './summary'
 
 // import { getSummaryReport, getParsedXml } from './junitXml'
@@ -34,6 +35,7 @@ async function main(): Promise<void> {
   try {
     const summaryFile = './../data/coverage_1/coverage-summary.json'
     const junitFile = './../data/coverage_1/junit.xml'
+    const coverageFile = './../data/coverage_1/coverage.txt'
     const prefix = __dirname
 
     let finalHtml = ''
@@ -45,34 +47,16 @@ async function main(): Promise<void> {
       watermark: `<!-- Jest Coverage Comment: 1 -->\n`,
       title: 'Jest Coverage Comment',
       prefix,
-      // pathPrefix: '',
       badgeTitle: 'Coverage',
       summaryFile: getPathToFile(summaryFile),
       summaryTitle: '',
       junitFile: getPathToFile(junitFile),
       junitTitle: '',
-      // covFile: getPathToFile(covFile),
-      // xmlFile: getPathToFile(xmlFile),
-      // defaultBranch: 'main',
-      // head: 'feat/test',
-      // base: 'main',
-      // title: 'Coverage Report',
-      // hideBadge: false,
-      // hideReport: false,
-      // createNewComment: false,
-      // reportOnlyChangedFiles: false,
-      // hideComment: false,
-      // xmlTitle: '',
-      // changedFiles: {
-      //   all: [
-      //     'functions/example_completed/example_completed.py',
-      //     'functions/example_manager/example_manager.py',
-      //     'functions/example_manager/example_static.py',
-      //   ],
-      // },
+      coverageFile: getPathToFile(coverageFile),
+      coverageTitle: 'Coverage Report',
+      coveragePathPrefix: '',
     }
     const { summaryHtml } = getSummaryReport(options)
-    // const summaryReport = null //getSummaryReport(options);
 
     finalHtml += options.title
       ? `# ${options.title}\n\n${summaryHtml}`
@@ -81,6 +65,11 @@ async function main(): Promise<void> {
     if (options.junitFile) {
       const { junitHtml } = await getJunitReport(options)
       finalHtml += junitHtml ? `\n\n${junitHtml}` : ''
+    }
+
+    if (options.coverageFile) {
+      const { coverageHtml } = getCoverageReport(options)
+      finalHtml += coverageHtml ? `\n\n${coverageHtml}` : ''
     }
 
     if (!finalHtml || options.hideComment) {

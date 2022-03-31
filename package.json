@@ -1,6 +1,6 @@
 {
   "name": "jest-coverage-comment",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Comments a pull request or commit with the jest code coverage badge, full report and tests summary",
   "author": "Misha Kav <misha.kav@gmail.com>",
   "license": "MIT",
@@ -26,6 +26,7 @@
     "package": "ncc build --source-map --license licenses.txt",
     "test": "jest",
     "test:coverage": "npm test -- --coverage",
+    "test:coverage:tee": "npm run test:coverage | tee ./coverage/covergate.txt",
     "all": "npm run build && npm run format && npm run lint && npm run package && npm test"
   },
   "dependencies": {
@@ -35,7 +36,6 @@
   },
   "devDependencies": {
     "@types/node": "^17.0.21",
-    "@types/rewire": "^2.5.28",
     "@types/xml2js": "^0.4.9",
     "@typescript-eslint/parser": "^5.15.0",
     "@vercel/ncc": "^0.33.3",
@@ -45,7 +45,6 @@
     "eslint-plugin-jest": "^26.1.1",
     "jest-junit": "^13.0.0",
     "prettier": "^2.6.0",
-    "rewire": "^6.0.0",
     "ts-jest": "^27.1.3",
     "ts-node": "^10.7.0",
     "typescript": "^4.6.2"

@@ -55,6 +55,21 @@ inputs:
     default: ''
     required: false
 
+  coverage-path:
+    description: 'The location of the coverage.txt (jest console output)'
+    default: ''
+    required: false
+
+  coverage-title:
+    description: 'Title for the coverage report'
+    default: 'Coverage Report'
+    required: false
+
+  coverage-path-prefix:
+    description: 'Prefix for path when link to files in comment'
+    default: ''
+    required: false
+
 outputs:
   coverage:
     description: 'value indicating the coverage percentage of your report based on jest, example 78'
@@ -72,6 +87,14 @@ outputs:
     description: 'Total number of tests with errors, get from `junitxml`'
   time:
     description: 'Seconds the took to run all the tests, get from `junitxml`'
+  lines:
+    description: 'Lines covered, get from jest text report'
+  branches:
+    description: 'Branches covered, get from jest text report'
+  functions:
+    description: 'Functions covered, get from jest text report'
+  statements:
+    description: 'Statements covered, get from jest text report'
 
 runs:
   using: 'node16'
