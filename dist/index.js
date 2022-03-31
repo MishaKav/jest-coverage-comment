@@ -41,8 +41,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.getChangedFiles = void 0;
 const core = __importStar(__nccwpck_require__(2186));
-const types_d_1 = __nccwpck_require__(5778);
 const github_1 = __nccwpck_require__(5438);
+const types_d_1 = __nccwpck_require__(5778);
 // generate object of all files that changed based on commit through Github API
 function getChangedFiles(options) {
     var _a, _b;

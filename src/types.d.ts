@@ -29,7 +29,7 @@ export enum FILE_STATUSES {
   REMOVED = 'removed',
   RENAMED = 'renamed',
 }
-export type ChangedFiles = {
+export interface ChangedFiles {
   all: string[]
   [FILE_STATUSES.ADDED]?: string[]
   [FILE_STATUSES.MODIFIED]?: string[]

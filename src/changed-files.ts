@@ -1,6 +1,6 @@
 import * as core from '@actions/core'
-import { FILE_STATUSES, ChangedFiles, Options } from './types.d'
 import { context, getOctokit } from '@actions/github'
+import { FILE_STATUSES, ChangedFiles, Options } from './types.d'
 
 // generate object of all files that changed based on commit through Github API
 export async function getChangedFiles(options: Options): Promise<ChangedFiles> {
