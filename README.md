@@ -11,7 +11,7 @@ Note that this action does not run any tests, but expects the tests to have been
 
 **Similar Action for Pytest**
 ____
-After I see that action become popular, I made similar action for python that runs `pytest`
+I made this action after I see that similar action for python that runs `pytest` became very popular
 [pytest-coverage-comment](https://github.com/marketplace/actions/pytest-coverage-comment)
 ____
 
