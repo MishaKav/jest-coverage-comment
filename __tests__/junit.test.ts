@@ -2,7 +2,7 @@ import * as core from '@actions/core'
 import { expect, test, describe, jest } from '@jest/globals'
 import { getJunitReport, exportedForTesting } from '../src/junit'
 
-const { parseJunit } = exportedForTesting
+const { parseJunit, junitToMarkdown } = exportedForTesting
 
 describe('parsing junit', () => {
   test('should parse xml string to junit', async () => {
@@ -107,5 +107,17 @@ describe('parse junit and check report output', () => {
     expect(failures).toBe(0)
     expect(tests).toBe(0)
     expect(time).toBe(0)
+  })
+
+  test('should convert time from seconds to minutes', async () => {
+    const html = `| Tests | Skipped | Failures | Errors | Time |
+| ----- | ------- | -------- | -------- | ------------------ |
+| 6 | 0 :zzz: | 0 :x: | 0 :fire: | 9m 15s :stopwatch: |
+`
+
+    const junit = await getJunitReport(options)
+    junit.time = 555.0532
+    const markdown = junitToMarkdown(junit, options)
+    expect(markdown).toEqual(html)
   })
 })
