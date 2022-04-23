@@ -46,13 +46,19 @@ const github_1 = __nccwpck_require__(5438);
 function getChangedFiles(options) {
     var _a, _b;
     return __awaiter(this, void 0, void 0, function* () {
-        const all = [], added = [], modified = [], removed = [], renamed = [], addedOrModified = [];
+        const all = [];
+        const added = [];
+        const modified = [];
+        const removed = [];
+        const renamed = [];
+        const addedOrModified = [];
         try {
             const { eventName, payload } = github_1.context;
             const { repo, owner } = github_1.context.repo;
             const octokit = (0, github_1.getOctokit)(options.token);
             // Define the base and head commits to be extracted from the payload
-            let base, head;
+            let base;
+            let head;
             switch (eventName) {
                 case 'pull_request':
                     base = (_a = payload.pull_request) === null || _a === void 0 ? void 0 : _a.base.sha;
@@ -728,9 +734,10 @@ function parseJunit(xmlContent) {
 // convert junit from junitxml to md
 function junitToMarkdown(junit, options) {
     const { skipped, errors, failures, tests, time } = junit;
+    const displayTime = time > 60 ? `${(time / 60) | 0}m ${time % 60 | 0}s` : `${time}s`;
     const table = `| Tests | Skipped | Failures | Errors | Time |
 | ----- | ------- | -------- | -------- | ------------------ |
-| ${tests} | ${skipped} :zzz: | ${failures} :x: | ${errors} :fire: | ${time}s :stopwatch: |
+| ${tests} | ${skipped} :zzz: | ${failures} :x: | ${errors} :fire: | ${displayTime} :stopwatch: |
 `;
     if (options.junitTitle) {
         return `## ${options.junitTitle}
@@ -779,6 +786,7 @@ function getJunitReport(options) {
 exports.getJunitReport = getJunitReport;
 exports.exportedForTesting = {
     parseJunit,
+    junitToMarkdown,
 };
 
 

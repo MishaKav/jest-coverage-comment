@@ -4,12 +4,12 @@ import { ChangedFiles, Options } from './types.d'
 
 // generate object of all files that changed based on commit through Github API
 export async function getChangedFiles(options: Options): Promise<ChangedFiles> {
-  const all = [],
-    added = [],
-    modified = [],
-    removed = [],
-    renamed = [],
-    addedOrModified = []
+  const all = []
+  const added = []
+  const modified = []
+  const removed = []
+  const renamed = []
+  const addedOrModified = []
 
   try {
     const { eventName, payload } = context
@@ -17,7 +17,8 @@ export async function getChangedFiles(options: Options): Promise<ChangedFiles> {
     const octokit = getOctokit(options.token)
 
     // Define the base and head commits to be extracted from the payload
-    let base, head
+    let base
+    let head
 
     switch (eventName) {
       case 'pull_request':

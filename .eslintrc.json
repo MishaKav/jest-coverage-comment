@@ -53,6 +53,11 @@
     "@typescript-eslint/type-annotation-spacing": "error",
     "@typescript-eslint/unbound-method": "error"
   },
+  "settings": {
+    "import/resolver": {
+      "typescript": {}
+    }
+  },
   "env": {
     "node": true,
     "es6": true,
