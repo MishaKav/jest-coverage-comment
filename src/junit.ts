@@ -46,9 +46,12 @@ async function parseJunit(xmlContent: string): Promise<Junit | null> {
 // convert junit from junitxml to md
 function junitToMarkdown(junit: Junit, options: Options): string {
   const { skipped, errors, failures, tests, time } = junit
+  const displayTime =
+    time > 60 ? `${(time / 60) | 0}m ${time % 60 | 0}s` : `${time}s`
+
   const table = `| Tests | Skipped | Failures | Errors | Time |
 | ----- | ------- | -------- | -------- | ------------------ |
-| ${tests} | ${skipped} :zzz: | ${failures} :x: | ${errors} :fire: | ${time}s :stopwatch: |
+| ${tests} | ${skipped} :zzz: | ${failures} :x: | ${errors} :fire: | ${displayTime} :stopwatch: |
 `
 
   if (options.junitTitle) {
@@ -101,4 +104,5 @@ export async function getJunitReport(options: Options): Promise<JunitReport> {
 
 export const exportedForTesting = {
   parseJunit,
+  junitToMarkdown,
 }
