@@ -206,10 +206,11 @@ const DEFAULT_COVERAGE = {
 };
 // convert coverage to md
 function coverageToMarkdown(coverageArr, options) {
+    const { reportOnlyChangedFiles, coverageTitle } = options;
     const { coverage } = getCoverage(coverageArr);
     const table = toTable(coverageArr, options);
-    const onlyChnaged = options.reportOnlyChangedFiles ? '• ' : '';
-    const reportHtml = `<details><summary>${options.coverageTitle} ${onlyChnaged}(<b>${coverage}%</b>)</summary>${table}</details>`;
+    const onlyChnaged = reportOnlyChangedFiles ? '• ' : '';
+    const reportHtml = `<details><summary>${coverageTitle} ${onlyChnaged}(<b>${coverage}%</b>)</summary>${table}</details>`;
     return reportHtml;
 }
 // get coverage and color from CoverageLine[]
@@ -239,20 +240,25 @@ function toTable(coverageArr, options) {
     const totalRow = (0, parse_coverage_1.getTotalLine)(coverageArr);
     const totalTr = toTotalRow(totalRow);
     const folders = makeFolders(coverageArr, options);
+    const { reportOnlyChangedFiles, changedFiles } = options;
     const rows = [totalTr];
     for (const key of Object.keys(folders)) {
         const files = folders[key]
             .filter((line) => {
-            var _a;
-            if (!options.reportOnlyChangedFiles) {
+            if (!reportOnlyChangedFiles) {
                 return true;
             }
-            return (_a = options.changedFiles) === null || _a === void 0 ? void 0 : _a.all.some((c) => c.includes(line.file));
+            return changedFiles === null || changedFiles === void 0 ? void 0 : changedFiles.all.some((c) => c.includes(line.file));
         })
             .map((line) => toRow(line, (0, parse_coverage_1.isFile)(line), options));
         rows.push(...files);
     }
-    return `<table>${headTr}<tbody>${rows.join('')}</tbody></table>`;
+    const hasLines = rows.length > 1;
+    const isFilesChanged = reportOnlyChangedFiles && !hasLines
+        ? `<i>report-only-changed-files is enabled. No files were changed during this commit :)</i>`
+        : '';
+    // prettier-ignore
+    return `<table>${headTr}<tbody>${rows.join('')}</tbody></table>${isFilesChanged}`;
 }
 // make html head row - th
 function toHeadRow() {
