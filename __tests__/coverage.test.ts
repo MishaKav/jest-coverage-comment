@@ -1,9 +1,10 @@
 import * as core from '@actions/core'
 import { expect, test, describe, jest } from '@jest/globals'
 import { getCoverageReport } from '../src/coverage'
+import { Options } from '../src/types'
 
 describe('get coverage report', () => {
-  const options = {
+  const options: Options = {
     token: 'token_123',
     repository: 'MishaKav/jest-coverage-comment',
     commit: '05953710b21d222efa4f4535424a7af367be5a57',
@@ -45,6 +46,18 @@ describe('get coverage report', () => {
     const { coverageHtml, coverage } = getCoverageReport(optionsWithTitle)
     const title = `<summary>${optionsWithTitle.coverageTitle} (<b>${coverage}%</b>)</summary>`
     expect(coverageHtml).toContain(`${title}`)
+  })
+
+  test('should render message when no chanegd files', () => {
+    const optionsChangedFiles = {
+      ...options,
+      reportOnlyChangedFiles: true,
+      changedFiles: { all: [] },
+    }
+    const { coverageHtml } = getCoverageReport(optionsChangedFiles)
+    expect(coverageHtml).toContain(
+      `<i>report-only-changed-files is enabled. No files were changed during this commit :)</i>`
+    )
   })
 
   test('should return default report', () => {

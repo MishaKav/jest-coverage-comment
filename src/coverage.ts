@@ -17,11 +17,12 @@ function coverageToMarkdown(
   coverageArr: CoverageLine[],
   options: Options
 ): string {
+  const { reportOnlyChangedFiles, coverageTitle } = options
   const { coverage } = getCoverage(coverageArr)
 
   const table = toTable(coverageArr, options)
-  const onlyChnaged = options.reportOnlyChangedFiles ? '• ' : ''
-  const reportHtml = `<details><summary>${options.coverageTitle} ${onlyChnaged}(<b>${coverage}%</b>)</summary>${table}</details>`
+  const onlyChnaged = reportOnlyChangedFiles ? '• ' : ''
+  const reportHtml = `<details><summary>${coverageTitle} ${onlyChnaged}(<b>${coverage}%</b>)</summary>${table}</details>`
 
   return reportHtml
 }
@@ -61,22 +62,30 @@ function toTable(coverageArr: CoverageLine[], options: Options): string {
   const totalTr = toTotalRow(totalRow)
 
   const folders = makeFolders(coverageArr, options)
+  const { reportOnlyChangedFiles, changedFiles } = options
   const rows = [totalTr]
 
   for (const key of Object.keys(folders)) {
     const files = folders[key]
       .filter((line) => {
-        if (!options.reportOnlyChangedFiles) {
+        if (!reportOnlyChangedFiles) {
           return true
         }
 
-        return options.changedFiles?.all.some((c) => c.includes(line.file))
+        return changedFiles?.all.some((c) => c.includes(line.file))
       })
       .map((line) => toRow(line, isFile(line), options))
     rows.push(...files)
   }
 
-  return `<table>${headTr}<tbody>${rows.join('')}</tbody></table>`
+  const hasLines = rows.length > 1
+  const isFilesChanged =
+    reportOnlyChangedFiles && !hasLines
+      ? `<i>report-only-changed-files is enabled. No files were changed during this commit :)</i>`
+      : ''
+
+  // prettier-ignore
+  return `<table>${headTr}<tbody>${rows.join('')}</tbody></table>${isFilesChanged}`
 }
 
 // make html head row - th
