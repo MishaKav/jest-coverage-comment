@@ -253,6 +253,13 @@ function toTable(coverageArr, options) {
             }
             return changedFiles === null || changedFiles === void 0 ? void 0 : changedFiles.all.some((c) => c.includes(line.file));
         })
+            // filter folders without files
+            .filter((line, i, arr) => {
+            if (!reportOnlyChangedFiles) {
+                return true;
+            }
+            return arr.length > 1;
+        })
             .map((line) => toRow(line, (0, parse_coverage_1.isFile)(line), options));
         rows.push(...files);
     }
