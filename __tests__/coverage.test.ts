@@ -60,6 +60,32 @@ describe('get coverage report', () => {
     )
   })
 
+  test('should render only chanegd files', () => {
+    const optionsChangedFiles = {
+      ...options,
+      reportOnlyChangedFiles: true,
+      changedFiles: {
+        all: ['src/router.js', 'src/service.js', 'src/utils/config.js'],
+      },
+    }
+    const { coverageHtml } = getCoverageReport(optionsChangedFiles)
+    expect(coverageHtml).toContain(
+      `<details><summary>Coverage Report • (<b>71%</b>)</summary><table><tr><th>File</th><th>% Stmts</th><th>% Branch</th><th>% Funcs</th><th>% Lines</th><th>Uncovered Line #s</th></tr><tbody><tr><td><b>All files</b></td><td><b>70.21</b></td><td><b>100</b></td><td><b>28.57</b></td><td><b>71.73</b></td><td>&nbsp;</td></tr><tr><td>src</td><td>68.29</td><td>100</td><td>33.33</td><td>68.29</td><td>&nbsp;</td></tr><tr><td>&nbsp; &nbsp;<a href="https://github.com/MishaKav/jest-coverage-comment/blob/05953710b21d222efa4f4535424a7af367be5a57/src/router.js">router.js</a></td><td>100</td><td>100</td><td>100</td><td>100</td><td>&nbsp;</td></tr><tr><td>&nbsp; &nbsp;<a href="https://github.com/MishaKav/jest-coverage-comment/blob/05953710b21d222efa4f4535424a7af367be5a57/src/service.js">service.js</a></td><td>69.23</td><td>100</td><td>50</td><td>69.23</td><td><a href="https://github.com/MishaKav/jest-coverage-comment/blob/05953710b21d222efa4f4535424a7af367be5a57/src/service.js#L16-L20">16&ndash;20</a></td></tr><tr><td>src/utils</td><td>83.33</td><td>100</td><td>0</td><td>100</td><td>&nbsp;</td></tr><tr><td>&nbsp; &nbsp;<a href="https://github.com/MishaKav/jest-coverage-comment/blob/05953710b21d222efa4f4535424a7af367be5a57/src/utils/config.js">config.js</a></td><td>100</td><td>100</td><td>100</td><td>100</td><td>&nbsp;</td></tr></tbody></table></details>`
+    )
+  })
+
+  test('should not render empty folders when report only chanegd files', () => {
+    const optionsChangedFiles = {
+      ...options,
+      reportOnlyChangedFiles: true,
+      changedFiles: { all: ['src/utils/config.js'] },
+    }
+    const { coverageHtml } = getCoverageReport(optionsChangedFiles)
+    expect(coverageHtml).toContain(
+      `<details><summary>Coverage Report • (<b>71%</b>)</summary><table><tr><th>File</th><th>% Stmts</th><th>% Branch</th><th>% Funcs</th><th>% Lines</th><th>Uncovered Line #s</th></tr><tbody><tr><td><b>All files</b></td><td><b>70.21</b></td><td><b>100</b></td><td><b>28.57</b></td><td><b>71.73</b></td><td>&nbsp;</td></tr><tr><td>src/utils</td><td>83.33</td><td>100</td><td>0</td><td>100</td><td>&nbsp;</td></tr><tr><td>&nbsp; &nbsp;<a href="https://github.com/MishaKav/jest-coverage-comment/blob/05953710b21d222efa4f4535424a7af367be5a57/src/utils/config.js">config.js</a></td><td>100</td><td>100</td><td>100</td><td>100</td><td>&nbsp;</td></tr></tbody></table></details>`
+    )
+  })
+
   test('should return default report', () => {
     const {
       coverageHtml,

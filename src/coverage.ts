@@ -74,6 +74,14 @@ function toTable(coverageArr: CoverageLine[], options: Options): string {
 
         return changedFiles?.all.some((c) => c.includes(line.file))
       })
+      // filter folders without files
+      .filter((line, i, arr) => {
+        if (!reportOnlyChangedFiles) {
+          return true
+        }
+
+        return arr.length > 1
+      })
       .map((line) => toRow(line, isFile(line), options))
     rows.push(...files)
   }
