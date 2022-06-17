@@ -8,7 +8,7 @@ import { getContentFile } from './utils'
 async function parseJunit(xmlContent: string): Promise<Junit | null> {
   try {
     if (!xmlContent) {
-      core.warning(`Junit xml was not prvided`)
+      core.warning(`Junit xml was not provided`)
       return null
     }
 

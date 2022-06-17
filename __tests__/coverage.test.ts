@@ -48,7 +48,7 @@ describe('get coverage report', () => {
     expect(coverageHtml).toContain(`${title}`)
   })
 
-  test('should render message when no chanegd files', () => {
+  test('should render message when no changed files', () => {
     const optionsChangedFiles = {
       ...options,
       reportOnlyChangedFiles: true,
@@ -60,7 +60,7 @@ describe('get coverage report', () => {
     )
   })
 
-  test('should render only chanegd files', () => {
+  test('should render only changed files', () => {
     const optionsChangedFiles = {
       ...options,
       reportOnlyChangedFiles: true,
@@ -74,7 +74,7 @@ describe('get coverage report', () => {
     )
   })
 
-  test('should not render empty folders when report only chanegd files', () => {
+  test('should not render empty folders when report only changed files', () => {
     const optionsChangedFiles = {
       ...options,
       reportOnlyChangedFiles: true,

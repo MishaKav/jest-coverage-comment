@@ -32,7 +32,7 @@ describe('parsing junit', () => {
 
     expect(junit).toBeNull()
     expect(spy).toHaveBeenCalledTimes(1)
-    expect(spy).toHaveBeenCalledWith(`Junit xml was not prvided`)
+    expect(spy).toHaveBeenCalledWith(`Junit xml was not provided`)
   })
 
   test('should return null on not well formed files', async () => {

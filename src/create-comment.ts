@@ -48,7 +48,7 @@ export async function createComment(
         )
 
         if (comment) {
-          core.info('Founded previous commit, updating')
+          core.info('Found previous comment, updating')
           await octokit.rest.issues.updateComment({
             repo,
             owner,
@@ -56,7 +56,7 @@ export async function createComment(
             body,
           })
         } else {
-          core.info('No previous commit founded, creating a new one')
+          core.info('No previous comment found, creating a new one')
           await octokit.rest.issues.createComment({
             repo,
             owner,
