@@ -6,7 +6,7 @@ import { getContentFile, getCoverageColor } from './utils'
 function parseSummary(jsonContent: string): Summary | null {
   try {
     if (!jsonContent) {
-      core.warning(`Summary json was not prvided`)
+      core.warning(`Summary json was not provided`)
       return null
     }
 

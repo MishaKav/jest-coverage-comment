@@ -77,9 +77,9 @@ inputs:
 
 outputs:
   coverage:
-    description: 'value indicating the coverage percentage of your report based on jest, example 78'
+    description: 'Value indicating the coverage percentage of your report based on jest, example 78'
   color:
-    description: 'color of coverage report'
+    description: 'Color of coverage report'
   summaryHtml:
     description: 'The html of the coverage summary report (markdown table)'
   tests:

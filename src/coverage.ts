@@ -21,8 +21,8 @@ function coverageToMarkdown(
   const { coverage } = getCoverage(coverageArr)
 
   const table = toTable(coverageArr, options)
-  const onlyChnaged = reportOnlyChangedFiles ? '• ' : ''
-  const reportHtml = `<details><summary>${coverageTitle} ${onlyChnaged}(<b>${coverage}%</b>)</summary>${table}</details>`
+  const onlyChanged = reportOnlyChangedFiles ? '• ' : ''
+  const reportHtml = `<details><summary>${coverageTitle} ${onlyChanged}(<b>${coverage}%</b>)</summary>${table}</details>`
 
   return reportHtml
 }
@@ -178,7 +178,7 @@ function makeFolders(
   return folders
 }
 
-// return full html coverage report and coverage percenatge
+// return full html coverage report and coverage percentage
 export function getCoverageReport(options: Options): CoverageReport {
   const { coverageFile } = options
 

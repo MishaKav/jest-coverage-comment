@@ -21,7 +21,7 @@ function isHeaderLine(arr: string[]): boolean {
 }
 
 function isTotalLine(arr: string[]): boolean {
-  return arr.includes('All files')
+  return arr[0] === 'All files'
 }
 
 function isFileLine(arr: string[]): boolean {
@@ -70,7 +70,7 @@ export function parseCoverage(content: string): CoverageLine[] {
     const isCurrentFile = isFileLine(parsedLine)
     const [fileName] = parsedLine
 
-    if (isCurrentFolder) {
+    if (isCurrentFolder && !isTotalLine(parsedLine)) {
       if (folders.length) {
         folders.pop()
       }

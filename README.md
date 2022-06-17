@@ -18,7 +18,7 @@ I made this action after I see that similar action for python that runs `pytest`
 
 ---
 
-You can add this action to your GitHub workflow for Ubuntu runners (e.g. runs-on: ubuntu-latest) as follows:
+You can add this action to your GitHub workflow for Ubuntu runners (e.g. `runs-on: ubuntu-latest`) as follows:
 
 ```yaml
 - name: Jest coverage comment
@@ -40,8 +40,7 @@ You can add this action to your GitHub workflow for Ubuntu runners (e.g. runs-on
 | `junitxml-path`             |          | ''                                 | The location of the junitxml path (npm package `jest-junit` should be installed)                       |
 | `junitxml-title`            |          | ''                                 | Title for summary for junitxml                                                                         |
 | `coverage-path`             |          | ''                                 | The location of the coverage.txt (jest console output)                                                 |
-| `coverage-title`            |          | 'Coverage Report'                  | Title for the coverage report                                                                          |
-| `coverage-path-prefix`      |          | ''                                 | Prefix for path when link to files in comment                                                          |
+| `coverage-title`            |          | `Coverage Report`                  | Title for the coverage report                                                                          |
 | `coverage-path-prefix`      |          | ''                                 | Prefix for path when link to files in comment                                                          |
 | `report-only-changed-files` |          | false                              | Show in report only changed files for this commit, and not all files                                   |
 
@@ -83,7 +82,7 @@ You can add this action to your GitHub workflow for Ubuntu runners (e.g. runs-on
 
 <details><summary>My Coverage Title (<b>78%</b>)</summary><table><tr><th>File</th><th>% Stmts</th><th>% Branch</th><th>% Funcs</th><th>% Lines</th><th>Uncovered Line #s</th></tr><tbody><tr><td><b>All files</b></td><td><b>76.74</b></td><td><b>100</b></td><td><b>33.33</b></td><td><b>78.57</b></td><td>&nbsp;</td></tr><tr><td>src</td><td>75.67</td><td>100</td><td>40</td><td>75.67</td><td>&nbsp;</td></tr><tr><td>&nbsp; &nbsp;<a href="https://github.com/MishaKav/api-testing-example/blob/725508e4be6d3bc9d49fa611bd9fba96d5374a13/src/controller.js">controller.js</a></td><td>63.63</td><td>100</td><td>50</td><td>63.63</td><td><a href="https://github.com/MishaKav/api-testing-example/blob/725508e4be6d3bc9d49fa611bd9fba96d5374a13/src/controller.js#L14-L18">14&ndash;18</a></td></tr><tr><td>&nbsp; &nbsp;<a href="https://github.com/MishaKav/api-testing-example/blob/725508e4be6d3bc9d49fa611bd9fba96d5374a13/src/index.js">index.js</a></td><td>85.71</td><td>100</td><td>0</td><td>85.71</td><td><a href="https://github.com/MishaKav/api-testing-example/blob/725508e4be6d3bc9d49fa611bd9fba96d5374a13/src/index.js#L9">9</a></td></tr><tr><td>&nbsp; &nbsp;<a href="https://github.com/MishaKav/api-testing-example/blob/725508e4be6d3bc9d49fa611bd9fba96d5374a13/src/router.js">router.js</a></td><td>100</td><td>100</td><td>100</td><td>100</td><td>&nbsp;</td></tr><tr><td>&nbsp; &nbsp;<a href="https://github.com/MishaKav/api-testing-example/blob/725508e4be6d3bc9d49fa611bd9fba96d5374a13/src/service.js">service.js</a></td><td>69.23</td><td>100</td><td>50</td><td>69.23</td><td><a href="https://github.com/MishaKav/api-testing-example/blob/725508e4be6d3bc9d49fa611bd9fba96d5374a13/src/service.js#L16-L20">16&ndash;20</a></td></tr><tr><td>src/utils</td><td>83.33</td><td>100</td><td>0</td><td>100</td><td>&nbsp;</td></tr><tr><td>&nbsp; &nbsp;<a href="https://github.com/MishaKav/api-testing-example/blob/725508e4be6d3bc9d49fa611bd9fba96d5374a13/src/utils/config.js">config.js</a></td><td>100</td><td>100</td><td>100</td><td>100</td><td>&nbsp;</td></tr><tr><td>&nbsp; &nbsp;<a href="https://github.com/MishaKav/api-testing-example/blob/725508e4be6d3bc9d49fa611bd9fba96d5374a13/src/utils/utils.js">utils.js</a></td><td>75</td><td>100</td><td>0</td><td>100</td><td>&nbsp;</td></tr></tbody></table></details>
 
-## Example usage
+## Example Usage
 
 The following is an example GitHub Action workflow that uses the Jest Coverage Comment to extract the coverage summary to comment at pull request:
 
@@ -104,13 +103,13 @@ jobs:
 
       - name: Run tests
         run: |
-          npx jest --coverage --config='{ "coverageReporters": ["json-summary"] }'
+          npx jest --coverage --coverageReporters json-summary
 
       - name: Jest coverage comment
         uses: MishaKav/jest-coverage-comment@main
 ```
 
-Example GitHub Action workflow that uses coverage percentage as output and update badge on Readme.md without commits to repo (see the [live workflow](../main/.github/workflows/update-coverage-on-readme.yml))
+Example GitHub Action workflow that uses coverage percentage as output and update badge on README.md without commits to repo (see the [live workflow](../main/.github/workflows/update-coverage-on-readme.yml))
 
 ```yaml
 name: Update Coverage on Readme
@@ -311,8 +310,8 @@ If you want auto-update the coverage badge on your Readme, you can see the [work
 
 We welcome all contributions. You can submit any ideas as [pull requests](https://github.com/MishaKav/jest-coverage-comment/pulls) or as [GitHub issues](https://github.com/MishaKav/jest-coverage-comment/issues) and have a good time! :)
 
-## Our Contibutors
+## Our Contributors
 
 <a href="https://github.com/MishaKav/jest-coverage-comment/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=MishaKav/jest-coverage-comment" alt="Contibutors" />
+  <img src="https://contrib.rocks/image?repo=MishaKav/jest-coverage-comment" alt="Contributors" />
 </a>
