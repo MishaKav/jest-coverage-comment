@@ -72,10 +72,16 @@ function getChangedFiles(options) {
                     core.setFailed(`This action only supports pull requests and pushes, ${eventName} events are not supported. ` +
                         "Please submit an issue on this action's GitHub repo if you believe this in correct.");
             }
+            core.startGroup('My Log');
+            core.info(JSON.stringify(payload));
+            core.endGroup();
             core.startGroup('Changed files');
             // Log the base and head commits
             core.info(`Base commit: ${base}`);
             core.info(`Head commit: ${head}`);
+            if (base === '0000000000000000000000000000000000000000') {
+                base = head;
+            }
             // Use GitHub's compare two commits API.
             // https://developer.github.com/v3/repos/commits/#compare-two-commits
             const response = yield octokit.rest.repos.compareCommits({
@@ -809,13 +815,17 @@ exports.exportedForTesting = {
 /***/ }),
 
 /***/ 715:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
 
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.exportedForTesting = exports.parseCoverage = exports.isFolder = exports.isFile = exports.getTotalLine = void 0;
 const consts_1 = __nccwpck_require__(4831);
+const strip_ansi_1 = __importDefault(__nccwpck_require__(5591));
 function parseLine(line) {
     return line.split('|').map((l) => l.replace('%', '').replace('#s', '').trim());
 }
@@ -854,7 +864,7 @@ function isFolder(line) {
 }
 exports.isFolder = isFolder;
 function parseCoverage(content) {
-    const arr = content.split('\n');
+    const arr = (0, strip_ansi_1.default)(content).split('\n');
     const result = [];
     const folders = [];
     const startFrom = arr.findIndex((l) => l.includes(consts_1.BUNCH_OF_DASHES));
@@ -5420,6 +5430,24 @@ exports.request = request;
 
 /***/ }),
 
+/***/ 5063:
+/***/ ((module) => {
+
+"use strict";
+
+
+module.exports = ({onlyFirst = false} = {}) => {
+	const pattern = [
+		'[\\u001B\\u009B][[\\]()#;?]*(?:(?:(?:(?:;[-a-zA-Z\\d\\/#&.:=?%@~_]+)*|[a-zA-Z\\d]+(?:;[-a-zA-Z\\d\\/#&.:=?%@~_]*)*)?\\u0007)',
+		'(?:(?:\\d{1,4}(?:;\\d{0,4})*)?[\\dA-PR-TZcf-ntqry=><~]))'
+	].join('|');
+
+	return new RegExp(pattern, onlyFirst ? undefined : 'g');
+};
+
+
+/***/ }),
+
 /***/ 3682:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
@@ -8993,6 +9021,18 @@ function onceStrict (fn) {
     }())
   }
 })( false ? 0 : exports)
+
+
+/***/ }),
+
+/***/ 5591:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+"use strict";
+
+const ansiRegex = __nccwpck_require__(5063);
+
+module.exports = string => typeof string === 'string' ? string.replace(ansiRegex(), '') : string;
 
 
 /***/ }),
