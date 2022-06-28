@@ -1,5 +1,6 @@
 import { BUNCH_OF_DASHES, BUNCH_OF_EQUALS } from './consts'
 import { CoverageLine } from './types'
+import stripAnsi from 'strip-ansi'
 
 function parseLine(line: string): string[] {
   return line.split('|').map((l) => l.replace('%', '').replace('#s', '').trim())
@@ -47,7 +48,7 @@ export function isFolder(line: CoverageLine): boolean {
 }
 
 export function parseCoverage(content: string): CoverageLine[] {
-  const arr = content.split('\n')
+  const arr = stripAnsi(content).split('\n')
   const result: CoverageLine[] = []
   const folders = []
   const startFrom = arr.findIndex((l) => l.includes(BUNCH_OF_DASHES))
