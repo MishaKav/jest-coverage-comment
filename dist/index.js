@@ -85,14 +85,15 @@ function getChangedFiles(options) {
                     ref: head,
                 });
             }
-            // Use GitHub's compare two commits API.
-            // https://developer.github.com/v3/repos/commits/#compare-two-commits
-            response = yield octokit.rest.repos.compareCommits({
-                base,
-                head,
-                owner,
-                repo,
-            });
+            else {
+                // https://developer.github.com/v3/repos/commits/#compare-two-commits
+                response = yield octokit.rest.repos.compareCommits({
+                    base,
+                    head,
+                    owner,
+                    repo,
+                });
+            }
             // Ensure that the request was successful.
             if (response.status !== 200) {
                 core.setFailed(`The GitHub API for comparing the base and head commits for this ${eventName} event returned ${response.status}, expected 200. ` +
