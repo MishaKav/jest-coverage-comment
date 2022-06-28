@@ -72,15 +72,20 @@ function getChangedFiles(options) {
                     core.setFailed(`This action only supports pull requests and pushes, ${eventName} events are not supported. ` +
                         "Please submit an issue on this action's GitHub repo if you believe this in correct.");
             }
-            core.startGroup('My Log');
-            core.info(JSON.stringify(payload));
-            core.endGroup();
             core.startGroup('Changed files');
             // Log the base and head commits
             core.info(`Base commit: ${base}`);
             core.info(`Head commit: ${head}`);
+            // that is first commit, we cannot get diff
             if (base === '0000000000000000000000000000000000000000') {
-                base = head;
+                const response1 = yield octokit.rest.repos.getCommit({
+                    owner,
+                    repo,
+                    ref: head,
+                });
+                core.startGroup('My Log');
+                core.info(JSON.stringify(response1));
+                core.endGroup();
             }
             // Use GitHub's compare two commits API.
             // https://developer.github.com/v3/repos/commits/#compare-two-commits

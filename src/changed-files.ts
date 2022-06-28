@@ -36,18 +36,23 @@ export async function getChangedFiles(options: Options): Promise<ChangedFiles> {
         )
     }
 
-    core.startGroup('My Log')
-    core.info(JSON.stringify(payload))
-    core.endGroup()
-
     core.startGroup('Changed files')
     // Log the base and head commits
     core.info(`Base commit: ${base}`)
     core.info(`Head commit: ${head}`)
 
+    // that is first commit, we cannot get diff
     if (base === '0000000000000000000000000000000000000000') {
-      base = head
+      const response1 = await octokit.rest.repos.getCommit({
+        owner,
+        repo,
+        ref: head,
+      })
+      core.startGroup('My Log')
+      core.info(JSON.stringify(response1))
+      core.endGroup()
     }
+
     // Use GitHub's compare two commits API.
     // https://developer.github.com/v3/repos/commits/#compare-two-commits
     const response = await octokit.rest.repos.compareCommits({
