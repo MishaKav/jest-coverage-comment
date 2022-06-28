@@ -36,11 +36,18 @@ export async function getChangedFiles(options: Options): Promise<ChangedFiles> {
         )
     }
 
+    core.startGroup('My Log')
+    core.info(JSON.stringify(payload))
+    core.endGroup()
+
     core.startGroup('Changed files')
     // Log the base and head commits
     core.info(`Base commit: ${base}`)
     core.info(`Head commit: ${head}`)
 
+    if (base === '0000000000000000000000000000000000000000') {
+      base = head
+    }
     // Use GitHub's compare two commits API.
     // https://developer.github.com/v3/repos/commits/#compare-two-commits
     const response = await octokit.rest.repos.compareCommits({
