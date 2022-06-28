@@ -76,20 +76,18 @@ function getChangedFiles(options) {
             // Log the base and head commits
             core.info(`Base commit: ${base}`);
             core.info(`Head commit: ${head}`);
+            let response = null;
             // that is first commit, we cannot get diff
             if (base === '0000000000000000000000000000000000000000') {
-                const response1 = yield octokit.rest.repos.getCommit({
+                response = yield octokit.rest.repos.getCommit({
                     owner,
                     repo,
                     ref: head,
                 });
-                core.startGroup('My Log');
-                core.info(JSON.stringify(response1));
-                core.endGroup();
             }
             // Use GitHub's compare two commits API.
             // https://developer.github.com/v3/repos/commits/#compare-two-commits
-            const response = yield octokit.rest.repos.compareCommits({
+            response = yield octokit.rest.repos.compareCommits({
                 base,
                 head,
                 owner,
