@@ -20,6 +20,7 @@ export interface Options {
   hideComment?: boolean
   reportOnlyChangedFiles?: boolean
   changedFiles?: ChangedFiles
+  multipleFiles?: string[]
 }
 
 export interface ChangedFiles {
