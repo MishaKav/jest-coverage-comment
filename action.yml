@@ -75,6 +75,14 @@ inputs:
     default: 'false'
     required: false
 
+  multiple-files:
+    description: >
+      You can pass array of `json-summary.json` files and generate single comment with table of results
+      Single line should look like `./path/to/json-sumamry.json`
+      **Note:** In that mode the `output` for `coverage` and `color` will be for the first file only
+    default: ''
+    required: false
+
 outputs:
   coverage:
     description: 'Value indicating the coverage percentage of your report based on jest, example 78'
