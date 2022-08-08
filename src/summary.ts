@@ -3,7 +3,7 @@ import { SummaryReport, LineSummary, Options, Summary } from './types.d'
 import { getContentFile, getCoverageColor } from './utils'
 
 // parse coverage-summary.json to Sumamry object
-function parseSummary(jsonContent: string): Summary | null {
+export function parseSummary(jsonContent: string): Summary | null {
   try {
     if (!jsonContent) {
       core.warning(`Summary json was not provided`)
@@ -97,6 +97,5 @@ export function getSummaryReport(options: Options): SummaryReport {
 export const exportedForTesting = {
   getCoverage,
   lineSumamryToTd,
-  parseSummary,
   getCoverageColor,
 }

@@ -1,7 +1,11 @@
 import * as core from '@actions/core'
 import { expect, test, describe, jest } from '@jest/globals'
-import { getSummaryReport, exportedForTesting } from '../src/summary'
-const { getCoverage, lineSumamryToTd, parseSummary } = exportedForTesting
+import {
+  getSummaryReport,
+  parseSummary,
+  exportedForTesting,
+} from '../src/summary'
+const { getCoverage, lineSumamryToTd } = exportedForTesting
 
 describe('coverage from summary', () => {
   test('should extract coverage from summary', () => {
