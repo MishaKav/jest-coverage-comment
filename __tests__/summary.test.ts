@@ -5,10 +5,11 @@ import {
   parseSummary,
   exportedForTesting,
   summaryToMarkdown,
+  getCoverage,
 } from '../src/summary'
 import { Options } from '../src/types'
 import { getContentFile } from '../src/utils'
-const { getCoverage, lineSumamryToTd } = exportedForTesting
+const { lineSumamryToTd } = exportedForTesting
 
 describe('coverage from summary', () => {
   test('should extract coverage from summary', () => {

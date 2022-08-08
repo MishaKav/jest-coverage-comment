@@ -67,7 +67,9 @@ ${table}`
 }
 
 // get coverage and color from summary
-function getCoverage(summary: Summary): Omit<SummaryReport, 'summaryHtml'> {
+export function getCoverage(
+  summary: Summary
+): Omit<SummaryReport, 'summaryHtml'> {
   if (!summary?.lines) {
     return { coverage: 0, color: 'red' }
   }
@@ -104,7 +106,6 @@ export function getSummaryReport(options: Options): SummaryReport {
 }
 
 export const exportedForTesting = {
-  getCoverage,
   lineSumamryToTd,
   getCoverageColor,
 }
