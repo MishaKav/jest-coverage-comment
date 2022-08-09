@@ -90,3 +90,8 @@ export interface CoverageReport {
   lines: number
   statements: number
 }
+
+export interface MultipleFilesLine {
+  title: string
+  file: string
+}

@@ -38,8 +38,10 @@ async function main(): Promise<void> {
     const junitFile = './../data/coverage_1/junit.xml'
     const coverageFile = './../data/coverage_1/coverage.txt'
     const multipleFiles = [
-      getPathToFile('./../data/coverage_1/coverage-summary.json'),
-      getPathToFile('./../data/coverage_1/coverage-summary_2.json'),
+      `Title1, ${getPathToFile('./../data/coverage_1/coverage-summary.json')}`,
+      `Title2, ${getPathToFile(
+        './../data/coverage_1/coverage-summary_2.json'
+      )}`,
     ]
     const prefix = __dirname
 
