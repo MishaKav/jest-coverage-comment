@@ -4,6 +4,7 @@ import { Options } from './types.d'
 import { getJunitReport } from './junit'
 import { getCoverageReport } from './coverage'
 import { getSummaryReport } from './summary'
+import { getMultipleReport } from './multi-files'
 
 // import { getSummaryReport, getParsedXml } from './junitXml'
 
@@ -36,6 +37,12 @@ async function main(): Promise<void> {
     const summaryFile = './../data/coverage_1/coverage-summary.json'
     const junitFile = './../data/coverage_1/junit.xml'
     const coverageFile = './../data/coverage_1/coverage.txt'
+    const multipleFiles = [
+      `Title1, ${getPathToFile('./../data/coverage_1/coverage-summary.json')}`,
+      `Title2, ${getPathToFile(
+        './../data/coverage_1/coverage-summary_2.json'
+      )}`,
+    ]
     const prefix = __dirname
 
     let finalHtml = ''
@@ -59,6 +66,7 @@ async function main(): Promise<void> {
       changedFiles: {
         all: ['src/router.js', 'src/service.js', 'src/utils/config.js'],
       },
+      multipleFiles,
     }
 
     const { summaryHtml } = getSummaryReport(options)
@@ -75,6 +83,10 @@ async function main(): Promise<void> {
     if (options.coverageFile) {
       const { coverageHtml } = getCoverageReport(options)
       finalHtml += coverageHtml ? `\n\n${coverageHtml}` : ''
+    }
+
+    if (options.multipleFiles?.length) {
+      finalHtml += `\n\n${getMultipleReport(options)}`
     }
 
     if (!finalHtml || options.hideComment) {

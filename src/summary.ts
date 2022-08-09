@@ -3,7 +3,7 @@ import { SummaryReport, LineSummary, Options, Summary } from './types.d'
 import { getContentFile, getCoverageColor } from './utils'
 
 // parse coverage-summary.json to Sumamry object
-function parseSummary(jsonContent: string): Summary | null {
+export function parseSummary(jsonContent: string): Summary | null {
   try {
     if (!jsonContent) {
       core.warning(`Summary json was not provided`)
@@ -34,19 +34,28 @@ function lineSumamryToTd(line: LineSummary): string {
 }
 
 // convert summary to md
-function summaryToMarkdown(summary: Summary, options: Options): string {
+export function summaryToMarkdown(
+  summary: Summary,
+  options: Options,
+  withoutHeader = false
+): string {
   const { repository, commit, badgeTitle } = options
   const { statements, functions, branches } = summary
   const { color, coverage } = getCoverage(summary)
   const readmeHref = `https://github.com/${repository}/blob/${commit}/README.md`
   const badge = `<a href="${readmeHref}"><img alt="${badgeTitle}: ${coverage}%" src="https://img.shields.io/badge/${badgeTitle}-${coverage}%25-${color}.svg" /></a><br/>`
 
-  const table = `| Lines | Statements | Branches | Functions |
-| ----- | ------- | -------- | -------- |
-| ${badge} | ${lineSumamryToTd(statements)} | ${lineSumamryToTd(
-    functions
-  )} | ${lineSumamryToTd(branches)} |
+  const tableHeader = `| Lines | Statements | Branches | Functions |
+| ----- | ------- | -------- | -------- |`
+  // prettier-ignore
+  const content = `| ${badge} | ${lineSumamryToTd(statements)} | ${lineSumamryToTd(functions)} | ${lineSumamryToTd(branches)} |`
+  const table = `${tableHeader}
+${content}
 `
+
+  if (withoutHeader) {
+    return content
+  }
 
   if (options.summaryTitle) {
     return `## ${options.summaryTitle}
@@ -58,7 +67,9 @@ ${table}`
 }
 
 // get coverage and color from summary
-function getCoverage(summary: Summary): Omit<SummaryReport, 'summaryHtml'> {
+export function getCoverage(
+  summary: Summary
+): Omit<SummaryReport, 'summaryHtml'> {
   if (!summary?.lines) {
     return { coverage: 0, color: 'red' }
   }
@@ -95,8 +106,6 @@ export function getSummaryReport(options: Options): SummaryReport {
 }
 
 export const exportedForTesting = {
-  getCoverage,
   lineSumamryToTd,
-  parseSummary,
   getCoverageColor,
 }

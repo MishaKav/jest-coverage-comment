@@ -27,22 +27,23 @@ You can add this action to your GitHub workflow for Ubuntu runners (e.g. `runs-o
 
 ## Inputs
 
-| Name                        | Required | Default                            | Description                                                                                            |
-| --------------------------- | -------- | ---------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| `github-token`              | ✓        | `${{github.token}}`                | An alternative GitHub token, other than the default provided by GitHub Actions runner                  |
-| `coverage-summary-path`     |          | `./coverage/coverage-summary.json` | The location of the coverage-summary of jest                                                           |
-| `title`                     |          | ''                                 | Main title for the comment                                                                             |
-| `summary-title`             |          | ''                                 | Title for the coverage summary                                                                         |
-| `badge-title`               |          | `Coverage`                         | Title for the badge icon                                                                               |
-| `hide-summary`              |          | false                              | Hide coverage summary report                                                                           |
-| `create-new-comment`        |          | false                              | When false, will update the same comment, otherwise will publish new comment on each run.              |
-| `hide-comment`              |          | false                              | Hide the whole comment (use when you need only the `output`). Useful for auto-update bagdes in readme. |
-| `junitxml-path`             |          | ''                                 | The location of the junitxml path (npm package `jest-junit` should be installed)                       |
-| `junitxml-title`            |          | ''                                 | Title for summary for junitxml                                                                         |
-| `coverage-path`             |          | ''                                 | The location of the coverage.txt (jest console output)                                                 |
-| `coverage-title`            |          | `Coverage Report`                  | Title for the coverage report                                                                          |
-| `coverage-path-prefix`      |          | ''                                 | Prefix for path when link to files in comment                                                          |
-| `report-only-changed-files` |          | false                              | Show in report only changed files for this commit, and not all files                                   |
+| Name                        | Required | Default                            | Description                                                                                                                                                              |
+| --------------------------- | -------- | ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `github-token`              | ✓        | `${{github.token}}`                | An alternative GitHub token, other than the default provided by GitHub Actions runner                                                                                    |
+| `coverage-summary-path`     |          | `./coverage/coverage-summary.json` | The location of the coverage-summary of jest                                                                                                                             |
+| `title`                     |          | ''                                 | Main title for the comment                                                                                                                                               |
+| `summary-title`             |          | ''                                 | Title for the coverage summary                                                                                                                                           |
+| `badge-title`               |          | `Coverage`                         | Title for the badge icon                                                                                                                                                 |
+| `hide-summary`              |          | false                              | Hide coverage summary report                                                                                                                                             |
+| `create-new-comment`        |          | false                              | When false, will update the same comment, otherwise will publish new comment on each run.                                                                                |
+| `hide-comment`              |          | false                              | Hide the whole comment (use when you need only the `output`). Useful for auto-update bagdes in readme.                                                                   |
+| `junitxml-path`             |          | ''                                 | The location of the junitxml path (npm package `jest-junit` should be installed)                                                                                         |
+| `junitxml-title`            |          | ''                                 | Title for summary for junitxml                                                                                                                                           |
+| `coverage-path`             |          | ''                                 | The location of the coverage.txt (jest console output)                                                                                                                   |
+| `coverage-title`            |          | `Coverage Report`                  | Title for the coverage report                                                                                                                                            |
+| `coverage-path-prefix`      |          | ''                                 | Prefix for path when link to files in comment                                                                                                                            |
+| `report-only-changed-files` |          | false                              | Show in report only changed files for this commit, and not all files                                                                                                     |
+| `multiple-files`            |          | ''                                 | You can pass array of `json-summary.json` files and generate single comment with table of results<br/>Single line should look like `Title1, ./path/to/json-sumamry.json` |
 
 ## Output Variables
 
@@ -223,6 +224,19 @@ The nice thing, is that will link all your files inside that commit and ability 
   uses: MishaKav/jest-coverage-comment@main
   with:
     coverage-path: ./coverage.txt
+```
+
+Example GitHub Action workflow that uses multiple files mode (can be useful on mono-repo projects)
+
+![image](https://user-images.githubusercontent.com/289035/183769452-99e53ad9-5205-44b7-bba6-c8d481ce5cc4.png)
+
+```yaml
+- name: Jest coverage comment
+  uses: MishaKav/jest-coverage-comment@main
+  with:
+    multiple-files: |
+      My-Title-1, ./coverage_1/coverage-summary.json
+      My-Title-2, ./coverage_2/coverage-summary.json
 ```
 
 ### Junit Report

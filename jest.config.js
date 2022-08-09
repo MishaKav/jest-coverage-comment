@@ -11,6 +11,7 @@ module.exports = {
     'src/types.d.ts',
     'src/index.ts',
     'src/create-comment.ts',
+    'src/changed-files.ts',
   ],
   coverageReporters: [
     //   'clover',

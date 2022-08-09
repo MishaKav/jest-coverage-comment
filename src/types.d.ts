@@ -20,6 +20,7 @@ export interface Options {
   hideComment?: boolean
   reportOnlyChangedFiles?: boolean
   changedFiles?: ChangedFiles
+  multipleFiles?: string[]
 }
 
 export interface ChangedFiles {
@@ -88,4 +89,9 @@ export interface CoverageReport {
   functions: number
   lines: number
   statements: number
+}
+
+export interface MultipleFilesLine {
+  title: string
+  file: string
 }
