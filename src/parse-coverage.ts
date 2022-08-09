@@ -80,7 +80,7 @@ export function parseCoverage(content: string): CoverageLine[] {
     }
 
     if (!isCurrentFolder && folders.length) {
-      parsedLine[0] = `${folders.at(-1)}/${parsedLine.at(0)}`
+      parsedLine[0] = `${folders.at(-1)}/${parsedLine.at(0)}`.replace('//', '/')
     }
 
     if (isCurrentFolder || isCurrentFile) {

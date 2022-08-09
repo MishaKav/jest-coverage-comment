@@ -944,7 +944,7 @@ function parseCoverage(content) {
             folders.push(fileName);
         }
         if (!isCurrentFolder && folders.length) {
-            parsedLine[0] = `${folders.at(-1)}/${parsedLine.at(0)}`;
+            parsedLine[0] = `${folders.at(-1)}/${parsedLine.at(0)}`.replace('//', '/');
         }
         if (isCurrentFolder || isCurrentFile) {
             result.push(arrToLine(parsedLine));
