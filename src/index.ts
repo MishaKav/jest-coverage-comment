@@ -6,6 +6,7 @@ import { getJunitReport } from './junit'
 import { getCoverageReport } from './coverage'
 import { getSummaryReport } from './summary'
 import { getChangedFiles } from './changed-files'
+import { getMultipleReport } from './multi-files'
 
 async function main(): Promise<void> {
   try {
@@ -40,6 +41,9 @@ async function main(): Promise<void> {
       'report-only-changed-files',
       { required: false }
     )
+    const multipleFiles = core.getMultilineInput('multiple-files', {
+      required: false,
+    })
 
     const { repo, owner } = context.repo
     const { eventName, payload } = context
@@ -65,6 +69,7 @@ async function main(): Promise<void> {
       createNewComment,
       hideComment,
       reportOnlyChangedFiles,
+      multipleFiles,
     }
 
     if (eventName === 'pull_request' && payload) {
@@ -169,6 +174,10 @@ async function main(): Promise<void> {
         core.setOutput('coverageHtml', coverageHtml)
         core.endGroup()
       }
+    }
+
+    if (multipleFiles?.length) {
+      finalHtml += `\n\n${getMultipleReport(options)}`
     }
 
     if (!finalHtml || options.hideComment) {
