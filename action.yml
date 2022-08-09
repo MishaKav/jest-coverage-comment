@@ -78,7 +78,7 @@ inputs:
   multiple-files:
     description: >
       You can pass array of `json-summary.json` files and generate single comment with table of results
-      Single line should look like `./path/to/json-sumamry.json`
+      Single line should look like `Title1, ./path/to/json-sumamry.json`
     default: ''
     required: false
 
