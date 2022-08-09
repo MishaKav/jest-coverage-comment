@@ -228,6 +228,8 @@ The nice thing, is that will link all your files inside that commit and ability 
 
 Example GitHub Action workflow that uses multiple files mode (can be useful on mono-repo projects)
 
+![image](https://user-images.githubusercontent.com/289035/183769452-99e53ad9-5205-44b7-bba6-c8d481ce5cc4.png)
+
 ```yaml
 - name: Jest coverage comment
   uses: MishaKav/jest-coverage-comment@main
