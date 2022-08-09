@@ -29,133 +29,121 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.getChangedFiles = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const github_1 = __nccwpck_require__(5438);
 // generate object of all files that changed based on commit through Github API
-function getChangedFiles(options) {
-    var _a, _b;
-    return __awaiter(this, void 0, void 0, function* () {
-        const all = [];
-        const added = [];
-        const modified = [];
-        const removed = [];
-        const renamed = [];
-        const addedOrModified = [];
-        try {
-            const { eventName, payload } = github_1.context;
-            const { repo, owner } = github_1.context.repo;
-            const octokit = (0, github_1.getOctokit)(options.token);
-            // Define the base and head commits to be extracted from the payload
-            let base;
-            let head;
-            switch (eventName) {
-                case 'pull_request':
-                    base = (_a = payload.pull_request) === null || _a === void 0 ? void 0 : _a.base.sha;
-                    head = (_b = payload.pull_request) === null || _b === void 0 ? void 0 : _b.head.sha;
-                    break;
-                case 'push':
-                    base = payload.before;
-                    head = payload.after;
-                    break;
-                default:
-                    core.setFailed(`This action only supports pull requests and pushes, ${eventName} events are not supported. ` +
-                        "Please submit an issue on this action's GitHub repo if you believe this in correct.");
-            }
-            core.startGroup('Changed files');
-            // Log the base and head commits
-            core.info(`Base commit: ${base}`);
-            core.info(`Head commit: ${head}`);
-            let response = null;
-            // that is first commit, we cannot get diff
-            if (base === '0000000000000000000000000000000000000000') {
-                response = yield octokit.rest.repos.getCommit({
-                    owner,
-                    repo,
-                    ref: head,
-                });
-            }
-            else {
-                // https://developer.github.com/v3/repos/commits/#compare-two-commits
-                response = yield octokit.rest.repos.compareCommits({
-                    base,
-                    head,
-                    owner,
-                    repo,
-                });
-            }
-            // Ensure that the request was successful.
-            if (response.status !== 200) {
-                core.setFailed(`The GitHub API for comparing the base and head commits for this ${eventName} event returned ${response.status}, expected 200. ` +
-                    "Please submit an issue on this action's GitHub repo.");
-            }
-            // https://github.com/MishaKav/jest-coverage-comment/issues/10
-            // Ensure that the head commit is ahead of the base commit.
-            // if (response.data.status !== 'ahead') {
-            //   core.setFailed(
-            //     `The head commit for this ${eventName} event is not ahead of the base commit. ` +
-            //       "Please submit an issue on this action's GitHub repo."
-            //   )
-            // }
-            // Get the changed files from the response payload.
-            const files = response.data.files;
-            if (files === null || files === void 0 ? void 0 : files.length) {
-                for (const file of files) {
-                    const { filename: filenameOriginal, status } = file;
-                    const filename = filenameOriginal.replace(options.coveragePathPrefix || '', '');
-                    all.push(filename);
-                    switch (status) {
-                        case 'added':
-                            added.push(filename);
-                            addedOrModified.push(filename);
-                            break;
-                        case 'modified':
-                            modified.push(filename);
-                            addedOrModified.push(filename);
-                            break;
-                        case 'removed':
-                            removed.push(filename);
-                            break;
-                        case 'renamed':
-                            renamed.push(filename);
-                            break;
-                        default:
-                            core.setFailed(`One of your files includes an unsupported file status '${status}', expected added, modified, removed, renamed`);
-                    }
+async function getChangedFiles(options) {
+    const all = [];
+    const added = [];
+    const modified = [];
+    const removed = [];
+    const renamed = [];
+    const addedOrModified = [];
+    try {
+        const { eventName, payload } = github_1.context;
+        const { repo, owner } = github_1.context.repo;
+        const octokit = (0, github_1.getOctokit)(options.token);
+        // Define the base and head commits to be extracted from the payload
+        let base;
+        let head;
+        switch (eventName) {
+            case 'pull_request':
+                base = payload.pull_request?.base.sha;
+                head = payload.pull_request?.head.sha;
+                break;
+            case 'push':
+                base = payload.before;
+                head = payload.after;
+                break;
+            default:
+                core.setFailed(`This action only supports pull requests and pushes, ${eventName} events are not supported. ` +
+                    "Please submit an issue on this action's GitHub repo if you believe this in correct.");
+        }
+        core.startGroup('Changed files');
+        // Log the base and head commits
+        core.info(`Base commit: ${base}`);
+        core.info(`Head commit: ${head}`);
+        let response = null;
+        // that is first commit, we cannot get diff
+        if (base === '0000000000000000000000000000000000000000') {
+            response = await octokit.rest.repos.getCommit({
+                owner,
+                repo,
+                ref: head,
+            });
+        }
+        else {
+            // https://developer.github.com/v3/repos/commits/#compare-two-commits
+            response = await octokit.rest.repos.compareCommits({
+                base,
+                head,
+                owner,
+                repo,
+            });
+        }
+        // Ensure that the request was successful.
+        if (response.status !== 200) {
+            core.setFailed(`The GitHub API for comparing the base and head commits for this ${eventName} event returned ${response.status}, expected 200. ` +
+                "Please submit an issue on this action's GitHub repo.");
+        }
+        // https://github.com/MishaKav/jest-coverage-comment/issues/10
+        // Ensure that the head commit is ahead of the base commit.
+        // if (response.data.status !== 'ahead') {
+        //   core.setFailed(
+        //     `The head commit for this ${eventName} event is not ahead of the base commit. ` +
+        //       "Please submit an issue on this action's GitHub repo."
+        //   )
+        // }
+        // Get the changed files from the response payload.
+        const files = response.data.files;
+        if (files?.length) {
+            for (const file of files) {
+                const { filename: filenameOriginal, status } = file;
+                const filename = filenameOriginal.replace(options.coveragePathPrefix || '', '');
+                all.push(filename);
+                switch (status) {
+                    case 'added':
+                        added.push(filename);
+                        addedOrModified.push(filename);
+                        break;
+                    case 'modified':
+                        modified.push(filename);
+                        addedOrModified.push(filename);
+                        break;
+                    case 'removed':
+                        removed.push(filename);
+                        break;
+                    case 'renamed':
+                        renamed.push(filename);
+                        break;
+                    default:
+                        core.setFailed(`One of your files includes an unsupported file status '${status}', expected added, modified, removed, renamed`);
                 }
             }
-            core.info(`All: ${all.join(',')}`);
-            core.info(`Added: ${added.join(', ')}`);
-            core.info(`Modified: ${modified.join(', ')}`);
-            core.info(`Removed: ${removed.join(', ')}`);
-            core.info(`Renamed: ${renamed.join(', ')}`);
-            core.info(`Added or modified: ${addedOrModified.join(', ')}`);
-            core.endGroup();
         }
-        catch (error) {
-            if (error instanceof Error) {
-                core.setFailed(error.message);
-            }
+        core.info(`All: ${all.join(',')}`);
+        core.info(`Added: ${added.join(', ')}`);
+        core.info(`Modified: ${modified.join(', ')}`);
+        core.info(`Removed: ${removed.join(', ')}`);
+        core.info(`Renamed: ${renamed.join(', ')}`);
+        core.info(`Added or modified: ${addedOrModified.join(', ')}`);
+        core.endGroup();
+    }
+    catch (error) {
+        if (error instanceof Error) {
+            core.setFailed(error.message);
         }
-        return {
-            all,
-            added,
-            modified,
-            removed,
-            renamed,
-            addedOrModified,
-        };
-    });
+    }
+    return {
+        all,
+        added,
+        modified,
+        removed,
+        renamed,
+        addedOrModified,
+    };
 }
 exports.getChangedFiles = getChangedFiles;
 
@@ -261,7 +249,7 @@ function toTable(coverageArr, options) {
             if (!reportOnlyChangedFiles) {
                 return true;
             }
-            return changedFiles === null || changedFiles === void 0 ? void 0 : changedFiles.all.some((c) => c.includes(line.file));
+            return changedFiles?.all.some((c) => c.includes(line.file));
         })
             // filter folders without files
             .filter((line, i, arr) => {
@@ -310,8 +298,7 @@ function toFileNameTd(line, indent = false, options) {
 }
 // make missing cell - td
 function toMissingTd(line, options) {
-    var _a;
-    if (!((_a = line === null || line === void 0 ? void 0 : line.uncoveredLines) === null || _a === void 0 ? void 0 : _a.length)) {
+    if (!line?.uncoveredLines?.length) {
         return '&nbsp;';
     }
     return line.uncoveredLines
@@ -344,14 +331,14 @@ function getCoverageReport(options) {
     const { coverageFile } = options;
     try {
         if (!coverageFile) {
-            return Object.assign(Object.assign({}, DEFAULT_COVERAGE), { coverageHtml: '' });
+            return { ...DEFAULT_COVERAGE, coverageHtml: '' };
         }
         const txtContent = (0, utils_1.getContentFile)(coverageFile);
         const coverageArr = (0, parse_coverage_1.parseCoverage)(txtContent);
         if (coverageArr) {
             const coverage = getCoverage(coverageArr);
             const coverageHtml = coverageToMarkdown(coverageArr, options);
-            return Object.assign(Object.assign({}, coverage), { coverageHtml });
+            return { ...coverage, coverageHtml };
         }
     }
     catch (error) {
@@ -359,7 +346,7 @@ function getCoverageReport(options) {
             core.error(`Generating coverage report. ${error.message}`);
         }
     }
-    return Object.assign(Object.assign({}, DEFAULT_COVERAGE), { coverageHtml: '' });
+    return { ...DEFAULT_COVERAGE, coverageHtml: '' };
 }
 exports.getCoverageReport = getCoverageReport;
 
@@ -394,84 +381,70 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.createComment = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const github_1 = __nccwpck_require__(5438);
-function createComment(options, body) {
-    return __awaiter(this, void 0, void 0, function* () {
-        try {
-            const { eventName, payload } = github_1.context;
-            const { repo, owner } = github_1.context.repo;
-            const octokit = (0, github_1.getOctokit)(options.token);
-            const issue_number = payload.pull_request ? payload.pull_request.number : 0;
-            if (eventName === 'push') {
-                core.info('Create commit comment');
-                yield octokit.rest.repos.createCommitComment({
+async function createComment(options, body) {
+    try {
+        const { eventName, payload } = github_1.context;
+        const { repo, owner } = github_1.context.repo;
+        const octokit = (0, github_1.getOctokit)(options.token);
+        const issue_number = payload.pull_request ? payload.pull_request.number : 0;
+        if (eventName === 'push') {
+            core.info('Create commit comment');
+            await octokit.rest.repos.createCommitComment({
+                repo,
+                owner,
+                commit_sha: options.commit,
+                body,
+            });
+        }
+        if (eventName === 'pull_request') {
+            if (options.createNewComment) {
+                core.info('Creating a new comment');
+                await octokit.rest.issues.createComment({
                     repo,
                     owner,
-                    commit_sha: options.commit,
+                    issue_number,
                     body,
                 });
             }
-            if (eventName === 'pull_request') {
-                if (options.createNewComment) {
-                    core.info('Creating a new comment');
-                    yield octokit.rest.issues.createComment({
+            else {
+                // Now decide if we should issue a new comment or edit an old one
+                const { data: comments } = await octokit.rest.issues.listComments({
+                    repo,
+                    owner,
+                    issue_number,
+                });
+                const comment = comments.find((c) => c.user?.login === 'github-actions[bot]' &&
+                    c.body?.startsWith(options.watermark));
+                if (comment) {
+                    core.info('Found previous comment, updating');
+                    await octokit.rest.issues.updateComment({
+                        repo,
+                        owner,
+                        comment_id: comment.id,
+                        body,
+                    });
+                }
+                else {
+                    core.info('No previous comment found, creating a new one');
+                    await octokit.rest.issues.createComment({
                         repo,
                         owner,
                         issue_number,
                         body,
                     });
                 }
-                else {
-                    // Now decide if we should issue a new comment or edit an old one
-                    const { data: comments } = yield octokit.rest.issues.listComments({
-                        repo,
-                        owner,
-                        issue_number,
-                    });
-                    const comment = comments.find((c) => {
-                        var _a, _b;
-                        return ((_a = c.user) === null || _a === void 0 ? void 0 : _a.login) === 'github-actions[bot]' &&
-                            ((_b = c.body) === null || _b === void 0 ? void 0 : _b.startsWith(options.watermark));
-                    });
-                    if (comment) {
-                        core.info('Found previous comment, updating');
-                        yield octokit.rest.issues.updateComment({
-                            repo,
-                            owner,
-                            comment_id: comment.id,
-                            body,
-                        });
-                    }
-                    else {
-                        core.info('No previous comment found, creating a new one');
-                        yield octokit.rest.issues.createComment({
-                            repo,
-                            owner,
-                            issue_number,
-                            body,
-                        });
-                    }
-                }
             }
         }
-        catch (error) {
-            if (error instanceof Error) {
-                console.log(error.message); // eslint-disable-line no-console
-            }
+    }
+    catch (error) {
+        if (error instanceof Error) {
+            console.log(error.message); // eslint-disable-line no-console
         }
-    });
+    }
 }
 exports.createComment = createComment;
 
@@ -506,15 +479,6 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core = __importStar(__nccwpck_require__(2186));
 const github_1 = __nccwpck_require__(5438);
@@ -523,158 +487,163 @@ const junit_1 = __nccwpck_require__(2876);
 const coverage_1 = __nccwpck_require__(5730);
 const summary_1 = __nccwpck_require__(8608);
 const changed_files_1 = __nccwpck_require__(6503);
-function main() {
-    var _a, _b, _c;
-    return __awaiter(this, void 0, void 0, function* () {
-        try {
-            const token = core.getInput('github-token', { required: true });
-            const title = core.getInput('title', { required: false });
-            const badgeTitle = core.getInput('badge-title', { required: false });
-            const hideSummary = core.getBooleanInput('hide-summary', {
-                required: false,
-            });
-            const summaryTitle = core.getInput('summary-title', { required: false });
-            const summaryFile = core.getInput('coverage-summary-path', {
-                required: false,
-            });
-            const junitTitle = core.getInput('junitxml-title', { required: false });
-            const junitFile = core.getInput('junitxml-path', {
-                required: false,
-            });
-            const coverageTitle = core.getInput('coverage-title', { required: false });
-            const coverageFile = core.getInput('coverage-path', {
-                required: false,
-            });
-            const coveragePathPrefix = core.getInput('coverage-path-prefix', {
-                required: false,
-            });
-            const createNewComment = core.getBooleanInput('create-new-comment', {
-                required: false,
-            });
-            const hideComment = core.getBooleanInput('hide-comment', {
-                required: false,
-            });
-            const reportOnlyChangedFiles = core.getBooleanInput('report-only-changed-files', { required: false });
-            const { repo, owner } = github_1.context.repo;
-            const { eventName, payload } = github_1.context;
-            const watermark = `<!-- Jest Coverage Comment: ${github_1.context.job} -->\n`;
-            let finalHtml = '';
-            const options = {
-                token,
-                repository: `${owner}/${repo}`,
-                prefix: `${process.env.GITHUB_WORKSPACE}/`,
-                commit: '',
-                watermark,
-                title,
-                badgeTitle,
-                summaryFile,
-                summaryTitle,
-                junitTitle,
-                junitFile,
-                coverageTitle,
-                coverageFile,
-                coveragePathPrefix,
-                hideSummary,
-                createNewComment,
-                hideComment,
-                reportOnlyChangedFiles,
-            };
-            if (eventName === 'pull_request' && payload) {
-                options.commit = (_a = payload.pull_request) === null || _a === void 0 ? void 0 : _a.head.sha;
-                options.head = (_b = payload.pull_request) === null || _b === void 0 ? void 0 : _b.head.ref;
-                options.base = (_c = payload.pull_request) === null || _c === void 0 ? void 0 : _c.base.ref;
-            }
-            else if (eventName === 'push') {
-                options.commit = payload.after;
-                options.head = github_1.context.ref;
-            }
-            if (options.reportOnlyChangedFiles) {
-                const changedFiles = yield (0, changed_files_1.getChangedFiles)(options);
-                options.changedFiles = changedFiles;
-            }
-            const report = (0, summary_1.getSummaryReport)(options);
-            const { coverage, color, summaryHtml } = report;
-            // if (summaryHtml.length > MAX_COMMENT_LENGTH) {
-            //   core.warning(
-            //     `Your comment is too long (maximum is ${MAX_COMMENT_LENGTH} characters), coverage summary report will not be added.`
-            //   )
-            // core.warning(
-            //   `Try add: "--cov-report=term-missing:skip-covered", or add "hide-report: true", or add "report-only-changed-files: true"`
-            // )
-            // }
-            if (coverage || summaryHtml) {
-                core.startGroup(options.summaryTitle || 'Summary');
-                core.info(`coverage: ${coverage}`);
-                core.info(`color: ${color}`);
-                core.info(`summaryHtml: ${summaryHtml}`);
-                core.setOutput('coverage', coverage);
-                core.setOutput('color', color);
-                core.setOutput('summaryHtml', summaryHtml);
+const multi_files_1 = __nccwpck_require__(8796);
+async function main() {
+    try {
+        const token = core.getInput('github-token', { required: true });
+        const title = core.getInput('title', { required: false });
+        const badgeTitle = core.getInput('badge-title', { required: false });
+        const hideSummary = core.getBooleanInput('hide-summary', {
+            required: false,
+        });
+        const summaryTitle = core.getInput('summary-title', { required: false });
+        const summaryFile = core.getInput('coverage-summary-path', {
+            required: false,
+        });
+        const junitTitle = core.getInput('junitxml-title', { required: false });
+        const junitFile = core.getInput('junitxml-path', {
+            required: false,
+        });
+        const coverageTitle = core.getInput('coverage-title', { required: false });
+        const coverageFile = core.getInput('coverage-path', {
+            required: false,
+        });
+        const coveragePathPrefix = core.getInput('coverage-path-prefix', {
+            required: false,
+        });
+        const createNewComment = core.getBooleanInput('create-new-comment', {
+            required: false,
+        });
+        const hideComment = core.getBooleanInput('hide-comment', {
+            required: false,
+        });
+        const reportOnlyChangedFiles = core.getBooleanInput('report-only-changed-files', { required: false });
+        const multipleFiles = core.getMultilineInput('multiple-files', {
+            required: false,
+        });
+        const { repo, owner } = github_1.context.repo;
+        const { eventName, payload } = github_1.context;
+        const watermark = `<!-- Jest Coverage Comment: ${github_1.context.job} -->\n`;
+        let finalHtml = '';
+        const options = {
+            token,
+            repository: `${owner}/${repo}`,
+            prefix: `${process.env.GITHUB_WORKSPACE}/`,
+            commit: '',
+            watermark,
+            title,
+            badgeTitle,
+            summaryFile,
+            summaryTitle,
+            junitTitle,
+            junitFile,
+            coverageTitle,
+            coverageFile,
+            coveragePathPrefix,
+            hideSummary,
+            createNewComment,
+            hideComment,
+            reportOnlyChangedFiles,
+            multipleFiles,
+        };
+        if (eventName === 'pull_request' && payload) {
+            options.commit = payload.pull_request?.head.sha;
+            options.head = payload.pull_request?.head.ref;
+            options.base = payload.pull_request?.base.ref;
+        }
+        else if (eventName === 'push') {
+            options.commit = payload.after;
+            options.head = github_1.context.ref;
+        }
+        if (options.reportOnlyChangedFiles) {
+            const changedFiles = await (0, changed_files_1.getChangedFiles)(options);
+            options.changedFiles = changedFiles;
+        }
+        const report = (0, summary_1.getSummaryReport)(options);
+        const { coverage, color, summaryHtml } = report;
+        // if (summaryHtml.length > MAX_COMMENT_LENGTH) {
+        //   core.warning(
+        //     `Your comment is too long (maximum is ${MAX_COMMENT_LENGTH} characters), coverage summary report will not be added.`
+        //   )
+        // core.warning(
+        //   `Try add: "--cov-report=term-missing:skip-covered", or add "hide-report: true", or add "report-only-changed-files: true"`
+        // )
+        // }
+        if (coverage || summaryHtml) {
+            core.startGroup(options.summaryTitle || 'Summary');
+            core.info(`coverage: ${coverage}`);
+            core.info(`color: ${color}`);
+            core.info(`summaryHtml: ${summaryHtml}`);
+            core.setOutput('coverage', coverage);
+            core.setOutput('color', color);
+            core.setOutput('summaryHtml', summaryHtml);
+            core.endGroup();
+        }
+        if (title) {
+            finalHtml += `# ${title}\n\n`;
+        }
+        if (!options.hideSummary) {
+            finalHtml += summaryHtml;
+        }
+        if (options.junitFile) {
+            const junit = await (0, junit_1.getJunitReport)(options);
+            const { junitHtml, tests, skipped, failures, errors, time } = junit;
+            finalHtml += junitHtml ? `\n\n${junitHtml}` : '';
+            if (junitHtml) {
+                core.startGroup(options.junitTitle || 'Junit');
+                core.info(`tests: ${tests}`);
+                core.info(`skipped: ${skipped}`);
+                core.info(`failures: ${failures}`);
+                core.info(`errors: ${errors}`);
+                core.info(`time: ${time}`);
+                core.info(`junitHtml: ${junitHtml}`);
+                core.setOutput('tests', tests);
+                core.setOutput('skipped', skipped);
+                core.setOutput('failures', failures);
+                core.setOutput('errors', errors);
+                core.setOutput('time', time);
+                core.setOutput('junitHtml', junitHtml);
                 core.endGroup();
             }
-            if (title) {
-                finalHtml += `# ${title}\n\n`;
-            }
-            if (!options.hideSummary) {
-                finalHtml += summaryHtml;
-            }
-            if (options.junitFile) {
-                const junit = yield (0, junit_1.getJunitReport)(options);
-                const { junitHtml, tests, skipped, failures, errors, time } = junit;
-                finalHtml += junitHtml ? `\n\n${junitHtml}` : '';
-                if (junitHtml) {
-                    core.startGroup(options.junitTitle || 'Junit');
-                    core.info(`tests: ${tests}`);
-                    core.info(`skipped: ${skipped}`);
-                    core.info(`failures: ${failures}`);
-                    core.info(`errors: ${errors}`);
-                    core.info(`time: ${time}`);
-                    core.info(`junitHtml: ${junitHtml}`);
-                    core.setOutput('tests', tests);
-                    core.setOutput('skipped', skipped);
-                    core.setOutput('failures', failures);
-                    core.setOutput('errors', errors);
-                    core.setOutput('time', time);
-                    core.setOutput('junitHtml', junitHtml);
-                    core.endGroup();
-                }
-            }
-            if (options.coverageFile) {
-                const coverageReport = (0, coverage_1.getCoverageReport)(options);
-                const { coverageHtml, coverage: reportCoverage, color: coverageColor, branches, functions, lines, statements, } = coverageReport;
-                finalHtml += coverageHtml ? `\n\n${coverageHtml}` : '';
-                if (lines || coverageHtml) {
-                    core.startGroup(options.coverageTitle || 'Coverage');
-                    core.info(`coverage: ${reportCoverage}`);
-                    core.info(`color: ${coverageColor}`);
-                    core.info(`branches: ${branches}`);
-                    core.info(`functions: ${functions}`);
-                    core.info(`lines: ${lines}`);
-                    core.info(`statements: ${statements}`);
-                    core.info(`coverageHtml: ${coverageHtml}`);
-                    core.setOutput('coverage', reportCoverage);
-                    core.setOutput('color', coverageColor);
-                    core.setOutput('branches', branches);
-                    core.setOutput('functions', functions);
-                    core.setOutput('lines', lines);
-                    core.setOutput('statements', statements);
-                    core.setOutput('coverageHtml', coverageHtml);
-                    core.endGroup();
-                }
-            }
-            if (!finalHtml || options.hideComment) {
-                core.info('Nothing to report');
-                return;
-            }
-            const body = watermark + finalHtml;
-            yield (0, create_comment_1.createComment)(options, body);
         }
-        catch (error) {
-            if (error instanceof Error) {
-                core.setFailed(error.message);
+        if (options.coverageFile) {
+            const coverageReport = (0, coverage_1.getCoverageReport)(options);
+            const { coverageHtml, coverage: reportCoverage, color: coverageColor, branches, functions, lines, statements, } = coverageReport;
+            finalHtml += coverageHtml ? `\n\n${coverageHtml}` : '';
+            if (lines || coverageHtml) {
+                core.startGroup(options.coverageTitle || 'Coverage');
+                core.info(`coverage: ${reportCoverage}`);
+                core.info(`color: ${coverageColor}`);
+                core.info(`branches: ${branches}`);
+                core.info(`functions: ${functions}`);
+                core.info(`lines: ${lines}`);
+                core.info(`statements: ${statements}`);
+                core.info(`coverageHtml: ${coverageHtml}`);
+                core.setOutput('coverage', reportCoverage);
+                core.setOutput('color', coverageColor);
+                core.setOutput('branches', branches);
+                core.setOutput('functions', functions);
+                core.setOutput('lines', lines);
+                core.setOutput('statements', statements);
+                core.setOutput('coverageHtml', coverageHtml);
+                core.endGroup();
             }
         }
-    });
+        if (multipleFiles?.length) {
+            finalHtml += `\n\n${(0, multi_files_1.getMultipleReport)(options)}`;
+        }
+        if (!finalHtml || options.hideComment) {
+            core.info('Nothing to report');
+            return;
+        }
+        const body = watermark + finalHtml;
+        await (0, create_comment_1.createComment)(options, body);
+    }
+    catch (error) {
+        if (error instanceof Error) {
+            core.setFailed(error.message);
+        }
+    }
 }
 main();
 
@@ -709,15 +678,6 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.exportedForTesting = exports.getJunitReport = void 0;
 /* eslint-disable  @typescript-eslint/no-explicit-any */
@@ -725,37 +685,37 @@ const core = __importStar(__nccwpck_require__(2186));
 const xml2js = __importStar(__nccwpck_require__(6189));
 const utils_1 = __nccwpck_require__(918);
 // parse junit.xml to Junit object
-function parseJunit(xmlContent) {
-    return __awaiter(this, void 0, void 0, function* () {
-        try {
-            if (!xmlContent) {
-                core.warning(`Junit xml was not provided`);
-                return null;
-            }
-            const parser = new xml2js.Parser();
-            const parsedJunit = yield parser.parseStringPromise(xmlContent);
-            if (!parsedJunit) {
-                core.warning(`Junit xml file is not XML or not well formed`);
-                return null;
-            }
-            const main = parsedJunit.testsuites['$'];
-            const testsuites = parsedJunit.testsuites.testsuite;
-            const skipped = (testsuites === null || testsuites === void 0 ? void 0 : testsuites.map((t) => Number(t['$'].skipped)).reduce((sum, a) => sum + a, 0)) || 0;
-            return {
-                skipped,
-                errors: Number(main.errors),
-                failures: Number(main.failures),
-                tests: Number(main.tests),
-                time: Number(main.time),
-            };
+async function parseJunit(xmlContent) {
+    try {
+        if (!xmlContent) {
+            core.warning(`Junit xml was not provided`);
+            return null;
         }
-        catch (error) {
-            if (error instanceof Error) {
-                core.error(`Parse junit report. ${error.message}`);
-            }
+        const parser = new xml2js.Parser();
+        const parsedJunit = await parser.parseStringPromise(xmlContent);
+        if (!parsedJunit) {
+            core.warning(`Junit xml file is not XML or not well formed`);
+            return null;
         }
-        return null;
-    });
+        const main = parsedJunit.testsuites['$'];
+        const testsuites = parsedJunit.testsuites.testsuite;
+        const skipped = testsuites
+            ?.map((t) => Number(t['$'].skipped))
+            .reduce((sum, a) => sum + a, 0) || 0;
+        return {
+            skipped,
+            errors: Number(main.errors),
+            failures: Number(main.failures),
+            tests: Number(main.tests),
+            time: Number(main.time),
+        };
+    }
+    catch (error) {
+        if (error instanceof Error) {
+            core.error(`Parse junit report. ${error.message}`);
+        }
+    }
+    return null;
 }
 // convert junit from junitxml to md
 function junitToMarkdown(junit, options) {
@@ -773,46 +733,138 @@ ${table}`;
     return table;
 }
 // return junit report
-function getJunitReport(options) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const { junitFile } = options;
-        try {
-            if (junitFile) {
-                const xmlContent = (0, utils_1.getContentFile)(junitFile);
-                const parsedXml = yield parseJunit(xmlContent);
-                if (parsedXml) {
-                    const junitHtml = junitToMarkdown(parsedXml, options);
-                    const { skipped, errors, failures, tests, time } = parsedXml;
-                    return {
-                        junitHtml,
-                        tests,
-                        skipped,
-                        failures,
-                        errors,
-                        time,
-                    };
-                }
+async function getJunitReport(options) {
+    const { junitFile } = options;
+    try {
+        if (junitFile) {
+            const xmlContent = (0, utils_1.getContentFile)(junitFile);
+            const parsedXml = await parseJunit(xmlContent);
+            if (parsedXml) {
+                const junitHtml = junitToMarkdown(parsedXml, options);
+                const { skipped, errors, failures, tests, time } = parsedXml;
+                return {
+                    junitHtml,
+                    tests,
+                    skipped,
+                    failures,
+                    errors,
+                    time,
+                };
             }
         }
-        catch (error) {
-            if (error instanceof Error) {
-                core.error(`Error on generating junit report. ${error.message}`);
-            }
+    }
+    catch (error) {
+        if (error instanceof Error) {
+            core.error(`Error on generating junit report. ${error.message}`);
         }
-        return {
-            junitHtml: '',
-            tests: 0,
-            skipped: 0,
-            failures: 0,
-            errors: 0,
-            time: 0,
-        };
-    });
+    }
+    return {
+        junitHtml: '',
+        tests: 0,
+        skipped: 0,
+        failures: 0,
+        errors: 0,
+        time: 0,
+    };
 }
 exports.getJunitReport = getJunitReport;
 exports.exportedForTesting = {
     parseJunit,
     junitToMarkdown,
+};
+
+
+/***/ }),
+
+/***/ 8796:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.exportedForTesting = exports.getMultipleReport = void 0;
+const core = __importStar(__nccwpck_require__(2186));
+const summary_1 = __nccwpck_require__(8608);
+const utils_1 = __nccwpck_require__(918);
+// parse one-line from multiple files to object
+const parseLine = (line) => {
+    if (!line?.includes(',')) {
+        return null;
+    }
+    const lineArr = line.split(',');
+    return { title: lineArr[0].trim(), file: lineArr[1].trim() };
+};
+// return multiple report in markdown format
+function getMultipleReport(options) {
+    const { multipleFiles } = options;
+    if (!multipleFiles?.length) {
+        return null;
+    }
+    try {
+        const lineReports = multipleFiles.map(parseLine).filter((l) => l);
+        if (!lineReports?.length) {
+            // prettier-ignore
+            core.error(`Generating summary report for multiple files. No files are provided`);
+            return null;
+        }
+        let atLeastOneFileExists = false;
+        let table = `| Title | Lines | Statements | Branches | Functions |
+| ----- | ----- | ------- | -------- | -------- |
+`;
+        for (const titleFileLine of lineReports) {
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            const { title, file } = titleFileLine;
+            const jsonContent = (0, utils_1.getContentFile)(file);
+            const summary = (0, summary_1.parseSummary)(jsonContent);
+            if (summary) {
+                const { color, coverage } = (0, summary_1.getCoverage)(summary);
+                const contentMd = (0, summary_1.summaryToMarkdown)(summary, options, true);
+                table += `| ${title} ${contentMd}\n`;
+                atLeastOneFileExists = true;
+                core.startGroup(title);
+                core.info(`coverage: ${coverage}`);
+                core.info(`color: ${color}`);
+                core.endGroup();
+            }
+        }
+        if (atLeastOneFileExists) {
+            return table;
+        }
+    }
+    catch (error) {
+        if (error instanceof Error) {
+            // prettier-ignore
+            core.error(`Generating summary report for multiple files. ${error.message}`);
+        }
+    }
+    return null;
+}
+exports.getMultipleReport = getMultipleReport;
+exports.exportedForTesting = {
+    parseLine,
 };
 
 
@@ -860,7 +912,7 @@ function getTotalLine(coverageArr) {
 }
 exports.getTotalLine = getTotalLine;
 function isFile(line) {
-    return line === null || line === void 0 ? void 0 : line.file.includes('.');
+    return line?.file.includes('.');
 }
 exports.isFile = isFile;
 function isFolder(line) {
@@ -942,19 +994,18 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.exportedForTesting = exports.getSummaryReport = void 0;
+exports.exportedForTesting = exports.getSummaryReport = exports.getCoverage = exports.summaryToMarkdown = exports.parseSummary = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const utils_1 = __nccwpck_require__(918);
 // parse coverage-summary.json to Sumamry object
 function parseSummary(jsonContent) {
-    var _a;
     try {
         if (!jsonContent) {
             core.warning(`Summary json was not provided`);
             return null;
         }
         const json = JSON.parse(jsonContent);
-        if ((_a = json.total) === null || _a === void 0 ? void 0 : _a.lines) {
+        if (json.total?.lines) {
             return json.total;
         }
     }
@@ -965,25 +1016,32 @@ function parseSummary(jsonContent) {
     }
     return null;
 }
+exports.parseSummary = parseSummary;
 // extract info from line to text
 function lineSumamryToTd(line) {
-    if (!(line === null || line === void 0 ? void 0 : line.pct)) {
+    if (!line?.pct) {
         return '';
     }
     const { total, covered, pct } = line;
     return `${pct}% (${covered}/${total})`;
 }
 // convert summary to md
-function summaryToMarkdown(summary, options) {
+function summaryToMarkdown(summary, options, withoutHeader = false) {
     const { repository, commit, badgeTitle } = options;
     const { statements, functions, branches } = summary;
     const { color, coverage } = getCoverage(summary);
     const readmeHref = `https://github.com/${repository}/blob/${commit}/README.md`;
     const badge = `<a href="${readmeHref}"><img alt="${badgeTitle}: ${coverage}%" src="https://img.shields.io/badge/${badgeTitle}-${coverage}%25-${color}.svg" /></a><br/>`;
-    const table = `| Lines | Statements | Branches | Functions |
-| ----- | ------- | -------- | -------- |
-| ${badge} | ${lineSumamryToTd(statements)} | ${lineSumamryToTd(functions)} | ${lineSumamryToTd(branches)} |
+    const tableHeader = `| Lines | Statements | Branches | Functions |
+| ----- | ------- | -------- | -------- |`;
+    // prettier-ignore
+    const content = `| ${badge} | ${lineSumamryToTd(statements)} | ${lineSumamryToTd(functions)} | ${lineSumamryToTd(branches)} |`;
+    const table = `${tableHeader}
+${content}
 `;
+    if (withoutHeader) {
+        return content;
+    }
     if (options.summaryTitle) {
         return `## ${options.summaryTitle}
 
@@ -991,9 +1049,10 @@ ${table}`;
     }
     return table;
 }
+exports.summaryToMarkdown = summaryToMarkdown;
 // get coverage and color from summary
 function getCoverage(summary) {
-    if (!(summary === null || summary === void 0 ? void 0 : summary.lines)) {
+    if (!summary?.lines) {
         return { coverage: 0, color: 'red' };
     }
     const { lines } = summary;
@@ -1001,6 +1060,7 @@ function getCoverage(summary) {
     const coverage = parseInt(lines.pct.toString());
     return { color, coverage };
 }
+exports.getCoverage = getCoverage;
 // return full html coverage report and coverage percenatge
 function getSummaryReport(options) {
     const { summaryFile } = options;
@@ -1022,9 +1082,7 @@ function getSummaryReport(options) {
 }
 exports.getSummaryReport = getSummaryReport;
 exports.exportedForTesting = {
-    getCoverage,
     lineSumamryToTd,
-    parseSummary,
     getCoverageColor: utils_1.getCoverageColor,
 };
 
@@ -1265,6 +1323,7 @@ const file_command_1 = __nccwpck_require__(717);
 const utils_1 = __nccwpck_require__(5278);
 const os = __importStar(__nccwpck_require__(2037));
 const path = __importStar(__nccwpck_require__(1017));
+const uuid_1 = __nccwpck_require__(5840);
 const oidc_utils_1 = __nccwpck_require__(8041);
 /**
  * The code to exit an action
@@ -1294,7 +1353,14 @@ function exportVariable(name, val) {
     process.env[name] = convertedVal;
     const filePath = process.env['GITHUB_ENV'] || '';
     if (filePath) {
-        const delimiter = '_GitHubActionsFileCommandDelimeter_';
+        const delimiter = `ghadelimiter_${uuid_1.v4()}`;
+        // These should realistically never happen, but just in case someone finds a way to exploit uuid generation let's not allow keys or values that contain the delimiter.
+        if (name.includes(delimiter)) {
+            throw new Error(`Unexpected input: name should not contain the delimiter "${delimiter}"`);
+        }
+        if (convertedVal.includes(delimiter)) {
+            throw new Error(`Unexpected input: value should not contain the delimiter "${delimiter}"`);
+        }
         const commandValue = `${name}<<${delimiter}${os.EOL}${convertedVal}${os.EOL}${delimiter}`;
         file_command_1.issueCommand('ENV', commandValue);
     }
@@ -9548,6 +9614,652 @@ exports.getUserAgent = getUserAgent;
 
 /***/ }),
 
+/***/ 5840:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+Object.defineProperty(exports, "v1", ({
+  enumerable: true,
+  get: function () {
+    return _v.default;
+  }
+}));
+Object.defineProperty(exports, "v3", ({
+  enumerable: true,
+  get: function () {
+    return _v2.default;
+  }
+}));
+Object.defineProperty(exports, "v4", ({
+  enumerable: true,
+  get: function () {
+    return _v3.default;
+  }
+}));
+Object.defineProperty(exports, "v5", ({
+  enumerable: true,
+  get: function () {
+    return _v4.default;
+  }
+}));
+Object.defineProperty(exports, "NIL", ({
+  enumerable: true,
+  get: function () {
+    return _nil.default;
+  }
+}));
+Object.defineProperty(exports, "version", ({
+  enumerable: true,
+  get: function () {
+    return _version.default;
+  }
+}));
+Object.defineProperty(exports, "validate", ({
+  enumerable: true,
+  get: function () {
+    return _validate.default;
+  }
+}));
+Object.defineProperty(exports, "stringify", ({
+  enumerable: true,
+  get: function () {
+    return _stringify.default;
+  }
+}));
+Object.defineProperty(exports, "parse", ({
+  enumerable: true,
+  get: function () {
+    return _parse.default;
+  }
+}));
+
+var _v = _interopRequireDefault(__nccwpck_require__(8628));
+
+var _v2 = _interopRequireDefault(__nccwpck_require__(6409));
+
+var _v3 = _interopRequireDefault(__nccwpck_require__(5122));
+
+var _v4 = _interopRequireDefault(__nccwpck_require__(9120));
+
+var _nil = _interopRequireDefault(__nccwpck_require__(5332));
+
+var _version = _interopRequireDefault(__nccwpck_require__(1595));
+
+var _validate = _interopRequireDefault(__nccwpck_require__(6900));
+
+var _stringify = _interopRequireDefault(__nccwpck_require__(8950));
+
+var _parse = _interopRequireDefault(__nccwpck_require__(2746));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+/***/ }),
+
+/***/ 4569:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+
+var _crypto = _interopRequireDefault(__nccwpck_require__(6113));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function md5(bytes) {
+  if (Array.isArray(bytes)) {
+    bytes = Buffer.from(bytes);
+  } else if (typeof bytes === 'string') {
+    bytes = Buffer.from(bytes, 'utf8');
+  }
+
+  return _crypto.default.createHash('md5').update(bytes).digest();
+}
+
+var _default = md5;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ 5332:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var _default = '00000000-0000-0000-0000-000000000000';
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ 2746:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+
+var _validate = _interopRequireDefault(__nccwpck_require__(6900));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function parse(uuid) {
+  if (!(0, _validate.default)(uuid)) {
+    throw TypeError('Invalid UUID');
+  }
+
+  let v;
+  const arr = new Uint8Array(16); // Parse ########-....-....-....-............
+
+  arr[0] = (v = parseInt(uuid.slice(0, 8), 16)) >>> 24;
+  arr[1] = v >>> 16 & 0xff;
+  arr[2] = v >>> 8 & 0xff;
+  arr[3] = v & 0xff; // Parse ........-####-....-....-............
+
+  arr[4] = (v = parseInt(uuid.slice(9, 13), 16)) >>> 8;
+  arr[5] = v & 0xff; // Parse ........-....-####-....-............
+
+  arr[6] = (v = parseInt(uuid.slice(14, 18), 16)) >>> 8;
+  arr[7] = v & 0xff; // Parse ........-....-....-####-............
+
+  arr[8] = (v = parseInt(uuid.slice(19, 23), 16)) >>> 8;
+  arr[9] = v & 0xff; // Parse ........-....-....-....-############
+  // (Use "/" to avoid 32-bit truncation when bit-shifting high-order bytes)
+
+  arr[10] = (v = parseInt(uuid.slice(24, 36), 16)) / 0x10000000000 & 0xff;
+  arr[11] = v / 0x100000000 & 0xff;
+  arr[12] = v >>> 24 & 0xff;
+  arr[13] = v >>> 16 & 0xff;
+  arr[14] = v >>> 8 & 0xff;
+  arr[15] = v & 0xff;
+  return arr;
+}
+
+var _default = parse;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ 814:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var _default = /^(?:[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|00000000-0000-0000-0000-000000000000)$/i;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ 807:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = rng;
+
+var _crypto = _interopRequireDefault(__nccwpck_require__(6113));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+const rnds8Pool = new Uint8Array(256); // # of random values to pre-allocate
+
+let poolPtr = rnds8Pool.length;
+
+function rng() {
+  if (poolPtr > rnds8Pool.length - 16) {
+    _crypto.default.randomFillSync(rnds8Pool);
+
+    poolPtr = 0;
+  }
+
+  return rnds8Pool.slice(poolPtr, poolPtr += 16);
+}
+
+/***/ }),
+
+/***/ 5274:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+
+var _crypto = _interopRequireDefault(__nccwpck_require__(6113));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function sha1(bytes) {
+  if (Array.isArray(bytes)) {
+    bytes = Buffer.from(bytes);
+  } else if (typeof bytes === 'string') {
+    bytes = Buffer.from(bytes, 'utf8');
+  }
+
+  return _crypto.default.createHash('sha1').update(bytes).digest();
+}
+
+var _default = sha1;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ 8950:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+
+var _validate = _interopRequireDefault(__nccwpck_require__(6900));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+/**
+ * Convert array of 16 byte values to UUID string format of the form:
+ * XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
+ */
+const byteToHex = [];
+
+for (let i = 0; i < 256; ++i) {
+  byteToHex.push((i + 0x100).toString(16).substr(1));
+}
+
+function stringify(arr, offset = 0) {
+  // Note: Be careful editing this code!  It's been tuned for performance
+  // and works in ways you may not expect. See https://github.com/uuidjs/uuid/pull/434
+  const uuid = (byteToHex[arr[offset + 0]] + byteToHex[arr[offset + 1]] + byteToHex[arr[offset + 2]] + byteToHex[arr[offset + 3]] + '-' + byteToHex[arr[offset + 4]] + byteToHex[arr[offset + 5]] + '-' + byteToHex[arr[offset + 6]] + byteToHex[arr[offset + 7]] + '-' + byteToHex[arr[offset + 8]] + byteToHex[arr[offset + 9]] + '-' + byteToHex[arr[offset + 10]] + byteToHex[arr[offset + 11]] + byteToHex[arr[offset + 12]] + byteToHex[arr[offset + 13]] + byteToHex[arr[offset + 14]] + byteToHex[arr[offset + 15]]).toLowerCase(); // Consistency check for valid UUID.  If this throws, it's likely due to one
+  // of the following:
+  // - One or more input array values don't map to a hex octet (leading to
+  // "undefined" in the uuid)
+  // - Invalid input values for the RFC `version` or `variant` fields
+
+  if (!(0, _validate.default)(uuid)) {
+    throw TypeError('Stringified UUID is invalid');
+  }
+
+  return uuid;
+}
+
+var _default = stringify;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ 8628:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+
+var _rng = _interopRequireDefault(__nccwpck_require__(807));
+
+var _stringify = _interopRequireDefault(__nccwpck_require__(8950));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+// **`v1()` - Generate time-based UUID**
+//
+// Inspired by https://github.com/LiosK/UUID.js
+// and http://docs.python.org/library/uuid.html
+let _nodeId;
+
+let _clockseq; // Previous uuid creation time
+
+
+let _lastMSecs = 0;
+let _lastNSecs = 0; // See https://github.com/uuidjs/uuid for API details
+
+function v1(options, buf, offset) {
+  let i = buf && offset || 0;
+  const b = buf || new Array(16);
+  options = options || {};
+  let node = options.node || _nodeId;
+  let clockseq = options.clockseq !== undefined ? options.clockseq : _clockseq; // node and clockseq need to be initialized to random values if they're not
+  // specified.  We do this lazily to minimize issues related to insufficient
+  // system entropy.  See #189
+
+  if (node == null || clockseq == null) {
+    const seedBytes = options.random || (options.rng || _rng.default)();
+
+    if (node == null) {
+      // Per 4.5, create and 48-bit node id, (47 random bits + multicast bit = 1)
+      node = _nodeId = [seedBytes[0] | 0x01, seedBytes[1], seedBytes[2], seedBytes[3], seedBytes[4], seedBytes[5]];
+    }
+
+    if (clockseq == null) {
+      // Per 4.2.2, randomize (14 bit) clockseq
+      clockseq = _clockseq = (seedBytes[6] << 8 | seedBytes[7]) & 0x3fff;
+    }
+  } // UUID timestamps are 100 nano-second units since the Gregorian epoch,
+  // (1582-10-15 00:00).  JSNumbers aren't precise enough for this, so
+  // time is handled internally as 'msecs' (integer milliseconds) and 'nsecs'
+  // (100-nanoseconds offset from msecs) since unix epoch, 1970-01-01 00:00.
+
+
+  let msecs = options.msecs !== undefined ? options.msecs : Date.now(); // Per 4.2.1.2, use count of uuid's generated during the current clock
+  // cycle to simulate higher resolution clock
+
+  let nsecs = options.nsecs !== undefined ? options.nsecs : _lastNSecs + 1; // Time since last uuid creation (in msecs)
+
+  const dt = msecs - _lastMSecs + (nsecs - _lastNSecs) / 10000; // Per 4.2.1.2, Bump clockseq on clock regression
+
+  if (dt < 0 && options.clockseq === undefined) {
+    clockseq = clockseq + 1 & 0x3fff;
+  } // Reset nsecs if clock regresses (new clockseq) or we've moved onto a new
+  // time interval
+
+
+  if ((dt < 0 || msecs > _lastMSecs) && options.nsecs === undefined) {
+    nsecs = 0;
+  } // Per 4.2.1.2 Throw error if too many uuids are requested
+
+
+  if (nsecs >= 10000) {
+    throw new Error("uuid.v1(): Can't create more than 10M uuids/sec");
+  }
+
+  _lastMSecs = msecs;
+  _lastNSecs = nsecs;
+  _clockseq = clockseq; // Per 4.1.4 - Convert from unix epoch to Gregorian epoch
+
+  msecs += 12219292800000; // `time_low`
+
+  const tl = ((msecs & 0xfffffff) * 10000 + nsecs) % 0x100000000;
+  b[i++] = tl >>> 24 & 0xff;
+  b[i++] = tl >>> 16 & 0xff;
+  b[i++] = tl >>> 8 & 0xff;
+  b[i++] = tl & 0xff; // `time_mid`
+
+  const tmh = msecs / 0x100000000 * 10000 & 0xfffffff;
+  b[i++] = tmh >>> 8 & 0xff;
+  b[i++] = tmh & 0xff; // `time_high_and_version`
+
+  b[i++] = tmh >>> 24 & 0xf | 0x10; // include version
+
+  b[i++] = tmh >>> 16 & 0xff; // `clock_seq_hi_and_reserved` (Per 4.2.2 - include variant)
+
+  b[i++] = clockseq >>> 8 | 0x80; // `clock_seq_low`
+
+  b[i++] = clockseq & 0xff; // `node`
+
+  for (let n = 0; n < 6; ++n) {
+    b[i + n] = node[n];
+  }
+
+  return buf || (0, _stringify.default)(b);
+}
+
+var _default = v1;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ 6409:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+
+var _v = _interopRequireDefault(__nccwpck_require__(5998));
+
+var _md = _interopRequireDefault(__nccwpck_require__(4569));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+const v3 = (0, _v.default)('v3', 0x30, _md.default);
+var _default = v3;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ 5998:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = _default;
+exports.URL = exports.DNS = void 0;
+
+var _stringify = _interopRequireDefault(__nccwpck_require__(8950));
+
+var _parse = _interopRequireDefault(__nccwpck_require__(2746));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function stringToBytes(str) {
+  str = unescape(encodeURIComponent(str)); // UTF8 escape
+
+  const bytes = [];
+
+  for (let i = 0; i < str.length; ++i) {
+    bytes.push(str.charCodeAt(i));
+  }
+
+  return bytes;
+}
+
+const DNS = '6ba7b810-9dad-11d1-80b4-00c04fd430c8';
+exports.DNS = DNS;
+const URL = '6ba7b811-9dad-11d1-80b4-00c04fd430c8';
+exports.URL = URL;
+
+function _default(name, version, hashfunc) {
+  function generateUUID(value, namespace, buf, offset) {
+    if (typeof value === 'string') {
+      value = stringToBytes(value);
+    }
+
+    if (typeof namespace === 'string') {
+      namespace = (0, _parse.default)(namespace);
+    }
+
+    if (namespace.length !== 16) {
+      throw TypeError('Namespace must be array-like (16 iterable integer values, 0-255)');
+    } // Compute hash of namespace and value, Per 4.3
+    // Future: Use spread syntax when supported on all platforms, e.g. `bytes =
+    // hashfunc([...namespace, ... value])`
+
+
+    let bytes = new Uint8Array(16 + value.length);
+    bytes.set(namespace);
+    bytes.set(value, namespace.length);
+    bytes = hashfunc(bytes);
+    bytes[6] = bytes[6] & 0x0f | version;
+    bytes[8] = bytes[8] & 0x3f | 0x80;
+
+    if (buf) {
+      offset = offset || 0;
+
+      for (let i = 0; i < 16; ++i) {
+        buf[offset + i] = bytes[i];
+      }
+
+      return buf;
+    }
+
+    return (0, _stringify.default)(bytes);
+  } // Function#name is not settable on some platforms (#270)
+
+
+  try {
+    generateUUID.name = name; // eslint-disable-next-line no-empty
+  } catch (err) {} // For CommonJS default export support
+
+
+  generateUUID.DNS = DNS;
+  generateUUID.URL = URL;
+  return generateUUID;
+}
+
+/***/ }),
+
+/***/ 5122:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+
+var _rng = _interopRequireDefault(__nccwpck_require__(807));
+
+var _stringify = _interopRequireDefault(__nccwpck_require__(8950));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function v4(options, buf, offset) {
+  options = options || {};
+
+  const rnds = options.random || (options.rng || _rng.default)(); // Per 4.4, set bits for version and `clock_seq_hi_and_reserved`
+
+
+  rnds[6] = rnds[6] & 0x0f | 0x40;
+  rnds[8] = rnds[8] & 0x3f | 0x80; // Copy bytes to buffer, if provided
+
+  if (buf) {
+    offset = offset || 0;
+
+    for (let i = 0; i < 16; ++i) {
+      buf[offset + i] = rnds[i];
+    }
+
+    return buf;
+  }
+
+  return (0, _stringify.default)(rnds);
+}
+
+var _default = v4;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ 9120:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+
+var _v = _interopRequireDefault(__nccwpck_require__(5998));
+
+var _sha = _interopRequireDefault(__nccwpck_require__(5274));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+const v5 = (0, _v.default)('v5', 0x50, _sha.default);
+var _default = v5;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ 6900:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+
+var _regex = _interopRequireDefault(__nccwpck_require__(814));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function validate(uuid) {
+  return typeof uuid === 'string' && _regex.default.test(uuid);
+}
+
+var _default = validate;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ 1595:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+
+var _validate = _interopRequireDefault(__nccwpck_require__(6900));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function version(uuid) {
+  if (!(0, _validate.default)(uuid)) {
+    throw TypeError('Invalid UUID');
+  }
+
+  return parseInt(uuid.substr(14, 1), 16);
+}
+
+var _default = version;
+exports["default"] = _default;
+
+/***/ }),
+
 /***/ 4886:
 /***/ ((module) => {
 
@@ -16565,6 +17277,14 @@ module.exports = eval("require")("encoding");
 
 "use strict";
 module.exports = require("assert");
+
+/***/ }),
+
+/***/ 6113:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("crypto");
 
 /***/ }),
 
