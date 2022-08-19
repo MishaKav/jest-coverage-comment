@@ -16,6 +16,12 @@ async function main(): Promise<void> {
     const hideSummary = core.getBooleanInput('hide-summary', {
       required: false,
     })
+    const removeLinksToFiles = core.getBooleanInput('remove-links-to-files', {
+      required: false,
+    })
+    const removeLinksToLines = core.getBooleanInput('remove-links-to-lines', {
+      required: false,
+    })
     const summaryTitle = core.getInput('summary-title', { required: false })
     const summaryFile = core.getInput('coverage-summary-path', {
       required: false,
@@ -66,6 +72,8 @@ async function main(): Promise<void> {
       coverageFile,
       coveragePathPrefix,
       hideSummary,
+      removeLinksToFiles,
+      removeLinksToLines,
       createNewComment,
       hideComment,
       reportOnlyChangedFiles,
