@@ -40,6 +40,16 @@ inputs:
     default: 'false'
     required: false
 
+  remove-links-to-files:
+    description: 'Remove links to files (useful when summary-report is too big)'
+    default: 'false'
+    required: false
+
+  remove-links-to-lines:
+    description: 'Remove links to lines (useful when summary-report is too big)'
+    default: 'false'
+    required: false
+
   create-new-comment:
     description: 'When false, will update the same comment, otherwise will publish new comment on each run'
     default: 'false'

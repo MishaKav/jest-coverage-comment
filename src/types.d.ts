@@ -16,6 +16,8 @@ export interface Options {
   coverageTitle?: string
   coveragePathPrefix?: string
   hideSummary?: boolean
+  removeLinksToFiles?: boolean
+  removeLinksToLines?: boolean
   createNewComment?: boolean
   hideComment?: boolean
   reportOnlyChangedFiles?: boolean

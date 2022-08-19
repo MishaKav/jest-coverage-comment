@@ -294,7 +294,9 @@ function toFileNameTd(line, indent = false, options) {
     const parts = relative.split('/');
     const last = parts[parts.length - 1];
     const space = indent ? '&nbsp; &nbsp;' : '';
-    return `${space}<a href="${href}">${last}</a>`;
+    return options.removeLinksToFiles
+        ? `${space}${last}`
+        : `${space}<a href="${href}">${last}</a>`;
 }
 // make missing cell - td
 function toMissingTd(line, options) {
@@ -308,7 +310,7 @@ function toMissingTd(line, options) {
         const relative = line.file;
         const href = `https://github.com/${options.repository}/blob/${options.commit}/${options.coveragePathPrefix}${relative}#${fragment}`;
         const text = start === end ? start : `${start}&ndash;${end}`;
-        return `<a href="${href}">${text}</a>`;
+        return options.removeLinksToLines ? text : `<a href="${href}">${text}</a>`;
     })
         .join(', ');
 }
@@ -385,12 +387,27 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.createComment = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const github_1 = __nccwpck_require__(5438);
+const MAX_COMMENT_LENGTH = 65536;
 async function createComment(options, body) {
     try {
         const { eventName, payload } = github_1.context;
         const { repo, owner } = github_1.context.repo;
         const octokit = (0, github_1.getOctokit)(options.token);
         const issue_number = payload.pull_request ? payload.pull_request.number : 0;
+        if (body.length > MAX_COMMENT_LENGTH) {
+            // prettier-ignore
+            core.warning(`Your comment is too long (maximum is ${MAX_COMMENT_LENGTH} characters), coverage report will not be added.`);
+            core.warning(`Try one/some of the following:`);
+            // prettier-ignore
+            core.warning(`- add "['text-summary', { skipFull: true }]" - to remove fully covered files from report`);
+            core.warning(`- add "hide-summary: true" - to remove the summary report`);
+            // prettier-ignore
+            core.warning(`- add "report-only-changed-files: true" - to report only changed files and not all files`);
+            // prettier-ignore
+            core.warning(`- add "remove-links-to-files: true" - to remove links to files`);
+            // prettier-ignore
+            core.warning(`- add "remove-links-to-lines: true" - to remove links to lines`);
+        }
         if (eventName === 'push') {
             core.info('Create commit comment');
             await octokit.rest.repos.createCommitComment({
@@ -442,7 +459,7 @@ async function createComment(options, body) {
     }
     catch (error) {
         if (error instanceof Error) {
-            console.log(error.message); // eslint-disable-line no-console
+            core.error(error.message);
         }
     }
 }
@@ -496,6 +513,12 @@ async function main() {
         const hideSummary = core.getBooleanInput('hide-summary', {
             required: false,
         });
+        const removeLinksToFiles = core.getBooleanInput('remove-links-to-files', {
+            required: false,
+        });
+        const removeLinksToLines = core.getBooleanInput('remove-links-to-lines', {
+            required: false,
+        });
         const summaryTitle = core.getInput('summary-title', { required: false });
         const summaryFile = core.getInput('coverage-summary-path', {
             required: false,
@@ -541,6 +564,8 @@ async function main() {
             coverageFile,
             coveragePathPrefix,
             hideSummary,
+            removeLinksToFiles,
+            removeLinksToLines,
             createNewComment,
             hideComment,
             reportOnlyChangedFiles,

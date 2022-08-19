@@ -63,6 +63,9 @@ async function main(): Promise<void> {
       coverageTitle: 'Coverage Report',
       coveragePathPrefix: '',
       reportOnlyChangedFiles: true,
+      hideSummary: false,
+      removeLinksToFiles: false,
+      removeLinksToLines: false,
       changedFiles: {
         all: ['src/router.js', 'src/service.js', 'src/utils/config.js'],
       },

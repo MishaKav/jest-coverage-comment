@@ -2,6 +2,8 @@ import * as core from '@actions/core'
 import { context, getOctokit } from '@actions/github'
 import { Options } from './types.d'
 
+const MAX_COMMENT_LENGTH = 65536
+
 export async function createComment(
   options: Options,
   body: string
@@ -13,8 +15,24 @@ export async function createComment(
     const octokit = getOctokit(options.token)
     const issue_number = payload.pull_request ? payload.pull_request.number : 0
 
+    if (body.length > MAX_COMMENT_LENGTH) {
+      // prettier-ignore
+      core.warning(`Your comment is too long (maximum is ${MAX_COMMENT_LENGTH} characters), coverage report will not be added.`)
+      core.warning(`Try one/some of the following:`)
+      // prettier-ignore
+      core.warning(`- add "['text-summary', { skipFull: true }]" - to remove fully covered files from report`)
+      core.warning(`- add "hide-summary: true" - to remove the summary report`)
+      // prettier-ignore
+      core.warning(`- add "report-only-changed-files: true" - to report only changed files and not all files`)
+      // prettier-ignore
+      core.warning(`- add "remove-links-to-files: true" - to remove links to files`)
+      // prettier-ignore
+      core.warning(`- add "remove-links-to-lines: true" - to remove links to lines`)
+    }
+
     if (eventName === 'push') {
       core.info('Create commit comment')
+
       await octokit.rest.repos.createCommitComment({
         repo,
         owner,
@@ -68,7 +86,7 @@ export async function createComment(
     }
   } catch (error) {
     if (error instanceof Error) {
-      console.log(error.message) // eslint-disable-line no-console
+      core.error(error.message)
     }
   }
 }

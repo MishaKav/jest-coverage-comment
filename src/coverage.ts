@@ -135,7 +135,9 @@ function toFileNameTd(
   const last = parts[parts.length - 1]
   const space = indent ? '&nbsp; &nbsp;' : ''
 
-  return `${space}<a href="${href}">${last}</a>`
+  return options.removeLinksToFiles
+    ? `${space}${last}`
+    : `${space}<a href="${href}">${last}</a>`
 }
 
 // make missing cell - td
@@ -152,7 +154,7 @@ function toMissingTd(line: CoverageLine, options: Options): string {
       const href = `https://github.com/${options.repository}/blob/${options.commit}/${options.coveragePathPrefix}${relative}#${fragment}`
       const text = start === end ? start : `${start}&ndash;${end}`
 
-      return `<a href="${href}">${text}</a>`
+      return options.removeLinksToLines ? text : `<a href="${href}">${text}</a>`
     })
     .join(', ')
 }
