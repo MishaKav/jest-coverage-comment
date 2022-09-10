@@ -66,7 +66,7 @@ describe('multi report', () => {
   test('should generate markdown for one file', () => {
     const html = `| Title | Lines | Statements | Branches | Functions |
 | ----- | ----- | ------- | -------- | -------- |
-| title1 | <a href="https://github.com/undefined/blob/undefined/README.md"><img alt="undefined: 78%" src="https://img.shields.io/badge/undefined-78%25-yellow.svg" /></a><br/> | 76.74% (33/43) | 33.33% (2/6) | 100% (0/0) |
+| title1 | <a href="https://github.com/undefined/blob/undefined/README.md"><img alt="undefined: 78%" src="https://img.shields.io/badge/undefined-78%25-yellow.svg" /></a><br/> | 76.74% (33/43) | 100% (0/0) | 33.33% (2/6) |
 `
     // @ts-ignore
     const result = getMultipleReport({
@@ -81,8 +81,8 @@ describe('multi report', () => {
   test('should generate markdown for two files', () => {
     const html = `| Title | Lines | Statements | Branches | Functions |
 | ----- | ----- | ------- | -------- | -------- |
-| title1 | <a href="https://github.com/undefined/blob/undefined/README.md"><img alt="undefined: 78%" src="https://img.shields.io/badge/undefined-78%25-yellow.svg" /></a><br/> | 76.74% (33/43) | 33.33% (2/6) | 100% (0/0) |
-| title2 | <a href="https://github.com/undefined/blob/undefined/README.md"><img alt="undefined: 79%" src="https://img.shields.io/badge/undefined-79%25-yellow.svg" /></a><br/> | 77.27% (34/44) | 33.33% (2/6) | 100% (0/0) |
+| title1 | <a href="https://github.com/undefined/blob/undefined/README.md"><img alt="undefined: 78%" src="https://img.shields.io/badge/undefined-78%25-yellow.svg" /></a><br/> | 76.74% (33/43) | 100% (0/0) | 33.33% (2/6) |
+| title2 | <a href="https://github.com/undefined/blob/undefined/README.md"><img alt="undefined: 79%" src="https://img.shields.io/badge/undefined-79%25-yellow.svg" /></a><br/> | 77.27% (34/44) | 100% (0/0) | 33.33% (2/6) |
 `
     // @ts-ignore
     const result = getMultipleReport({

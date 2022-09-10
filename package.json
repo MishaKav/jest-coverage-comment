@@ -1,6 +1,6 @@
 {
   "name": "jest-coverage-comment",
-  "version": "1.0.14",
+  "version": "1.0.15",
   "description": "Comments a pull request or commit with the jest code coverage badge, full report and tests summary",
   "author": "Misha Kav <misha.kav@gmail.com>",
   "license": "MIT",
@@ -36,19 +36,19 @@
     "xml2js": "^0.4.23"
   },
   "devDependencies": {
-    "@types/node": "^18.7.6",
+    "@types/node": "^18.7.16",
     "@types/xml2js": "^0.4.11",
-    "@typescript-eslint/parser": "^5.33.1",
+    "@typescript-eslint/parser": "^5.36.2",
     "@vercel/ncc": "^0.34.0",
     "babel-plugin-rewire": "^1.2.0",
-    "eslint": "^8.22.0",
-    "eslint-import-resolver-typescript": "^3.4.2",
+    "eslint": "^8.23.0",
+    "eslint-import-resolver-typescript": "^3.5.1",
     "eslint-plugin-github": "^4.3.7",
-    "eslint-plugin-jest": "^26.8.3",
-    "jest-junit": "^14.0.0",
+    "eslint-plugin-jest": "^27.0.4",
+    "jest-junit": "^14.0.1",
     "prettier": "^2.7.1",
-    "ts-jest": "^28.0.8",
+    "ts-jest": "^29.0.0",
     "ts-node": "^10.9.1",
-    "typescript": "^4.7.4"
+    "typescript": "^4.8.3"
   }
 }
