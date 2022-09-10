@@ -1060,7 +1060,7 @@ function summaryToMarkdown(summary, options, withoutHeader = false) {
     const tableHeader = `| Lines | Statements | Branches | Functions |
 | ----- | ------- | -------- | -------- |`;
     // prettier-ignore
-    const content = `| ${badge} | ${lineSumamryToTd(statements)} | ${lineSumamryToTd(functions)} | ${lineSumamryToTd(branches)} |`;
+    const content = `| ${badge} | ${lineSumamryToTd(statements)} | ${lineSumamryToTd(branches)} | ${lineSumamryToTd(functions)} |`;
     const table = `${tableHeader}
 ${content}
 `;
