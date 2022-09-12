@@ -15,9 +15,9 @@ import { getMultipleReport } from './multi-files'
   git tag -d origin v1.0  
 
   # remove all workflows from repo
-  gh api repos/MishaKav/pytest-coverage-comment/actions/runs \
+  gh api repos/crudo/pytest-coverage-comment/actions/runs \
   | jq -r '.workflow_runs[] | select(.head_branch != "main") | "\(.id)"' \
-  | gxargs -n1 -I '{}' gh api repos/MishaKav/pytest-coverage-comment/actions/runs/{} -X DELETE --silent
+  | gxargs -n1 -I '{}' gh api repos/crudo/pytest-coverage-comment/actions/runs/{} -X DELETE --silent
 
   # remove all local branches
   git branch | grep -v "main" | xargs git branch -D
@@ -49,7 +49,7 @@ async function main(): Promise<void> {
 
     const options: Options = {
       token: 'token_123',
-      repository: 'MishaKav/jest-coverage-comment',
+      repository: 'crudo/jest-coverage-comment',
       commit: '05953710b21d222efa4f4535424a7af367be5a57',
       watermark: `<!-- Jest Coverage Comment: 1 -->\n`,
       title: 'Jest Coverage Comment',

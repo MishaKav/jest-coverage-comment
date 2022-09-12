@@ -1,8 +1,8 @@
 # Jest Coverage Comment
 
-![Auto Updating Bagde](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/MishaKav/5e90d640f8c212ab7bbac38f72323f80/raw/jest-coverage-comment__main.json)
-![licience](https://img.shields.io/github/license/MishaKav/jest-coverage-comment)
-![version](https://img.shields.io/github/package-json/v/MishaKav/jest-coverage-comment)
+![Auto Updating Bagde](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/crudo/5e90d640f8c212ab7bbac38f72323f80/raw/jest-coverage-comment__main.json)
+![licience](https://img.shields.io/github/license/crudo/jest-coverage-comment)
+![version](https://img.shields.io/github/package-json/v/crudo/jest-coverage-comment)
 [![wakatime](https://wakatime.com/badge/user/f838c8aa-c197-42f0-b335-cd1d26159dfd/project/9b2410f3-4104-44ec-bd7f-8d2553a31ffb.svg)](https://wakatime.com/badge/user/f838c8aa-c197-42f0-b335-cd1d26159dfd/project/9b2410f3-4104-44ec-bd7f-8d2553a31ffb)
 
 This action comments a pull request or commit with a HTML test coverage report.
@@ -22,7 +22,7 @@ You can add this action to your GitHub workflow for Ubuntu runners (e.g. `runs-o
 
 ```yaml
 - name: Jest coverage comment
-  uses: MishaKav/jest-coverage-comment@main
+  uses: crudo/jest-coverage-comment@main
 ```
 
 ## Inputs
@@ -46,6 +46,7 @@ You can add this action to your GitHub workflow for Ubuntu runners (e.g. `runs-o
 | `coverage-path-prefix`      |          | ''                                 | Prefix for path when link to files in comment                                                                                                                            |
 | `report-only-changed-files` |          | false                              | Show in report only changed files for this commit, and not all files                                                                                                     |
 | `multiple-files`            |          | ''                                 | You can pass array of `json-summary.json` files and generate single comment with table of results<br/>Single line should look like `Title1, ./path/to/json-sumamry.json` |
+| `summary-coverage-textual`  |          | false                              | Show textual coverage instead of badge in summary                                                                                                                        |
 
 ## Output Variables
 
@@ -73,9 +74,9 @@ You can add this action to your GitHub workflow for Ubuntu runners (e.g. `runs-o
 
 ## My Summary Title
 
-| Lines                                                                                                                                                                                                               | Statements     | Branches     | Functions  |
-| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------- | ------------ | ---------- |
-| <a href="https://github.com/MishaKav/api-testing-example/blob/725508e4be6d3bc9d49fa611bd9fba96d5374a13/README.md"><img alt="Coverage: 78%" src="https://img.shields.io/badge/Coverage-78%25-yellow.svg" /></a><br/> | 76.74% (33/43) | 33.33% (2/6) | 100% (0/0) |
+| Lines                                                                                                                                                                                                            | Statements     | Branches     | Functions  |
+| ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------- | ------------ | ---------- |
+| <a href="https://github.com/crudo/api-testing-example/blob/725508e4be6d3bc9d49fa611bd9fba96d5374a13/README.md"><img alt="Coverage: 78%" src="https://img.shields.io/badge/Coverage-78%25-yellow.svg" /></a><br/> | 76.74% (33/43) | 33.33% (2/6) | 100% (0/0) |
 
 ## My Junit Title
 
@@ -83,7 +84,7 @@ You can add this action to your GitHub workflow for Ubuntu runners (e.g. `runs-o
 | ----- | ------- | -------- | -------- | ------------------ |
 | 6     | 0 :zzz: | 0 :x:    | 0 :fire: | 1.032s :stopwatch: |
 
-<details><summary>My Coverage Title (<b>78%</b>)</summary><table><tr><th>File</th><th>% Stmts</th><th>% Branch</th><th>% Funcs</th><th>% Lines</th><th>Uncovered Line #s</th></tr><tbody><tr><td><b>All files</b></td><td><b>76.74</b></td><td><b>100</b></td><td><b>33.33</b></td><td><b>78.57</b></td><td>&nbsp;</td></tr><tr><td>src</td><td>75.67</td><td>100</td><td>40</td><td>75.67</td><td>&nbsp;</td></tr><tr><td>&nbsp; &nbsp;<a href="https://github.com/MishaKav/api-testing-example/blob/725508e4be6d3bc9d49fa611bd9fba96d5374a13/src/controller.js">controller.js</a></td><td>63.63</td><td>100</td><td>50</td><td>63.63</td><td><a href="https://github.com/MishaKav/api-testing-example/blob/725508e4be6d3bc9d49fa611bd9fba96d5374a13/src/controller.js#L14-L18">14&ndash;18</a></td></tr><tr><td>&nbsp; &nbsp;<a href="https://github.com/MishaKav/api-testing-example/blob/725508e4be6d3bc9d49fa611bd9fba96d5374a13/src/index.js">index.js</a></td><td>85.71</td><td>100</td><td>0</td><td>85.71</td><td><a href="https://github.com/MishaKav/api-testing-example/blob/725508e4be6d3bc9d49fa611bd9fba96d5374a13/src/index.js#L9">9</a></td></tr><tr><td>&nbsp; &nbsp;<a href="https://github.com/MishaKav/api-testing-example/blob/725508e4be6d3bc9d49fa611bd9fba96d5374a13/src/router.js">router.js</a></td><td>100</td><td>100</td><td>100</td><td>100</td><td>&nbsp;</td></tr><tr><td>&nbsp; &nbsp;<a href="https://github.com/MishaKav/api-testing-example/blob/725508e4be6d3bc9d49fa611bd9fba96d5374a13/src/service.js">service.js</a></td><td>69.23</td><td>100</td><td>50</td><td>69.23</td><td><a href="https://github.com/MishaKav/api-testing-example/blob/725508e4be6d3bc9d49fa611bd9fba96d5374a13/src/service.js#L16-L20">16&ndash;20</a></td></tr><tr><td>src/utils</td><td>83.33</td><td>100</td><td>0</td><td>100</td><td>&nbsp;</td></tr><tr><td>&nbsp; &nbsp;<a href="https://github.com/MishaKav/api-testing-example/blob/725508e4be6d3bc9d49fa611bd9fba96d5374a13/src/utils/config.js">config.js</a></td><td>100</td><td>100</td><td>100</td><td>100</td><td>&nbsp;</td></tr><tr><td>&nbsp; &nbsp;<a href="https://github.com/MishaKav/api-testing-example/blob/725508e4be6d3bc9d49fa611bd9fba96d5374a13/src/utils/utils.js">utils.js</a></td><td>75</td><td>100</td><td>0</td><td>100</td><td>&nbsp;</td></tr></tbody></table></details>
+<details><summary>My Coverage Title (<b>78%</b>)</summary><table><tr><th>File</th><th>% Stmts</th><th>% Branch</th><th>% Funcs</th><th>% Lines</th><th>Uncovered Line #s</th></tr><tbody><tr><td><b>All files</b></td><td><b>76.74</b></td><td><b>100</b></td><td><b>33.33</b></td><td><b>78.57</b></td><td>&nbsp;</td></tr><tr><td>src</td><td>75.67</td><td>100</td><td>40</td><td>75.67</td><td>&nbsp;</td></tr><tr><td>&nbsp; &nbsp;<a href="https://github.com/crudo/api-testing-example/blob/725508e4be6d3bc9d49fa611bd9fba96d5374a13/src/controller.js">controller.js</a></td><td>63.63</td><td>100</td><td>50</td><td>63.63</td><td><a href="https://github.com/crudo/api-testing-example/blob/725508e4be6d3bc9d49fa611bd9fba96d5374a13/src/controller.js#L14-L18">14&ndash;18</a></td></tr><tr><td>&nbsp; &nbsp;<a href="https://github.com/crudo/api-testing-example/blob/725508e4be6d3bc9d49fa611bd9fba96d5374a13/src/index.js">index.js</a></td><td>85.71</td><td>100</td><td>0</td><td>85.71</td><td><a href="https://github.com/crudo/api-testing-example/blob/725508e4be6d3bc9d49fa611bd9fba96d5374a13/src/index.js#L9">9</a></td></tr><tr><td>&nbsp; &nbsp;<a href="https://github.com/crudo/api-testing-example/blob/725508e4be6d3bc9d49fa611bd9fba96d5374a13/src/router.js">router.js</a></td><td>100</td><td>100</td><td>100</td><td>100</td><td>&nbsp;</td></tr><tr><td>&nbsp; &nbsp;<a href="https://github.com/crudo/api-testing-example/blob/725508e4be6d3bc9d49fa611bd9fba96d5374a13/src/service.js">service.js</a></td><td>69.23</td><td>100</td><td>50</td><td>69.23</td><td><a href="https://github.com/crudo/api-testing-example/blob/725508e4be6d3bc9d49fa611bd9fba96d5374a13/src/service.js#L16-L20">16&ndash;20</a></td></tr><tr><td>src/utils</td><td>83.33</td><td>100</td><td>0</td><td>100</td><td>&nbsp;</td></tr><tr><td>&nbsp; &nbsp;<a href="https://github.com/crudo/api-testing-example/blob/725508e4be6d3bc9d49fa611bd9fba96d5374a13/src/utils/config.js">config.js</a></td><td>100</td><td>100</td><td>100</td><td>100</td><td>&nbsp;</td></tr><tr><td>&nbsp; &nbsp;<a href="https://github.com/crudo/api-testing-example/blob/725508e4be6d3bc9d49fa611bd9fba96d5374a13/src/utils/utils.js">utils.js</a></td><td>75</td><td>100</td><td>0</td><td>100</td><td>&nbsp;</td></tr></tbody></table></details>
 
 ## Example Usage
 
@@ -91,7 +92,7 @@ The following is an example GitHub Action workflow that uses the Jest Coverage C
 
 ```yaml
 # This workflow will install dependencies, create coverage tests and run Jest Coverage Comment
-# For more information see: https://github.com/MishaKav/jest-coverage-comment/
+# For more information see: https://github.com/crudo/jest-coverage-comment/
 name: Jest coverage comment
 on:
   pull_request:
@@ -109,7 +110,7 @@ jobs:
           npx jest --coverage --coverageReporters json-summary
 
       - name: Jest coverage comment
-        uses: MishaKav/jest-coverage-comment@main
+        uses: crudo/jest-coverage-comment@main
 ```
 
 Example GitHub Action workflow that uses coverage percentage as output and update badge on README.md without commits to repo (see the [live workflow](../main/.github/workflows/update-coverage-on-readme.yml))
@@ -128,7 +129,7 @@ jobs:
 
       - name: Jest coverage comment
         id: coverageComment
-        uses: MishaKav/jest-coverage-comment@main
+        uses: crudo/jest-coverage-comment@main
         with:
           hide-comment: true
           coverage-summary-path: ./coverage/coverage-summary.json
@@ -156,7 +157,7 @@ Example GitHub Action workflow that passes all params to Jest Coverage Comment
 
 ```yaml
 - name: Jest coverage comment
-  uses: MishaKav/jest-coverage-comment@main
+  uses: crudo/jest-coverage-comment@main
   with:
     coverage-summary-path: ./coverage/coverage-summary.json
     title: My Jest Coverage Comment
@@ -187,7 +188,7 @@ Example GitHub Action workflow that generate Junit report from `junit.xml`
 
 ```yaml
 - name: Jest coverage comment
-  uses: MishaKav/jest-coverage-comment@main
+  uses: crudo/jest-coverage-comment@main
   with:
     junitxml-path: ./junit.xml
     junitxml-title: Junit
@@ -205,7 +206,7 @@ Generated from `json-summary`
     npx jest --coverage --reporters=default --reporters=jest-junit'
 
 - name: Jest coverage comment
-  uses: MishaKav/jest-coverage-comment@main
+  uses: crudo/jest-coverage-comment@main
   with:
     coverage-summary-path: ./coverage/coverage-summary.json
 ```
@@ -223,7 +224,7 @@ The nice thing, is that will link all your files inside that commit and ability 
     npx jest --coverage | tee ./coverage.txt
 
 - name: Jest coverage comment
-  uses: MishaKav/jest-coverage-comment@main
+  uses: crudo/jest-coverage-comment@main
   with:
     coverage-path: ./coverage.txt
 ```
@@ -234,7 +235,7 @@ Example GitHub Action workflow that uses multiple files mode (can be useful on m
 
 ```yaml
 - name: Jest coverage comment
-  uses: MishaKav/jest-coverage-comment@main
+  uses: crudo/jest-coverage-comment@main
   with:
     multiple-files: |
       My-Title-1, ./coverage_1/coverage-summary.json
@@ -255,7 +256,7 @@ Generated from `junit.xml` by [jest-junit](https://www.npmjs.com/package/jest-ju
     npx jest --coverage --config='{ "coverageReporters": ["json-summary"] }'
 
 - name: Jest coverage comment
-  uses: MishaKav/jest-coverage-comment@main
+  uses: crudo/jest-coverage-comment@main
   with:
     junitxml-path: ./junit.xml
 ```
@@ -287,7 +288,7 @@ jobs:
       - name: Jest coverage comment
         if: ${{ github.ref == 'refs/heads/main' }}
         id: coverageComment
-        uses: MishaKav/jest-coverage-comment@main
+        uses: crudo/jest-coverage-comment@main
         with:
           hide-summary: true
           coverage-summary-path: ./coverage/coverage-summary.json
@@ -320,14 +321,14 @@ jobs:
 ## Auto updating badge on README
 
 If you want auto-update the coverage badge on your Readme, you can see the [workflow](../main/.github/workflows/update-coverage-on-readme.yml)
-![Auto Updating Bagde](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/MishaKav/5e90d640f8c212ab7bbac38f72323f80/raw/jest-coverage-comment__main.json)
+![Auto Updating Bagde](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/crudo/5e90d640f8c212ab7bbac38f72323f80/raw/jest-coverage-comment__main.json)
 
 ## 🤝 Contributing [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](http://makeapullrequest.com)
 
-We welcome all contributions. You can submit any ideas as [pull requests](https://github.com/MishaKav/jest-coverage-comment/pulls) or as [GitHub issues](https://github.com/MishaKav/jest-coverage-comment/issues) and have a good time! :)
+We welcome all contributions. You can submit any ideas as [pull requests](https://github.com/crudo/jest-coverage-comment/pulls) or as [GitHub issues](https://github.com/crudo/jest-coverage-comment/issues) and have a good time! :)
 
 ## Our Contributors
 
-<a href="https://github.com/MishaKav/jest-coverage-comment/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=MishaKav/jest-coverage-comment" alt="Contributors" />
+<a href="https://github.com/crudo/jest-coverage-comment/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=crudo/jest-coverage-comment" alt="Contributors" />
 </a>

@@ -50,6 +50,12 @@ async function main(): Promise<void> {
     const multipleFiles = core.getMultilineInput('multiple-files', {
       required: false,
     })
+    const summaryCoverageTextual = core.getBooleanInput(
+      'summary-coverage-textual',
+      {
+        required: false,
+      }
+    )
 
     const { repo, owner } = context.repo
     const { eventName, payload } = context
@@ -78,6 +84,7 @@ async function main(): Promise<void> {
       hideComment,
       reportOnlyChangedFiles,
       multipleFiles,
+      summaryCoverageTextual,
     }
 
     if (eventName === 'pull_request' && payload) {

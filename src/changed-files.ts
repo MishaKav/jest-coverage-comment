@@ -67,7 +67,7 @@ export async function getChangedFiles(options: Options): Promise<ChangedFiles> {
       )
     }
 
-    // https://github.com/MishaKav/jest-coverage-comment/issues/10
+    // https://github.com/crudo/jest-coverage-comment/issues/10
     // Ensure that the head commit is ahead of the base commit.
     // if (response.data.status !== 'ahead') {
     //   core.setFailed(

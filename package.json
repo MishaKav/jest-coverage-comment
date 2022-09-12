@@ -14,9 +14,9 @@
     "junit"
   ],
   "bugs": {
-    "url": "https://github.com/MishaKav/jest-coverage-comment/issues"
+    "url": "https://github.com/crudo/jest-coverage-comment/issues"
   },
-  "homepage": "https://github.com/MishaKav/jest-coverage-comment/#readme",
+  "homepage": "https://github.com/crudo/jest-coverage-comment/#readme",
   "main": "lib/index.js",
   "scripts": {
     "build": "tsc",

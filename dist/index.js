@@ -88,7 +88,7 @@ async function getChangedFiles(options) {
             core.setFailed(`The GitHub API for comparing the base and head commits for this ${eventName} event returned ${response.status}, expected 200. ` +
                 "Please submit an issue on this action's GitHub repo.");
         }
-        // https://github.com/MishaKav/jest-coverage-comment/issues/10
+        // https://github.com/crudo/jest-coverage-comment/issues/10
         // Ensure that the head commit is ahead of the base commit.
         // if (response.data.status !== 'ahead') {
         //   core.setFailed(
@@ -544,6 +544,9 @@ async function main() {
         const multipleFiles = core.getMultilineInput('multiple-files', {
             required: false,
         });
+        const summaryCoverageTextual = core.getBooleanInput('summary-coverage-textual', {
+            required: false,
+        });
         const { repo, owner } = github_1.context.repo;
         const { eventName, payload } = github_1.context;
         const watermark = `<!-- Jest Coverage Comment: ${github_1.context.job} -->\n`;
@@ -570,6 +573,7 @@ async function main() {
             hideComment,
             reportOnlyChangedFiles,
             multipleFiles,
+            summaryCoverageTextual,
         };
         if (eventName === 'pull_request' && payload) {
             options.commit = payload.pull_request?.head.sha;
@@ -1043,7 +1047,7 @@ function parseSummary(jsonContent) {
 }
 exports.parseSummary = parseSummary;
 // extract info from line to text
-function lineSumamryToTd(line) {
+function lineSummaryToTd(line) {
     if (!line?.pct) {
         return '';
     }
@@ -1057,10 +1061,13 @@ function summaryToMarkdown(summary, options, withoutHeader = false) {
     const { color, coverage } = getCoverage(summary);
     const readmeHref = `https://github.com/${repository}/blob/${commit}/README.md`;
     const badge = `<a href="${readmeHref}"><img alt="${badgeTitle}: ${coverage}%" src="https://img.shields.io/badge/${badgeTitle}-${coverage}%25-${color}.svg" /></a><br/>`;
+    const linesCoverage = options.summaryCoverageTextual
+        ? `<strong>${coverage}%</strong>`
+        : badge;
     const tableHeader = `| Lines | Statements | Branches | Functions |
 | ----- | ------- | -------- | -------- |`;
     // prettier-ignore
-    const content = `| ${badge} | ${lineSumamryToTd(statements)} | ${lineSumamryToTd(branches)} | ${lineSumamryToTd(functions)} |`;
+    const content = `| ${linesCoverage} | ${lineSummaryToTd(statements)} | ${lineSummaryToTd(branches)} | ${lineSummaryToTd(functions)} |`;
     const table = `${tableHeader}
 ${content}
 `;
@@ -1107,7 +1114,7 @@ function getSummaryReport(options) {
 }
 exports.getSummaryReport = getSummaryReport;
 exports.exportedForTesting = {
-    lineSumamryToTd,
+    lineSummaryToTd,
     getCoverageColor: utils_1.getCoverageColor,
 };
 

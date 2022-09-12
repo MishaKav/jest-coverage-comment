@@ -24,7 +24,7 @@ export function parseSummary(jsonContent: string): Summary | null {
 }
 
 // extract info from line to text
-function lineSumamryToTd(line: LineSummary): string {
+function lineSummaryToTd(line: LineSummary): string {
   if (!line?.pct) {
     return ''
   }
@@ -45,10 +45,14 @@ export function summaryToMarkdown(
   const readmeHref = `https://github.com/${repository}/blob/${commit}/README.md`
   const badge = `<a href="${readmeHref}"><img alt="${badgeTitle}: ${coverage}%" src="https://img.shields.io/badge/${badgeTitle}-${coverage}%25-${color}.svg" /></a><br/>`
 
+  const linesCoverage = options.summaryCoverageTextual
+    ? `<strong>${coverage}%</strong>`
+    : badge
+
   const tableHeader = `| Lines | Statements | Branches | Functions |
 | ----- | ------- | -------- | -------- |`
   // prettier-ignore
-  const content = `| ${badge} | ${lineSumamryToTd(statements)} | ${lineSumamryToTd(branches)} | ${lineSumamryToTd(functions)} |`
+  const content = `| ${linesCoverage} | ${lineSummaryToTd(statements)} | ${lineSummaryToTd(branches)} | ${lineSummaryToTd(functions)} |`
   const table = `${tableHeader}
 ${content}
 `
@@ -106,6 +110,6 @@ export function getSummaryReport(options: Options): SummaryReport {
 }
 
 export const exportedForTesting = {
-  lineSumamryToTd,
+  lineSummaryToTd,
   getCoverageColor,
 }
