@@ -61,7 +61,8 @@ export function parseCoverage(content: string): CoverageLine[] {
     if (
       line.includes(BUNCH_OF_EQUALS) ||
       line.includes(BUNCH_OF_DASHES) ||
-      !line.trim().length
+      !line.trim().length ||
+      line.startsWith('Done in ')
     ) {
       continue
     }
