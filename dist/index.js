@@ -512,6 +512,7 @@ const coverage_1 = __nccwpck_require__(5730);
 const summary_1 = __nccwpck_require__(8608);
 const changed_files_1 = __nccwpck_require__(6503);
 const multi_files_1 = __nccwpck_require__(8796);
+const multi_junit_files_1 = __nccwpck_require__(441);
 async function main() {
     try {
         const token = core.getInput('github-token', { required: true });
@@ -551,6 +552,9 @@ async function main() {
         const multipleFiles = core.getMultilineInput('multiple-files', {
             required: false,
         });
+        const multipleJunitFiles = core.getMultilineInput('multiple-junitxml-files', {
+            required: false,
+        });
         const { repo, owner } = github_1.context.repo;
         const { eventName, payload } = github_1.context;
         const watermark = `<!-- Jest Coverage Comment: ${github_1.context.job} -->\n`;
@@ -577,6 +581,7 @@ async function main() {
             hideComment,
             reportOnlyChangedFiles,
             multipleFiles,
+            multipleJunitFiles,
         };
         if (eventName === 'pull_request' && payload) {
             options.commit = payload.pull_request?.head.sha;
@@ -593,14 +598,6 @@ async function main() {
         }
         const report = (0, summary_1.getSummaryReport)(options);
         const { coverage, color, summaryHtml } = report;
-        // if (summaryHtml.length > MAX_COMMENT_LENGTH) {
-        //   core.warning(
-        //     `Your comment is too long (maximum is ${MAX_COMMENT_LENGTH} characters), coverage summary report will not be added.`
-        //   )
-        // core.warning(
-        //   `Try add: "--cov-report=term-missing:skip-covered", or add "hide-report: true", or add "report-only-changed-files: true"`
-        // )
-        // }
         if (coverage || summaryHtml) {
             core.startGroup(options.summaryTitle || 'Summary');
             core.info(`coverage: ${coverage}`);
@@ -664,6 +661,10 @@ async function main() {
         if (multipleFiles?.length) {
             finalHtml += `\n\n${(0, multi_files_1.getMultipleReport)(options)}`;
         }
+        if (multipleJunitFiles?.length) {
+            const markdown = await (0, multi_junit_files_1.getMultipleJunitReport)(options);
+            finalHtml += markdown ? `\n\n${markdown}` : '';
+        }
         if (!finalHtml || options.hideComment) {
             core.info('Nothing to report');
             return;
@@ -711,7 +712,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.exportedForTesting = exports.getJunitReport = void 0;
+exports.getJunitReport = exports.junitToMarkdown = exports.parseJunit = void 0;
 /* eslint-disable  @typescript-eslint/no-explicit-any */
 const core = __importStar(__nccwpck_require__(2186));
 const xml2js = __importStar(__nccwpck_require__(6189));
@@ -752,14 +753,20 @@ async function parseJunit(xmlContent) {
     }
     return null;
 }
+exports.parseJunit = parseJunit;
 // convert junit from junitxml to md
-function junitToMarkdown(junit, options) {
+function junitToMarkdown(junit, options, withoutHeader = false) {
     const { skipped, errors, failures, tests, time } = junit;
     const displayTime = time > 60 ? `${(time / 60) | 0}m ${time % 60 | 0}s` : `${time}s`;
-    const table = `| Tests | Skipped | Failures | Errors | Time |
-| ----- | ------- | -------- | -------- | ------------------ |
-| ${tests} | ${skipped} :zzz: | ${failures} :x: | ${errors} :fire: | ${displayTime} :stopwatch: |
+    const tableHeader = `| Tests | Skipped | Failures | Errors | Time |
+| ----- | ------- | -------- | -------- | ------------------ |`;
+    const content = `| ${tests} | ${skipped} :zzz: | ${failures} :x: | ${errors} :fire: | ${displayTime} :stopwatch: |`;
+    const table = `${tableHeader}
+${content}
 `;
+    if (withoutHeader) {
+        return content;
+    }
     if (options.junitTitle) {
         return `## ${options.junitTitle}
 
@@ -767,6 +774,7 @@ ${table}`;
     }
     return table;
 }
+exports.junitToMarkdown = junitToMarkdown;
 // return junit report
 async function getJunitReport(options) {
     const { junitFile } = options;
@@ -803,10 +811,6 @@ async function getJunitReport(options) {
     };
 }
 exports.getJunitReport = getJunitReport;
-exports.exportedForTesting = {
-    parseJunit,
-    junitToMarkdown,
-};
 
 
 /***/ }),
@@ -840,18 +844,10 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.exportedForTesting = exports.getMultipleReport = void 0;
+exports.getMultipleReport = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const summary_1 = __nccwpck_require__(8608);
 const utils_1 = __nccwpck_require__(918);
-// parse one-line from multiple files to object
-const parseLine = (line) => {
-    if (!line?.includes(',')) {
-        return null;
-    }
-    const lineArr = line.split(',');
-    return { title: lineArr[0].trim(), file: lineArr[1].trim() };
-};
 // return multiple report in markdown format
 function getMultipleReport(options) {
     const { multipleFiles } = options;
@@ -859,7 +855,7 @@ function getMultipleReport(options) {
         return null;
     }
     try {
-        const lineReports = multipleFiles.map(parseLine).filter((l) => l);
+        const lineReports = multipleFiles.map(utils_1.parseLine).filter((l) => l);
         if (!lineReports?.length) {
             // prettier-ignore
             core.error(`Generating summary report for multiple files. No files are provided`);
@@ -898,9 +894,84 @@ function getMultipleReport(options) {
     return null;
 }
 exports.getMultipleReport = getMultipleReport;
-exports.exportedForTesting = {
-    parseLine,
+
+
+/***/ }),
+
+/***/ 441:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
 };
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.getMultipleJunitReport = void 0;
+const core = __importStar(__nccwpck_require__(2186));
+const junit_1 = __nccwpck_require__(2876);
+const utils_1 = __nccwpck_require__(918);
+// return multiple report in markdown format
+async function getMultipleJunitReport(options) {
+    const { multipleJunitFiles } = options;
+    if (!multipleJunitFiles?.length) {
+        return null;
+    }
+    try {
+        const lineReports = multipleJunitFiles.map(utils_1.parseLine).filter((l) => l);
+        if (!lineReports?.length) {
+            // prettier-ignore
+            core.error(`Generating report for multiple junit files. No files are provided`);
+            return null;
+        }
+        let atLeastOneFileExists = false;
+        let table = `| Title | Tests | Skipped | Failures | Errors | Time |
+| ----- | ----- | ------- | -------- | -------- | ------------------ |
+`;
+        for (const titleFileLine of lineReports) {
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            const { title, file } = titleFileLine;
+            const xmlContent = (0, utils_1.getContentFile)(file);
+            const parsedXml = await (0, junit_1.parseJunit)(xmlContent);
+            if (parsedXml) {
+                const junitHtml = (0, junit_1.junitToMarkdown)(parsedXml, options, true);
+                table += `| ${title} ${junitHtml}\n`;
+                atLeastOneFileExists = true;
+            }
+        }
+        if (atLeastOneFileExists) {
+            return table;
+        }
+    }
+    catch (error) {
+        if (error instanceof Error) {
+            // prettier-ignore
+            core.error(`Generating summary report for multiple junit files. ${error.message}`);
+        }
+    }
+    return null;
+}
+exports.getMultipleJunitReport = getMultipleJunitReport;
 
 
 /***/ }),
@@ -1154,7 +1225,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getCoverageColor = exports.getContentFile = exports.getPathToFile = void 0;
+exports.parseLine = exports.getCoverageColor = exports.getContentFile = exports.getPathToFile = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const fs_1 = __nccwpck_require__(7147);
 function getPathToFile(pathToFile) {
@@ -1216,6 +1287,15 @@ function getCoverageColor(percentage) {
     return color;
 }
 exports.getCoverageColor = getCoverageColor;
+// parse one-line from multiple files to object
+const parseLine = (line) => {
+    if (!line?.includes(',')) {
+        return null;
+    }
+    const lineArr = line.split(',');
+    return { title: lineArr[0].trim(), file: lineArr[1].trim() };
+};
+exports.parseLine = parseLine;
 
 
 /***/ }),
