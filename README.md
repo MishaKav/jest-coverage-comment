@@ -46,6 +46,7 @@ You can add this action to your GitHub workflow for Ubuntu runners (e.g. `runs-o
 | `coverage-path-prefix`      |          | ''                                 | Prefix for path when link to files in comment                                                                                                                            |
 | `report-only-changed-files` |          | false                              | Show in report only changed files for this commit, and not all files                                                                                                     |
 | `multiple-files`            |          | ''                                 | You can pass array of `json-summary.json` files and generate single comment with table of results<br/>Single line should look like `Title1, ./path/to/json-sumamry.json` |
+| `multiple-junitxml-files`   |          | ''                                 | You can pass array of `junit.xml` files and generate single comment with table of results<br/>Single line should look like `Title1, ./path/to/junit.xml`                 |
 
 ## Output Variables
 
