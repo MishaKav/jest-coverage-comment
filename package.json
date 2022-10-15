@@ -1,6 +1,6 @@
 {
   "name": "jest-coverage-comment",
-  "version": "1.0.16",
+  "version": "1.0.17",
   "description": "Comments a pull request or commit with the jest code coverage badge, full report and tests summary",
   "author": "Misha Kav <misha.kav@gmail.com>",
   "license": "MIT",

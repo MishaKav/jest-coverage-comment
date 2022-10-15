@@ -22,6 +22,11 @@ async function parseJunit(xmlContent: string): Promise<Junit | null> {
 
     const main = parsedJunit.testsuites['$']
     const testsuites = parsedJunit.testsuites.testsuite
+    const errors =
+      testsuites
+        ?.map((t: any) => Number(t['$'].errors))
+        .reduce((sum: number, a: number) => sum + a, 0) || 0
+
     const skipped =
       testsuites
         ?.map((t: any) => Number(t['$'].skipped))
@@ -29,7 +34,7 @@ async function parseJunit(xmlContent: string): Promise<Junit | null> {
 
     return {
       skipped,
-      errors: Number(main.errors),
+      errors: Number(main.errors || errors),
       failures: Number(main.failures),
       tests: Number(main.tests),
       time: Number(main.time),
