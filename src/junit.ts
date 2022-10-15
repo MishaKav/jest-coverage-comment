@@ -5,7 +5,7 @@ import { Junit, JunitReport, Options } from './types.d'
 import { getContentFile } from './utils'
 
 // parse junit.xml to Junit object
-async function parseJunit(xmlContent: string): Promise<Junit | null> {
+export async function parseJunit(xmlContent: string): Promise<Junit | null> {
   try {
     if (!xmlContent) {
       core.warning(`Junit xml was not provided`)
@@ -49,15 +49,25 @@ async function parseJunit(xmlContent: string): Promise<Junit | null> {
 }
 
 // convert junit from junitxml to md
-function junitToMarkdown(junit: Junit, options: Options): string {
+export function junitToMarkdown(
+  junit: Junit,
+  options: Options,
+  withoutHeader = false
+): string {
   const { skipped, errors, failures, tests, time } = junit
   const displayTime =
     time > 60 ? `${(time / 60) | 0}m ${time % 60 | 0}s` : `${time}s`
 
-  const table = `| Tests | Skipped | Failures | Errors | Time |
-| ----- | ------- | -------- | -------- | ------------------ |
-| ${tests} | ${skipped} :zzz: | ${failures} :x: | ${errors} :fire: | ${displayTime} :stopwatch: |
+  const tableHeader = `| Tests | Skipped | Failures | Errors | Time |
+| ----- | ------- | -------- | -------- | ------------------ |`
+  const content = `| ${tests} | ${skipped} :zzz: | ${failures} :x: | ${errors} :fire: | ${displayTime} :stopwatch: |`
+  const table = `${tableHeader}
+${content}
 `
+
+  if (withoutHeader) {
+    return content
+  }
 
   if (options.junitTitle) {
     return `## ${options.junitTitle}
@@ -105,9 +115,4 @@ export async function getJunitReport(options: Options): Promise<JunitReport> {
     errors: 0,
     time: 0,
   }
-}
-
-export const exportedForTesting = {
-  parseJunit,
-  junitToMarkdown,
 }
