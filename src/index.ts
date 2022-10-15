@@ -7,6 +7,7 @@ import { getCoverageReport } from './coverage'
 import { getSummaryReport } from './summary'
 import { getChangedFiles } from './changed-files'
 import { getMultipleReport } from './multi-files'
+import { getMultipleJunitReport } from './multi-junit-files'
 
 async function main(): Promise<void> {
   try {
@@ -50,6 +51,12 @@ async function main(): Promise<void> {
     const multipleFiles = core.getMultilineInput('multiple-files', {
       required: false,
     })
+    const multipleJunitFiles = core.getMultilineInput(
+      'multiple-junitxml-files',
+      {
+        required: false,
+      }
+    )
 
     const { repo, owner } = context.repo
     const { eventName, payload } = context
@@ -78,6 +85,7 @@ async function main(): Promise<void> {
       hideComment,
       reportOnlyChangedFiles,
       multipleFiles,
+      multipleJunitFiles,
     }
 
     if (eventName === 'pull_request' && payload) {
@@ -96,15 +104,6 @@ async function main(): Promise<void> {
 
     const report = getSummaryReport(options)
     const { coverage, color, summaryHtml } = report
-
-    // if (summaryHtml.length > MAX_COMMENT_LENGTH) {
-    //   core.warning(
-    //     `Your comment is too long (maximum is ${MAX_COMMENT_LENGTH} characters), coverage summary report will not be added.`
-    //   )
-    // core.warning(
-    //   `Try add: "--cov-report=term-missing:skip-covered", or add "hide-report: true", or add "report-only-changed-files: true"`
-    // )
-    // }
 
     if (coverage || summaryHtml) {
       core.startGroup(options.summaryTitle || 'Summary')
@@ -186,6 +185,11 @@ async function main(): Promise<void> {
 
     if (multipleFiles?.length) {
       finalHtml += `\n\n${getMultipleReport(options)}`
+    }
+
+    if (multipleJunitFiles?.length) {
+      const markdown = await getMultipleJunitReport(options)
+      finalHtml += markdown ? `\n\n${markdown}` : ''
     }
 
     if (!finalHtml || options.hideComment) {
