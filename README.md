@@ -261,6 +261,20 @@ Generated from `junit.xml` by [jest-junit](https://www.npmjs.com/package/jest-ju
     junitxml-path: ./junit.xml
 ```
 
+Example GitHub Action workflow that uses multiple junit files mode (can be useful on mono-repo projects)
+
+![image](https://user-images.githubusercontent.com/289035/195997703-95d331a3-beba-4567-831e-22d1f0e977da.png)
+
+```yaml
+- name: Jest coverage comment
+  uses: MishaKav/jest-coverage-comment@main
+  with:
+    multiple-junitxml-files: |
+      My-Title-1, ./coverage_1/junit.xml
+      My-Title-2, ./coverage_2/junit.xml
+```
+
+
 Example GitHub Action workflow that will update your `README.md` with coverage summary, only on merge to `main` branch
 All you need is to add in your `README.md` the following lines wherever you want.
 If your coverage summary report will not change, it wouldn't push any changes to readme file.
