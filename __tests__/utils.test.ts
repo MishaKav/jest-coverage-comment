@@ -8,7 +8,12 @@ import {
   beforeAll,
   afterAll,
 } from '@jest/globals'
-import { getContentFile, getCoverageColor, getPathToFile } from '../src/utils'
+import {
+  getContentFile,
+  getCoverageColor,
+  getPathToFile,
+  parseLine,
+} from '../src/utils'
 
 describe('should check all utils functions', () => {
   const GITHUB_WORKSPACE = process.cwd()
@@ -110,6 +115,29 @@ describe('should check all utils functions', () => {
 
     test('should return default color', () => {
       expect(getCoverageColor(-1)).toBe('red')
+    })
+  })
+
+  describe('parsing one-line', () => {
+    test('should not parse bad line', () => {
+      const parsedLine1 = parseLine('')
+      const parsedLine2 = parseLine('some bad line')
+      const parsedLine3 = parseLine(`title only`)
+      const parsedLine4 = parseLine(`./path/to/file.json`)
+
+      expect(parsedLine1).toBeNull()
+      expect(parsedLine2).toBeNull()
+      expect(parsedLine3).toBeNull()
+      expect(parsedLine4).toBeNull()
+    })
+
+    test('should parse correctly one-line', async () => {
+      const parsedLine1 = parseLine(`title1, ./path/to/file.json`)
+      const parsedLine2 = parseLine(`title1,./path/to/file.json`)
+      const expectedResult = { title: 'title1', file: './path/to/file.json' }
+
+      expect(parsedLine1).toMatchObject(expectedResult)
+      expect(parsedLine2).toMatchObject(expectedResult)
     })
   })
 })
