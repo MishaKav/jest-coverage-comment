@@ -23,6 +23,7 @@ export interface Options {
   reportOnlyChangedFiles?: boolean
   changedFiles?: ChangedFiles
   multipleFiles?: string[]
+  multipleJunitFiles?: string[]
 }
 
 export interface ChangedFiles {

@@ -92,6 +92,13 @@ inputs:
     default: ''
     required: false
 
+  multiple-junitxml-files:
+    description: >
+      You can pass array of `junit.xml` files and generate single comment with table of results
+      Single line should look like `Title1, ./path/to/junit.xml`
+    default: ''
+    required: false
+
 outputs:
   coverage:
     description: 'Value indicating the coverage percentage of your report based on jest, example 78'

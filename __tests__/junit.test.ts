@@ -1,8 +1,6 @@
 import * as core from '@actions/core'
 import { expect, test, describe, jest } from '@jest/globals'
-import { getJunitReport, exportedForTesting } from '../src/junit'
-
-const { parseJunit, junitToMarkdown } = exportedForTesting
+import { getJunitReport, parseJunit, junitToMarkdown } from '../src/junit'
 
 describe('parsing junit', () => {
   test('should parse xml string to junit', async () => {

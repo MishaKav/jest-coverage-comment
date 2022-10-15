@@ -1,17 +1,7 @@
 import * as core from '@actions/core'
 import { getCoverage, parseSummary, summaryToMarkdown } from './summary'
-import { MultipleFilesLine, Options } from './types'
-import { getContentFile } from './utils'
-
-// parse one-line from multiple files to object
-const parseLine = (line: string): MultipleFilesLine | null => {
-  if (!line?.includes(',')) {
-    return null
-  }
-
-  const lineArr = line.split(',')
-  return { title: lineArr[0].trim(), file: lineArr[1].trim() }
-}
+import { Options } from './types'
+import { getContentFile, parseLine } from './utils'
 
 // return multiple report in markdown format
 export function getMultipleReport(options: Options): string | null {
@@ -64,8 +54,4 @@ export function getMultipleReport(options: Options): string | null {
   }
 
   return null
-}
-
-export const exportedForTesting = {
-  parseLine,
 }

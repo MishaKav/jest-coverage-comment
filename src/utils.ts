@@ -1,6 +1,6 @@
 import * as core from '@actions/core'
 import { existsSync, readFileSync } from 'fs'
-import { CoverageColor } from './types'
+import { CoverageColor, MultipleFilesLine } from './types'
 
 export function getPathToFile(pathToFile: string): string {
   if (!pathToFile) {
@@ -70,4 +70,14 @@ export function getCoverageColor(percentage: number): CoverageColor {
     ) || rangeColors[0]
 
   return color
+}
+
+// parse one-line from multiple files to object
+export const parseLine = (line: string): MultipleFilesLine | null => {
+  if (!line?.includes(',')) {
+    return null
+  }
+
+  const lineArr = line.split(',')
+  return { title: lineArr[0].trim(), file: lineArr[1].trim() }
 }

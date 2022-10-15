@@ -46,6 +46,7 @@ You can add this action to your GitHub workflow for Ubuntu runners (e.g. `runs-o
 | `coverage-path-prefix`      |          | ''                                 | Prefix for path when link to files in comment                                                                                                                            |
 | `report-only-changed-files` |          | false                              | Show in report only changed files for this commit, and not all files                                                                                                     |
 | `multiple-files`            |          | ''                                 | You can pass array of `json-summary.json` files and generate single comment with table of results<br/>Single line should look like `Title1, ./path/to/json-sumamry.json` |
+| `multiple-junitxml-files`   |          | ''                                 | You can pass array of `junit.xml` files and generate single comment with table of results<br/>Single line should look like `Title1, ./path/to/junit.xml`                 |
 
 ## Output Variables
 
@@ -259,6 +260,20 @@ Generated from `junit.xml` by [jest-junit](https://www.npmjs.com/package/jest-ju
   with:
     junitxml-path: ./junit.xml
 ```
+
+Example GitHub Action workflow that uses multiple junit files mode (can be useful on mono-repo projects)
+
+![image](https://user-images.githubusercontent.com/289035/195997703-95d331a3-beba-4567-831e-22d1f0e977da.png)
+
+```yaml
+- name: Jest coverage comment
+  uses: MishaKav/jest-coverage-comment@main
+  with:
+    multiple-junitxml-files: |
+      My-Title-1, ./coverage_1/junit.xml
+      My-Title-2, ./coverage_2/junit.xml
+```
+
 
 Example GitHub Action workflow that will update your `README.md` with coverage summary, only on merge to `main` branch
 All you need is to add in your `README.md` the following lines wherever you want.
