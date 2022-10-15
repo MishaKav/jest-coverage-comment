@@ -731,12 +731,15 @@ async function parseJunit(xmlContent) {
         }
         const main = parsedJunit.testsuites['$'];
         const testsuites = parsedJunit.testsuites.testsuite;
+        const errors = testsuites
+            ?.map((t) => Number(t['$'].errors))
+            .reduce((sum, a) => sum + a, 0) || 0;
         const skipped = testsuites
             ?.map((t) => Number(t['$'].skipped))
             .reduce((sum, a) => sum + a, 0) || 0;
         return {
             skipped,
-            errors: Number(main.errors),
+            errors: Number(main.errors || errors),
             failures: Number(main.failures),
             tests: Number(main.tests),
             time: Number(main.time),
