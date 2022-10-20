@@ -59,7 +59,7 @@ async function getChangedFiles(options) {
                 break;
             default:
                 // prettier-ignore
-                core.warning(`\`report-only-changed-files: true\` supports only on \`pull_request\` and \`push\`, ${eventName} events are not supported.`);
+                core.warning(`\`report-only-changed-files: true\` supports only on \`pull_request\` and \`push\`, \`${eventName}\` events are not supported.`);
                 return null;
         }
         core.startGroup('Changed files');
@@ -453,7 +453,7 @@ async function createComment(options, body) {
         else {
             if (!options.hideComment) {
                 // prettier-ignore
-                core.warning(`This action supports comments only on \`pull_request\` and \`push\` events. ${eventName} events are not supported.\nYou can use the output of the action.`);
+                core.warning(`This action supports comments only on \`pull_request\` and \`push\` events. \`${eventName}\` events are not supported.\nYou can use the output of the action.`);
             }
         }
     }

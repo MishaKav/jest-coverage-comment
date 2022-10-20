@@ -33,7 +33,7 @@ export async function getChangedFiles(
         break
       default:
         // prettier-ignore
-        core.warning(`\`report-only-changed-files: true\` supports only on \`pull_request\` and \`push\`, ${eventName} events are not supported.`)
+        core.warning(`\`report-only-changed-files: true\` supports only on \`pull_request\` and \`push\`, \`${eventName}\` events are not supported.`)
         return null
     }
 

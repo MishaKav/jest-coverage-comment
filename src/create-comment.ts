@@ -95,7 +95,7 @@ export async function createComment(
     } else {
       if (!options.hideComment) {
         // prettier-ignore
-        core.warning(`This action supports comments only on \`pull_request\` and \`push\` events. ${eventName} events are not supported.\nYou can use the output of the action.`)
+        core.warning(`This action supports comments only on \`pull_request\` and \`push\` events. \`${eventName}\` events are not supported.\nYou can use the output of the action.`)
       }
     }
   } catch (error) {
