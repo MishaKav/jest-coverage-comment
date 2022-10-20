@@ -58,8 +58,9 @@ async function getChangedFiles(options) {
                 head = payload.after;
                 break;
             default:
-                core.setFailed(`This action only supports pull requests and pushes, ${eventName} events are not supported. ` +
-                    "Please submit an issue on this action's GitHub repo if you believe this in correct.");
+                // prettier-ignore
+                core.warning(`\`report-only-changed-files: true\` supports only on \`pull_request\` and \`push\`, ${eventName} events are not supported.`);
+                return null;
         }
         core.startGroup('Changed files');
         // Log the base and head commits
@@ -88,14 +89,6 @@ async function getChangedFiles(options) {
             core.setFailed(`The GitHub API for comparing the base and head commits for this ${eventName} event returned ${response.status}, expected 200. ` +
                 "Please submit an issue on this action's GitHub repo.");
         }
-        // https://github.com/MishaKav/jest-coverage-comment/issues/10
-        // Ensure that the head commit is ahead of the base commit.
-        // if (response.data.status !== 'ahead') {
-        //   core.setFailed(
-        //     `The head commit for this ${eventName} event is not ahead of the base commit. ` +
-        //       "Please submit an issue on this action's GitHub repo."
-        //   )
-        // }
         // Get the changed files from the response payload.
         const files = response.data.files;
         if (files?.length) {
@@ -119,6 +112,7 @@ async function getChangedFiles(options) {
                         renamed.push(filename);
                         break;
                     default:
+                        // prettier-ignore
                         core.setFailed(`One of your files includes an unsupported file status '${status}', expected added, modified, removed, renamed`);
                 }
             }
@@ -136,14 +130,7 @@ async function getChangedFiles(options) {
             core.setFailed(error.message);
         }
     }
-    return {
-        all,
-        added,
-        modified,
-        removed,
-        renamed,
-        addedOrModified,
-    };
+    return { all, added, modified, removed, renamed, addedOrModified };
 }
 exports.getChangedFiles = getChangedFiles;
 
@@ -424,7 +411,7 @@ async function createComment(options, body) {
                 body,
             });
         }
-        if (eventName === 'pull_request') {
+        else if (eventName === 'pull_request') {
             if (options.createNewComment) {
                 core.info('Creating a new comment');
                 await octokit.rest.issues.createComment({
@@ -461,6 +448,12 @@ async function createComment(options, body) {
                         body,
                     });
                 }
+            }
+        }
+        else {
+            if (!options.hideComment) {
+                // prettier-ignore
+                core.warning(`This action supports comments only on \`pull_request\` and \`push\` events. ${eventName} events are not supported.\nYou can use the output of the action.`);
             }
         }
     }
@@ -595,6 +588,10 @@ async function main() {
         if (options.reportOnlyChangedFiles) {
             const changedFiles = await (0, changed_files_1.getChangedFiles)(options);
             options.changedFiles = changedFiles;
+            // when github event come different from `pull_request` or `push`
+            if (!changedFiles) {
+                options.reportOnlyChangedFiles = false;
+            }
         }
         const report = (0, summary_1.getSummaryReport)(options);
         const { coverage, color, summaryHtml } = report;
