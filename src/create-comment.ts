@@ -50,9 +50,7 @@ export async function createComment(
         commit_sha: options.commit,
         body,
       })
-    }
-
-    if (eventName === 'pull_request') {
+    } else if (eventName === 'pull_request') {
       if (options.createNewComment) {
         core.info('Creating a new comment')
 
@@ -93,6 +91,11 @@ export async function createComment(
             body,
           })
         }
+      }
+    } else {
+      if (!options.hideComment) {
+        // prettier-ignore
+        core.warning(`This action supports comments only on \`pull_request\` and \`push\` events. \`${eventName}\` events are not supported.\nYou can use the output of the action.`)
       }
     }
   } catch (error) {

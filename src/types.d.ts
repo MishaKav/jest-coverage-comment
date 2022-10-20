@@ -21,7 +21,7 @@ export interface Options {
   createNewComment?: boolean
   hideComment?: boolean
   reportOnlyChangedFiles?: boolean
-  changedFiles?: ChangedFiles
+  changedFiles?: ChangedFiles | null
   multipleFiles?: string[]
   multipleJunitFiles?: string[]
 }

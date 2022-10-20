@@ -3,13 +3,15 @@ import { context, getOctokit } from '@actions/github'
 import { ChangedFiles, Options } from './types.d'
 
 // generate object of all files that changed based on commit through Github API
-export async function getChangedFiles(options: Options): Promise<ChangedFiles> {
-  const all = []
-  const added = []
-  const modified = []
-  const removed = []
-  const renamed = []
-  const addedOrModified = []
+export async function getChangedFiles(
+  options: Options
+): Promise<ChangedFiles | null> {
+  const all: string[] = []
+  const added: string[] = []
+  const modified: string[] = []
+  const removed: string[] = []
+  const renamed: string[] = []
+  const addedOrModified: string[] = []
 
   try {
     const { eventName, payload } = context
@@ -30,10 +32,9 @@ export async function getChangedFiles(options: Options): Promise<ChangedFiles> {
         head = payload.after
         break
       default:
-        core.setFailed(
-          `This action only supports pull requests and pushes, ${eventName} events are not supported. ` +
-            "Please submit an issue on this action's GitHub repo if you believe this in correct."
-        )
+        // prettier-ignore
+        core.warning(`\`report-only-changed-files: true\` supports only on \`pull_request\` and \`push\`, \`${eventName}\` events are not supported.`)
+        return null
     }
 
     core.startGroup('Changed files')
@@ -67,15 +68,6 @@ export async function getChangedFiles(options: Options): Promise<ChangedFiles> {
       )
     }
 
-    // https://github.com/MishaKav/jest-coverage-comment/issues/10
-    // Ensure that the head commit is ahead of the base commit.
-    // if (response.data.status !== 'ahead') {
-    //   core.setFailed(
-    //     `The head commit for this ${eventName} event is not ahead of the base commit. ` +
-    //       "Please submit an issue on this action's GitHub repo."
-    //   )
-    // }
-
     // Get the changed files from the response payload.
     const files = response.data.files
 
@@ -105,9 +97,8 @@ export async function getChangedFiles(options: Options): Promise<ChangedFiles> {
             renamed.push(filename)
             break
           default:
-            core.setFailed(
-              `One of your files includes an unsupported file status '${status}', expected added, modified, removed, renamed`
-            )
+            // prettier-ignore
+            core.setFailed(`One of your files includes an unsupported file status '${status}', expected added, modified, removed, renamed`)
         }
       }
     }
@@ -126,12 +117,5 @@ export async function getChangedFiles(options: Options): Promise<ChangedFiles> {
     }
   }
 
-  return {
-    all,
-    added,
-    modified,
-    removed,
-    renamed,
-    addedOrModified,
-  }
+  return { all, added, modified, removed, renamed, addedOrModified }
 }
