@@ -2,16 +2,16 @@ import * as core from '@actions/core'
 import { SummaryReport, LineSummary, Options, Summary } from './types.d'
 import { getContentFile, getCoverageColor } from './utils'
 
-// parse coverage-summary.json to Sumamry object
+/** Parse coverage-summary.json to Summary object. */
 export function parseSummary(jsonContent: string): Summary | null {
-  try {
-    if (!jsonContent) {
-      core.warning(`Summary json was not provided`)
-      return null
-    }
+  if (!jsonContent) {
+    core.warning('Summary JSON was not provided')
+    return null
+  }
 
+  try {
     const json = JSON.parse(jsonContent)
-    if (json.total?.lines) {
+    if (json.total.lines) {
       return json.total as Summary
     }
   } catch (error) {
@@ -23,9 +23,9 @@ export function parseSummary(jsonContent: string): Summary | null {
   return null
 }
 
-// extract info from line to text
-function lineSumamryToTd(line: LineSummary): string {
-  if (!line?.pct) {
+/** Extract info from line to text. */
+function lineSummaryToTd(line: LineSummary): string {
+  if (!line.pct) {
     return ''
   }
 
@@ -33,7 +33,7 @@ function lineSumamryToTd(line: LineSummary): string {
   return `${pct}% (${covered}/${total})`
 }
 
-// convert summary to md
+/** Convert summary to md. */
 export function summaryToMarkdown(
   summary: Summary,
   options: Options,
@@ -45,28 +45,28 @@ export function summaryToMarkdown(
   const readmeHref = `https://github.com/${repository}/blob/${commit}/README.md`
   const badge = `<a href="${readmeHref}"><img alt="${badgeTitle}: ${coverage}%" src="https://img.shields.io/badge/${badgeTitle}-${coverage}%25-${color}.svg" /></a><br/>`
 
-  const tableHeader = `| Lines | Statements | Branches | Functions |
-| ----- | ------- | -------- | -------- |`
-  // prettier-ignore
-  const content = `| ${badge} | ${lineSumamryToTd(statements)} | ${lineSumamryToTd(branches)} | ${lineSumamryToTd(functions)} |`
-  const table = `${tableHeader}
-${content}
-`
+  const tableHeader =
+    '| Lines | Statements | Branches | Functions |\n' +
+    '| --- | --- | --- | --- |'
+  const tableBody =
+    `| ${badge} |` +
+    ` ${lineSummaryToTd(statements)} |` +
+    ` ${lineSummaryToTd(branches)} |` +
+    ` ${lineSummaryToTd(functions)} |`
+  const table = `${tableHeader}\n${tableBody}\n`
 
   if (withoutHeader) {
-    return content
+    return tableBody
   }
 
   if (options.summaryTitle) {
-    return `## ${options.summaryTitle}
-
-${table}`
+    return `## ${options.summaryTitle}\n\n${table}`
   }
 
   return table
 }
 
-// get coverage and color from summary
+/** Get coverage and color from summary. */
 export function getCoverage(
   summary: Summary
 ): Omit<SummaryReport, 'summaryHtml'> {
@@ -82,7 +82,7 @@ export function getCoverage(
   return { color, coverage }
 }
 
-// return full html coverage report and coverage percenatge
+/** Return full html coverage report and coverage percentage. */
 export function getSummaryReport(options: Options): SummaryReport {
   const { summaryFile } = options
 
@@ -106,6 +106,6 @@ export function getSummaryReport(options: Options): SummaryReport {
 }
 
 export const exportedForTesting = {
-  lineSumamryToTd,
+  lineSummaryToTd,
   getCoverageColor,
 }

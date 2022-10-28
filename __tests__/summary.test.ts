@@ -9,20 +9,18 @@ import {
 } from '../src/summary'
 import { Options } from '../src/types'
 import { getContentFile } from '../src/utils'
-const { lineSumamryToTd } = exportedForTesting
+const { lineSummaryToTd } = exportedForTesting
 
 describe('coverage from summary', () => {
   test('should extract coverage from summary', () => {
-    // @ts-ignore
-    const coverage = getCoverage({ lines: { pct: 78.57 } })
+    const coverage = getCoverage({ lines: { pct: 78.57 } } as never)
 
     expect(coverage.color).toBe('yellow')
     expect(coverage.coverage).toBe(78)
   })
 
   test('should return default coverage from summary', () => {
-    // @ts-ignore
-    const coverage = getCoverage({})
+    const coverage = getCoverage({} as never)
 
     expect(coverage.color).toBe('red')
     expect(coverage.coverage).toBe(0)
@@ -31,14 +29,16 @@ describe('coverage from summary', () => {
 
 describe('summary to td', () => {
   test('should parse summary to td', () => {
-    // @ts-ignore
-    const line = lineSumamryToTd({ total: 42, covered: 33, pct: 78.57 })
-    expect(line).toBe(`78.57% (33/42)`)
+    const line = lineSummaryToTd({
+      total: 42,
+      covered: 33,
+      pct: 78.57,
+    } as never)
+    expect(line).toBe('78.57% (33/42)')
   })
 
-  test('should return default sumamry to td', () => {
-    // @ts-ignore
-    const red = lineSumamryToTd({})
+  test('should return default summary to td', () => {
+    const red = lineSummaryToTd({} as never)
     expect(red).toBe('')
   })
 })
@@ -48,7 +48,7 @@ describe('parse summary', () => {
     token: 'token_123',
     repository: 'MishaKav/jest-coverage-comment',
     commit: '05953710b21d222efa4f4535424a7af367be5a57',
-    watermark: `<!-- Jest Coverage Comment: 1 -->\n`,
+    watermark: '<!-- Jest Coverage Comment: 1 -->\n',
     summaryTitle: '',
     prefix: '',
     badgeTitle: 'Coverage',
@@ -56,14 +56,14 @@ describe('parse summary', () => {
   }
 
   test('should return summary report', () => {
-    const html = `| Lines | Statements | Branches | Functions |
-| ----- | ------- | -------- | -------- |
-| <a href="https://github.com/MishaKav/jest-coverage-comment/blob/05953710b21d222efa4f4535424a7af367be5a57/README.md"><img alt="Coverage: 78%" src="https://img.shields.io/badge/Coverage-78%25-yellow.svg" /></a><br/> | 76.74% (33/43) | 100% (0/0) | 33.33% (2/6) |
-`
-
     const { summaryHtml, coverage, color } = getSummaryReport(options)
 
-    expect(summaryHtml).toEqual(html)
+    expect(summaryHtml).toMatchInlineSnapshot(`
+      "| Lines | Statements | Branches | Functions |
+      | --- | --- | --- | --- |
+      | <a href="https://github.com/MishaKav/jest-coverage-comment/blob/05953710b21d222efa4f4535424a7af367be5a57/README.md"><img alt="Coverage: 78%" src="https://img.shields.io/badge/Coverage-78%25-yellow.svg" /></a><br/> | 76.74% (33/43) | 100% (0/0) | 33.33% (2/6) |
+      "
+    `)
     expect(coverage).toBe(78)
     expect(color).toBe('yellow')
   })
@@ -76,8 +76,7 @@ describe('parse summary', () => {
   })
 
   test('should return default summary', () => {
-    // @ts-ignore
-    const { summaryHtml, coverage, color } = getSummaryReport({})
+    const { summaryHtml, coverage, color } = getSummaryReport({} as never)
 
     expect(summaryHtml).toBe('')
     expect(coverage).toBe(0)
@@ -107,7 +106,7 @@ describe('should parse summary', () => {
     expect(parsedSummary).toBeNull()
     expect(spy).toHaveBeenCalledTimes(1)
     expect(spy).toHaveBeenCalledWith(
-      `Parse summary report. Unexpected token b in JSON at position 0`
+      'Parse summary report. Unexpected token b in JSON at position 0'
     )
   })
 })
@@ -117,7 +116,7 @@ describe('summary to markdown', () => {
     token: 'token_123',
     repository: 'MishaKav/jest-coverage-comment',
     commit: '05953710b21d222efa4f4535424a7af367be5a57',
-    watermark: `<!-- Jest Coverage Comment: 1 -->\n`,
+    watermark: '<!-- Jest Coverage Comment: 1 -->\n',
     summaryTitle: '',
     prefix: '',
     badgeTitle: 'Coverage',
@@ -125,16 +124,24 @@ describe('summary to markdown', () => {
   }
   const jsonContent = getContentFile(options.summaryFile)
   const summary = parseSummary(jsonContent)
+  if (!summary) {
+    throw new Error('summary is expected to not be null')
+  }
 
   test('should convert summary to markdown with title', () => {
-    const parsedSummary = summaryToMarkdown(summary!, options, false)
-    const result = `| Lines | Statements | Branches | Functions |\n| ----- | ------- | -------- | -------- |\n| <a href="https://github.com/MishaKav/jest-coverage-comment/blob/05953710b21d222efa4f4535424a7af367be5a57/README.md"><img alt="Coverage: 78%" src="https://img.shields.io/badge/Coverage-78%25-yellow.svg" /></a><br/> | 76.74% (33/43) | 100% (0/0) | 33.33% (2/6) |\n`
-    expect(parsedSummary).toEqual(result)
+    const parsedSummary = summaryToMarkdown(summary, options, false)
+    expect(parsedSummary).toMatchInlineSnapshot(`
+      "| Lines | Statements | Branches | Functions |
+      | --- | --- | --- | --- |
+      | <a href="https://github.com/MishaKav/jest-coverage-comment/blob/05953710b21d222efa4f4535424a7af367be5a57/README.md"><img alt="Coverage: 78%" src="https://img.shields.io/badge/Coverage-78%25-yellow.svg" /></a><br/> | 76.74% (33/43) | 100% (0/0) | 33.33% (2/6) |
+      "
+    `)
   })
 
   test('should convert summary to markdown without title', () => {
-    const parsedSummary = summaryToMarkdown(summary!, options, true)
-    const result = `| <a href="https://github.com/MishaKav/jest-coverage-comment/blob/05953710b21d222efa4f4535424a7af367be5a57/README.md"><img alt="Coverage: 78%" src="https://img.shields.io/badge/Coverage-78%25-yellow.svg" /></a><br/> | 76.74% (33/43) | 100% (0/0) | 33.33% (2/6) |`
-    expect(parsedSummary).toEqual(result)
+    const parsedSummary = summaryToMarkdown(summary, options, true)
+    expect(parsedSummary).toMatchInlineSnapshot(
+      `"| <a href="https://github.com/MishaKav/jest-coverage-comment/blob/05953710b21d222efa4f4535424a7af367be5a57/README.md"><img alt="Coverage: 78%" src="https://img.shields.io/badge/Coverage-78%25-yellow.svg" /></a><br/> | 76.74% (33/43) | 100% (0/0) | 33.33% (2/6) |"`
+    )
   })
 })

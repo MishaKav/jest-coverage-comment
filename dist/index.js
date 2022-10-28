@@ -33,7 +33,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.getChangedFiles = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const github_1 = __nccwpck_require__(5438);
-// generate object of all files that changed based on commit through Github API
+/** Generate object of all files that changed based on commit through GitHub API. */
 async function getChangedFiles(options) {
     const all = [];
     const added = [];
@@ -58,8 +58,7 @@ async function getChangedFiles(options) {
                 head = payload.after;
                 break;
             default:
-                // prettier-ignore
-                core.warning(`\`report-only-changed-files: true\` supports only on \`pull_request\` and \`push\`, \`${eventName}\` events are not supported.`);
+                core.warning(`"report-only-changed-files: true" supported only on 'pull_request' and 'push', '${eventName}' events are not supported.`);
                 return null;
         }
         core.startGroup('Changed files');
@@ -67,7 +66,7 @@ async function getChangedFiles(options) {
         core.info(`Base commit: ${base}`);
         core.info(`Head commit: ${head}`);
         let response = null;
-        // that is first commit, we cannot get diff
+        // For the first commit in repository we cannot get a diff
         if (base === '0000000000000000000000000000000000000000') {
             response = await octokit.rest.repos.getCommit({
                 owner,
@@ -84,12 +83,12 @@ async function getChangedFiles(options) {
                 repo,
             });
         }
-        // Ensure that the request was successful.
+        // Ensure that the request was successful
         if (response.status !== 200) {
-            core.setFailed(`The GitHub API for comparing the base and head commits for this ${eventName} event returned ${response.status}, expected 200. ` +
+            core.setFailed(`The GitHub API request for comparing the base and head commits for this '${eventName}' event returned ${response.status}, expected 200. ` +
                 "Please submit an issue on this action's GitHub repo.");
         }
-        // Get the changed files from the response payload.
+        // Get the changed files from the response payload
         const files = response.data.files;
         if (files?.length) {
             for (const file of files) {
@@ -112,7 +111,6 @@ async function getChangedFiles(options) {
                         renamed.push(filename);
                         break;
                     default:
-                        // prettier-ignore
                         core.setFailed(`One of your files includes an unsupported file status '${status}', expected added, modified, removed, renamed`);
                 }
             }
@@ -137,7 +135,7 @@ exports.getChangedFiles = getChangedFiles;
 
 /***/ }),
 
-/***/ 4831:
+/***/ 5105:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -192,7 +190,7 @@ const DEFAULT_COVERAGE = {
     lines: 0,
     statements: 0,
 };
-// convert coverage to md
+/** Convert coverage to md. */
 function coverageToMarkdown(coverageArr, options) {
     const { reportOnlyChangedFiles, coverageTitle } = options;
     const { coverage } = getCoverage(coverageArr);
@@ -201,7 +199,7 @@ function coverageToMarkdown(coverageArr, options) {
     const reportHtml = `<details><summary>${coverageTitle} ${onlyChanged}(<b>${coverage}%</b>)</summary>${table}</details>`;
     return reportHtml;
 }
-// get coverage and color from CoverageLine[]
+/** Get coverage and color from CoverageLine[]. */
 function getCoverage(coverageArr) {
     const allFilesLine = (0, parse_coverage_1.getTotalLine)(coverageArr);
     if (!allFilesLine) {
@@ -222,7 +220,7 @@ function getCoverage(coverageArr) {
         lines: coverage,
     };
 }
-// make html table from coverage.txt
+/** Make html table from coverage.txt. */
 function toTable(coverageArr, options) {
     const headTr = toHeadRow();
     const totalRow = (0, parse_coverage_1.getTotalLine)(coverageArr);
@@ -238,8 +236,8 @@ function toTable(coverageArr, options) {
             }
             return changedFiles?.all.some((c) => c.includes(line.file));
         })
-            // filter folders without files
-            .filter((line, i, arr) => {
+            // Filter folders without files
+            .filter((_line, _i, arr) => {
             if (!reportOnlyChangedFiles) {
                 return true;
             }
@@ -250,23 +248,23 @@ function toTable(coverageArr, options) {
     }
     const hasLines = rows.length > 1;
     const isFilesChanged = reportOnlyChangedFiles && !hasLines
-        ? `<i>report-only-changed-files is enabled. No files were changed during this commit :)</i>`
+        ? '<i>report-only-changed-files is enabled. No files were changed in this commit :)</i>'
         : '';
     // prettier-ignore
     return `<table>${headTr}<tbody>${rows.join('')}</tbody></table>${isFilesChanged}`;
 }
-// make html head row - th
+/** Make html head row - th. */
 function toHeadRow() {
-    return `<tr><th>File</th><th>% Stmts</th><th>% Branch</th><th>% Funcs</th><th>% Lines</th><th>Uncovered Line #s</th></tr>`;
+    return '<tr><th>File</th><th>% Stmts</th><th>% Branch</th><th>% Funcs</th><th>% Lines</th><th>Uncovered Line #s</th></tr>';
 }
-// make html row - tr
+/** Make html row - tr. */
 function toRow(line, indent = false, options) {
     const { stmts, branch, funcs, lines } = line;
     const fileName = toFileNameTd(line, indent, options);
     const missing = toMissingTd(line, options);
     return `<tr><td>${(0, parse_coverage_1.isFolder)(line) ? line.file : fileName}</td><td>${stmts}</td><td>${branch}</td><td>${funcs}</td><td>${lines}</td><td>${missing}</td></tr>`;
 }
-// make summary row - tr
+/** Make summary row - tr. */
 function toTotalRow(line) {
     if (!line) {
         return '&nbsp;';
@@ -274,7 +272,7 @@ function toTotalRow(line) {
     const { file, stmts, branch, funcs, lines } = line;
     return `<tr><td><b>${file}</b></td><td><b>${stmts}</b></td><td><b>${branch}</b></td><td><b>${funcs}</b></td><td><b>${lines}</b></td><td>&nbsp;</td></tr>`;
 }
-// make fileName cell - td
+/** Make fileName cell - td. */
 function toFileNameTd(line, indent = false, options) {
     const relative = line.file.replace(options.prefix, '');
     const href = `https://github.com/${options.repository}/blob/${options.commit}/${options.coveragePathPrefix}${relative}`;
@@ -285,9 +283,9 @@ function toFileNameTd(line, indent = false, options) {
         ? `${space}${last}`
         : `${space}<a href="${href}">${last}</a>`;
 }
-// make missing cell - td
+/** Make missing cell - td. */
 function toMissingTd(line, options) {
-    if (!line?.uncoveredLines?.length) {
+    if (!line.uncoveredLines?.length) {
         return '&nbsp;';
     }
     return line.uncoveredLines
@@ -301,7 +299,7 @@ function toMissingTd(line, options) {
     })
         .join(', ');
 }
-// collapse all lines to folders structure
+/** Collapse all lines to folders structure. */
 function makeFolders(coverageArr, options) {
     const folders = {};
     for (const line of coverageArr) {
@@ -315,7 +313,7 @@ function makeFolders(coverageArr, options) {
     }
     return folders;
 }
-// return full html coverage report and coverage percentage
+/** Return full html coverage report and coverage percentage. */
 function getCoverageReport(options) {
     const { coverageFile } = options;
     try {
@@ -384,21 +382,18 @@ async function createComment(options, body) {
         if (body.length > MAX_COMMENT_LENGTH) {
             const warningsArr = [
                 `Your comment is too long (maximum is ${MAX_COMMENT_LENGTH} characters), coverage report will not be added.`,
-                `Try one/some of the following:`,
-                `- add "['text-summary', { skipFull: true }]" - to remove fully covered files from report`,
-                `- add "hide-summary: true" - to remove the summary report`,
+                'Try one/some of the following:',
+                `- Add "['text-summary', { skipFull: true }]" - to remove fully covered files from report`,
+                '- Add "hide-summary: true" - to remove the summary report',
             ];
             if (!options.reportOnlyChangedFiles) {
-                // prettier-ignore
-                warningsArr.push(`- add "report-only-changed-files: true" - to report only changed files and not all files`);
+                warningsArr.push('- Add "report-only-changed-files: true" - to report only changed files and not all files');
             }
             if (!options.removeLinksToFiles) {
-                // prettier-ignore
-                warningsArr.push(`- add "remove-links-to-files: true" - to remove links to files`);
+                warningsArr.push('- Add "remove-links-to-files: true" - to remove links to files');
             }
             if (!options.removeLinksToLines) {
-                // prettier-ignore
-                warningsArr.push(`- add "remove-links-to-lines: true" - to remove links to lines`);
+                warningsArr.push('- Add "remove-links-to-lines: true" - to remove links to lines');
             }
             core.warning(warningsArr.join('\n'));
         }
@@ -452,8 +447,7 @@ async function createComment(options, body) {
         }
         else {
             if (!options.hideComment) {
-                // prettier-ignore
-                core.warning(`This action supports comments only on \`pull_request\` and \`push\` events. \`${eventName}\` events are not supported.\nYou can use the output of the action.`);
+                core.warning(`This action supports comments only on 'pull_request' and 'push' events. '${eventName}' events are not supported.\nYou can use the output of the action.`);
             }
         }
     }
@@ -588,7 +582,7 @@ async function main() {
         if (options.reportOnlyChangedFiles) {
             const changedFiles = await (0, changed_files_1.getChangedFiles)(options);
             options.changedFiles = changedFiles;
-            // when github event come different from `pull_request` or `push`
+            // When GitHub event is different to 'pull_request' or 'push'
             if (!changedFiles) {
                 options.reportOnlyChangedFiles = false;
             }
@@ -714,17 +708,17 @@ exports.getJunitReport = exports.junitToMarkdown = exports.parseJunit = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const xml2js = __importStar(__nccwpck_require__(6189));
 const utils_1 = __nccwpck_require__(918);
-// parse junit.xml to Junit object
+/** Parse junit.xml to Junit object */
 async function parseJunit(xmlContent) {
     try {
         if (!xmlContent) {
-            core.warning(`Junit xml was not provided`);
+            core.warning('JUnit XML was not provided');
             return null;
         }
         const parser = new xml2js.Parser();
         const parsedJunit = await parser.parseStringPromise(xmlContent);
         if (!parsedJunit) {
-            core.warning(`Junit xml file is not XML or not well formed`);
+            core.warning('JUnit XML file is not XML or not well formed');
             return null;
         }
         const main = parsedJunit.testsuites['$'];
@@ -745,13 +739,13 @@ async function parseJunit(xmlContent) {
     }
     catch (error) {
         if (error instanceof Error) {
-            core.error(`Parse junit report. ${error.message}`);
+            core.error(`Parse JUnit report. ${error.message}`);
         }
     }
     return null;
 }
 exports.parseJunit = parseJunit;
-// convert junit from junitxml to md
+/** Convert JUnit from JUnit XML to md. */
 function junitToMarkdown(junit, options, withoutHeader = false) {
     const { skipped, errors, failures, tests, time } = junit;
     const displayTime = time > 60 ? `${(time / 60) | 0}m ${time % 60 | 0}s` : `${time}s`;
@@ -772,7 +766,7 @@ ${table}`;
     return table;
 }
 exports.junitToMarkdown = junitToMarkdown;
-// return junit report
+/** Return JUnit report. */
 async function getJunitReport(options) {
     const { junitFile } = options;
     try {
@@ -795,7 +789,7 @@ async function getJunitReport(options) {
     }
     catch (error) {
         if (error instanceof Error) {
-            core.error(`Error on generating junit report. ${error.message}`);
+            core.error(`Error on generating JUnit report. ${error.message}`);
         }
     }
     return {
@@ -845,25 +839,22 @@ exports.getMultipleReport = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const summary_1 = __nccwpck_require__(8608);
 const utils_1 = __nccwpck_require__(918);
-// return multiple report in markdown format
+/** Return multiple report in markdown format. */
 function getMultipleReport(options) {
     const { multipleFiles } = options;
     if (!multipleFiles?.length) {
         return null;
     }
     try {
-        const lineReports = multipleFiles.map(utils_1.parseLine).filter((l) => l);
-        if (!lineReports?.length) {
-            // prettier-ignore
-            core.error(`Generating summary report for multiple files. No files are provided`);
+        const lineReports = multipleFiles.map(utils_1.parseLine).filter(utils_1.notNull);
+        if (!lineReports.length) {
+            core.error('Generating summary report for multiple files. No files are provided');
             return null;
         }
         let atLeastOneFileExists = false;
-        let table = `| Title | Lines | Statements | Branches | Functions |
-| ----- | ----- | ------- | -------- | -------- |
-`;
+        let table = '| Title | Lines | Statements | Branches | Functions |\n' +
+            '| --- | --- | --- | --- | --- |\n';
         for (const titleFileLine of lineReports) {
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             const { title, file } = titleFileLine;
             const jsonContent = (0, utils_1.getContentFile)(file);
             const summary = (0, summary_1.parseSummary)(jsonContent);
@@ -884,7 +875,6 @@ function getMultipleReport(options) {
     }
     catch (error) {
         if (error instanceof Error) {
-            // prettier-ignore
             core.error(`Generating summary report for multiple files. ${error.message}`);
         }
     }
@@ -928,25 +918,22 @@ exports.getMultipleJunitReport = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const junit_1 = __nccwpck_require__(2876);
 const utils_1 = __nccwpck_require__(918);
-// return multiple report in markdown format
+/** Return multiple report in markdown format. */
 async function getMultipleJunitReport(options) {
     const { multipleJunitFiles } = options;
     if (!multipleJunitFiles?.length) {
         return null;
     }
     try {
-        const lineReports = multipleJunitFiles.map(utils_1.parseLine).filter((l) => l);
-        if (!lineReports?.length) {
-            // prettier-ignore
-            core.error(`Generating report for multiple junit files. No files are provided`);
+        const lineReports = multipleJunitFiles.map(utils_1.parseLine).filter(utils_1.notNull);
+        if (!lineReports.length) {
+            core.error('Generating report for multiple JUnit files. No files are provided');
             return null;
         }
         let atLeastOneFileExists = false;
-        let table = `| Title | Tests | Skipped | Failures | Errors | Time |
-| ----- | ----- | ------- | -------- | -------- | ------------------ |
-`;
+        let table = '| Title | Tests | Skipped | Failures | Errors | Time |\n' +
+            '| --- | --- | --- | --- | --- | --- |\n';
         for (const titleFileLine of lineReports) {
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             const { title, file } = titleFileLine;
             const xmlContent = (0, utils_1.getContentFile)(file);
             const parsedXml = await (0, junit_1.parseJunit)(xmlContent);
@@ -962,8 +949,7 @@ async function getMultipleJunitReport(options) {
     }
     catch (error) {
         if (error instanceof Error) {
-            // prettier-ignore
-            core.error(`Generating summary report for multiple junit files. ${error.message}`);
+            core.error(`Generating summary report for multiple JUnit files. ${error.message}`);
         }
     }
     return null;
@@ -983,7 +969,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.exportedForTesting = exports.parseCoverage = exports.isFolder = exports.isFile = exports.getTotalLine = void 0;
-const consts_1 = __nccwpck_require__(4831);
+const constants_1 = __nccwpck_require__(5105);
 const strip_ansi_1 = __importDefault(__nccwpck_require__(5591));
 function parseLine(line) {
     return line.split('|').map((l) => l.replace('%', '').replace('#s', '').trim());
@@ -1026,13 +1012,13 @@ function parseCoverage(content) {
     const arr = (0, strip_ansi_1.default)(content).split('\n');
     const result = [];
     const folders = [];
-    const startFrom = arr.findIndex((l) => l.includes(consts_1.BUNCH_OF_DASHES));
+    const startFrom = arr.findIndex((l) => l.includes(constants_1.BUNCH_OF_DASHES));
     for (const line of arr.slice(startFrom)) {
         if (line.includes('Coverage summary')) {
             break;
         }
-        if (line.includes(consts_1.BUNCH_OF_EQUALS) ||
-            line.includes(consts_1.BUNCH_OF_DASHES) ||
+        if (line.includes(constants_1.BUNCH_OF_EQUALS) ||
+            line.includes(constants_1.BUNCH_OF_DASHES) ||
             !line.trim().length ||
             line.startsWith('Done in ')) {
             continue;
@@ -1101,15 +1087,15 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.exportedForTesting = exports.getSummaryReport = exports.getCoverage = exports.summaryToMarkdown = exports.parseSummary = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const utils_1 = __nccwpck_require__(918);
-// parse coverage-summary.json to Sumamry object
+/** Parse coverage-summary.json to Summary object. */
 function parseSummary(jsonContent) {
+    if (!jsonContent) {
+        core.warning('Summary JSON was not provided');
+        return null;
+    }
     try {
-        if (!jsonContent) {
-            core.warning(`Summary json was not provided`);
-            return null;
-        }
         const json = JSON.parse(jsonContent);
-        if (json.total?.lines) {
+        if (json.total.lines) {
             return json.total;
         }
     }
@@ -1121,40 +1107,38 @@ function parseSummary(jsonContent) {
     return null;
 }
 exports.parseSummary = parseSummary;
-// extract info from line to text
-function lineSumamryToTd(line) {
-    if (!line?.pct) {
+/** Extract info from line to text. */
+function lineSummaryToTd(line) {
+    if (!line.pct) {
         return '';
     }
     const { total, covered, pct } = line;
     return `${pct}% (${covered}/${total})`;
 }
-// convert summary to md
+/** Convert summary to md. */
 function summaryToMarkdown(summary, options, withoutHeader = false) {
     const { repository, commit, badgeTitle } = options;
     const { statements, functions, branches } = summary;
     const { color, coverage } = getCoverage(summary);
     const readmeHref = `https://github.com/${repository}/blob/${commit}/README.md`;
     const badge = `<a href="${readmeHref}"><img alt="${badgeTitle}: ${coverage}%" src="https://img.shields.io/badge/${badgeTitle}-${coverage}%25-${color}.svg" /></a><br/>`;
-    const tableHeader = `| Lines | Statements | Branches | Functions |
-| ----- | ------- | -------- | -------- |`;
-    // prettier-ignore
-    const content = `| ${badge} | ${lineSumamryToTd(statements)} | ${lineSumamryToTd(branches)} | ${lineSumamryToTd(functions)} |`;
-    const table = `${tableHeader}
-${content}
-`;
+    const tableHeader = '| Lines | Statements | Branches | Functions |\n' +
+        '| --- | --- | --- | --- |';
+    const tableBody = `| ${badge} |` +
+        ` ${lineSummaryToTd(statements)} |` +
+        ` ${lineSummaryToTd(branches)} |` +
+        ` ${lineSummaryToTd(functions)} |`;
+    const table = `${tableHeader}\n${tableBody}\n`;
     if (withoutHeader) {
-        return content;
+        return tableBody;
     }
     if (options.summaryTitle) {
-        return `## ${options.summaryTitle}
-
-${table}`;
+        return `## ${options.summaryTitle}\n\n${table}`;
     }
     return table;
 }
 exports.summaryToMarkdown = summaryToMarkdown;
-// get coverage and color from summary
+/** Get coverage and color from summary. */
 function getCoverage(summary) {
     if (!summary?.lines) {
         return { coverage: 0, color: 'red' };
@@ -1165,7 +1149,7 @@ function getCoverage(summary) {
     return { color, coverage };
 }
 exports.getCoverage = getCoverage;
-// return full html coverage report and coverage percenatge
+/** Return full html coverage report and coverage percentage. */
 function getSummaryReport(options) {
     const { summaryFile } = options;
     try {
@@ -1186,7 +1170,7 @@ function getSummaryReport(options) {
 }
 exports.getSummaryReport = getSummaryReport;
 exports.exportedForTesting = {
-    lineSumamryToTd,
+    lineSummaryToTd,
     getCoverageColor: utils_1.getCoverageColor,
 };
 
@@ -1222,14 +1206,14 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.parseLine = exports.getCoverageColor = exports.getContentFile = exports.getPathToFile = void 0;
+exports.notNull = exports.parseLine = exports.getCoverageColor = exports.getContentFile = exports.getPathToFile = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const fs_1 = __nccwpck_require__(7147);
 function getPathToFile(pathToFile) {
     if (!pathToFile) {
         return '';
     }
-    // suports absolute path like '/tmp/coverage-summary.json'
+    // Supports absolute path like '/tmp/coverage-summary.json'
     return pathToFile.startsWith('/')
         ? pathToFile
         : `${process.env.GITHUB_WORKSPACE}/${pathToFile}`;
@@ -1237,7 +1221,7 @@ function getPathToFile(pathToFile) {
 exports.getPathToFile = getPathToFile;
 function getContentFile(pathToFile) {
     if (!pathToFile) {
-        core.warning(`Path to file was not provided`);
+        core.warning('Path to file was not provided');
         return '';
     }
     const fixedFilePath = getPathToFile(pathToFile);
@@ -1255,7 +1239,7 @@ function getContentFile(pathToFile) {
     return content;
 }
 exports.getContentFile = getContentFile;
-// get coverage color from percentage
+/** Get coverage color from percentage. */
 function getCoverageColor(percentage) {
     // https://shields.io/category/coverage
     const rangeColors = [
@@ -1284,15 +1268,20 @@ function getCoverageColor(percentage) {
     return color;
 }
 exports.getCoverageColor = getCoverageColor;
-// parse one-line from multiple files to object
+/** Parse one-line from multiple files to object. */
 const parseLine = (line) => {
-    if (!line?.includes(',')) {
+    if (!line.includes(',')) {
         return null;
     }
     const lineArr = line.split(',');
     return { title: lineArr[0].trim(), file: lineArr[1].trim() };
 };
 exports.parseLine = parseLine;
+/** Helper function to filter null entries out of an array. */
+function notNull(value) {
+    return value !== null;
+}
+exports.notNull = notNull;
 
 
 /***/ }),

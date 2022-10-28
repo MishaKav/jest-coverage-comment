@@ -1,4 +1,4 @@
-name: Update Coverage on Readme
+name: Update Coverage in README
 on:
   push:
     paths-ignore:
@@ -10,15 +10,15 @@ on:
       - '**/app/local/**'
 
 jobs:
-  update-coverage-on-readme:
-    name: Update Coverage on Readme
+  update-coverage-in-readme:
+    name: Update Coverage in README
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
 
       - name: NPM Cache
         id: npm-cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: '**/node_modules'
           key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
@@ -41,7 +41,7 @@ jobs:
       - name: Run Tests
         run: npm run test:coverage | tee ./coverage.txt
 
-      - name: Jest coverage comment
+      - name: Jest Coverage Comment
         id: coverageComment
         uses: MishaKav/jest-coverage-comment@main
         with:
@@ -52,11 +52,11 @@ jobs:
       - name: Check the output coverage
         run: |
           echo "Summary Report"
-          echo "Coverage Percantage - ${{ steps.coverageComment.outputs.coverage }}"
+          echo "Coverage Percentage - ${{ steps.coverageComment.outputs.coverage }}"
           echo "Coverage Color - ${{ steps.coverageComment.outputs.color }}"
           echo "Summary Html - ${{ steps.coverageComment.outputs.summaryHtml }}"
 
-          echo "Junit Report"
+          echo "JUnit Report"
           echo "tests - ${{ steps.coverageComment.outputs.tests }}"
           echo "skipped - ${{ steps.coverageComment.outputs.skipped }}"
           echo "failures - ${{ steps.coverageComment.outputs.failures }}"
@@ -72,14 +72,14 @@ jobs:
           echo "color - ${{ steps.coverageComment.outputs.color }}"
           echo "Coverage Html - ${{ steps.coverageComment.outputs.coverageHtml }}"
 
-      - name: Create the Badge
-        if: ${{ github.ref == 'refs/heads/main' }}
-        uses: schneegans/dynamic-badges-action@v1.0.0
+      - name: Create the badge
+        if: github.ref == 'refs/heads/main'
+        uses: schneegans/dynamic-badges-action@v1.6.0
         with:
           auth: ${{ secrets.JEST_COVERAGE_COMMENT }}
           gistID: 5e90d640f8c212ab7bbac38f72323f80
           filename: jest-coverage-comment__main.json
-          label: Coverage
+          label: coverage
           message: ${{ steps.coverageComment.outputs.coverage }}%
           color: ${{ steps.coverageComment.outputs.color }}
           namedLogo: javascript

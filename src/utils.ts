@@ -7,7 +7,7 @@ export function getPathToFile(pathToFile: string): string {
     return ''
   }
 
-  // suports absolute path like '/tmp/coverage-summary.json'
+  // Supports absolute path like '/tmp/coverage-summary.json'
   return pathToFile.startsWith('/')
     ? pathToFile
     : `${process.env.GITHUB_WORKSPACE}/${pathToFile}`
@@ -15,7 +15,7 @@ export function getPathToFile(pathToFile: string): string {
 
 export function getContentFile(pathToFile: string): string {
   if (!pathToFile) {
-    core.warning(`Path to file was not provided`)
+    core.warning('Path to file was not provided')
     return ''
   }
 
@@ -38,7 +38,7 @@ export function getContentFile(pathToFile: string): string {
   return content
 }
 
-// get coverage color from percentage
+/** Get coverage color from percentage. */
 export function getCoverageColor(percentage: number): CoverageColor {
   // https://shields.io/category/coverage
   const rangeColors: { color: CoverageColor; range: [number, number] }[] = [
@@ -72,12 +72,17 @@ export function getCoverageColor(percentage: number): CoverageColor {
   return color
 }
 
-// parse one-line from multiple files to object
+/** Parse one-line from multiple files to object. */
 export const parseLine = (line: string): MultipleFilesLine | null => {
-  if (!line?.includes(',')) {
+  if (!line.includes(',')) {
     return null
   }
 
   const lineArr = line.split(',')
   return { title: lineArr[0].trim(), file: lineArr[1].trim() }
+}
+
+/** Helper function to filter null entries out of an array. */
+export function notNull<T>(value: T | null | undefined): value is T {
+  return value !== null
 }

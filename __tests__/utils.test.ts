@@ -51,7 +51,7 @@ describe('should check all utils functions', () => {
 
       expect(content).toEqual('')
       expect(spy).toHaveBeenCalledTimes(1)
-      expect(spy).toHaveBeenCalledWith(`Path to file was not provided`)
+      expect(spy).toHaveBeenCalledWith('Path to file was not provided')
     })
 
     test('should return empty string on non exist file', () => {
@@ -122,8 +122,8 @@ describe('should check all utils functions', () => {
     test('should not parse bad line', () => {
       const parsedLine1 = parseLine('')
       const parsedLine2 = parseLine('some bad line')
-      const parsedLine3 = parseLine(`title only`)
-      const parsedLine4 = parseLine(`./path/to/file.json`)
+      const parsedLine3 = parseLine('title only')
+      const parsedLine4 = parseLine('./path/to/file.json')
 
       expect(parsedLine1).toBeNull()
       expect(parsedLine2).toBeNull()
@@ -132,8 +132,8 @@ describe('should check all utils functions', () => {
     })
 
     test('should parse correctly one-line', async () => {
-      const parsedLine1 = parseLine(`title1, ./path/to/file.json`)
-      const parsedLine2 = parseLine(`title1,./path/to/file.json`)
+      const parsedLine1 = parseLine('title1, ./path/to/file.json')
+      const parsedLine2 = parseLine('title1,./path/to/file.json')
       const expectedResult = { title: 'title1', file: './path/to/file.json' }
 
       expect(parsedLine1).toMatchObject(expectedResult)

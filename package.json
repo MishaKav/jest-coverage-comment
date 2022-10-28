@@ -22,7 +22,7 @@
     "build": "tsc",
     "format": "prettier --write **/*.ts",
     "format-check": "prettier --check **/*.ts",
-    "lint": "eslint src/**/*.ts",
+    "lint": "eslint **/*.ts",
     "package": "ncc build --source-map --license licenses.txt",
     "test": "jest",
     "test:coverage": "npm test -- --coverage",
@@ -36,6 +36,7 @@
     "xml2js": "^0.4.23"
   },
   "devDependencies": {
+    "@types/jest": "^29.2.0",
     "@types/node": "^18.11.3",
     "@types/xml2js": "^0.4.11",
     "@typescript-eslint/parser": "^5.40.1",

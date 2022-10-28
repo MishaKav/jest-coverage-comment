@@ -18,12 +18,13 @@ const {
 
 describe('check coverage parsing', () => {
   test('should parse string line to array', () => {
-    const header = `File | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s`
-    const line = `consts.ts | 0 | 100 | 100 | 0 | 1-3`
-    const parsedLine = parseLine(line) as string[]
-    const headerLine = parseLine(header) as string[]
+    const header =
+      'File | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s'
+    const line = 'constants.ts | 0 | 100 | 100 | 0 | 1-3'
+    const parsedLine = parseLine(line)
+    const headerLine = parseLine(header)
 
-    expect(parsedLine).toEqual(['consts.ts', '0', '100', '100', '0', '1-3'])
+    expect(parsedLine).toEqual(['constants.ts', '0', '100', '100', '0', '1-3'])
     expect(headerLine).toEqual([
       'File',
       'Stmts',
@@ -72,19 +73,15 @@ describe('check coverage parsing', () => {
   })
 
   test('should check right type for folder', () => {
-    // @ts-ignore
-    expect(isFolder({ file: 'some-folder' })).toBeTruthy()
+    expect(isFolder({ file: 'some-folder' } as never)).toBeTruthy()
 
-    //@ts-ignore
-    expect(isFolder({ file: 'some-file.js' })).toBeFalsy()
+    expect(isFolder({ file: 'some-file.js' } as never)).toBeFalsy()
   })
 
   test('should check right type for file', () => {
-    // @ts-ignore
-    expect(isFile({ file: 'some-folder' })).toBeFalsy()
+    expect(isFile({ file: 'some-folder' } as never)).toBeFalsy()
 
-    //@ts-ignore
-    expect(isFile({ file: 'some-file.js' })).toBeTruthy()
+    expect(isFile({ file: 'some-file.js' } as never)).toBeTruthy()
   })
 
   test('should return undefined on missing total line', () => {
@@ -104,7 +101,7 @@ describe('check coverage parsing', () => {
 
   test('should convert string line to CoverageLine', () => {
     const result = arrToLine([
-      'consts.ts',
+      'constants.ts',
       '0',
       '12.34',
       '100',
@@ -112,7 +109,7 @@ describe('check coverage parsing', () => {
       '11-12,19-20',
     ])
     expect(result).toMatchObject({
-      file: `consts.ts`,
+      file: 'constants.ts',
       stmts: 0,
       branch: 12.34,
       funcs: 100,
@@ -122,7 +119,7 @@ describe('check coverage parsing', () => {
   })
 
   test('should not report uncoveredLines', () => {
-    const result = arrToLine(['consts.ts', '0', '12.34', '100', '99', ''])
+    const result = arrToLine(['constants.ts', '0', '12.34', '100', '99', ''])
     expect(result).toHaveProperty('uncoveredLines', null)
   })
 
@@ -224,13 +221,13 @@ Lines        : 78.57% ( 33/42 )
     ]
     const parsingResult = parseCoverage(coverageTxt)
 
-    parsingResult.forEach((line, i) => {
-      const exceptResult = result[i]
+    for (const [index, line] of parsingResult.entries()) {
+      const exceptResult = result[index]
       expect(line.file).toBe(exceptResult.file)
       expect(line.stmts).toBe(exceptResult.stmts)
       expect(line.branch).toBe(exceptResult.branch)
       expect(line.lines).toBe(exceptResult.lines)
       expect(line.uncoveredLines).toEqual(exceptResult.uncoveredLines)
-    })
+    }
   })
 })

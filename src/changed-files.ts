@@ -2,7 +2,7 @@ import * as core from '@actions/core'
 import { context, getOctokit } from '@actions/github'
 import { ChangedFiles, Options } from './types.d'
 
-// generate object of all files that changed based on commit through Github API
+/** Generate object of all files that changed based on commit through GitHub API. */
 export async function getChangedFiles(
   options: Options
 ): Promise<ChangedFiles | null> {
@@ -32,8 +32,9 @@ export async function getChangedFiles(
         head = payload.after
         break
       default:
-        // prettier-ignore
-        core.warning(`\`report-only-changed-files: true\` supports only on \`pull_request\` and \`push\`, \`${eventName}\` events are not supported.`)
+        core.warning(
+          `"report-only-changed-files: true" supported only on 'pull_request' and 'push', '${eventName}' events are not supported.`
+        )
         return null
     }
 
@@ -43,7 +44,7 @@ export async function getChangedFiles(
     core.info(`Head commit: ${head}`)
 
     let response = null
-    // that is first commit, we cannot get diff
+    // For the first commit in repository we cannot get a diff
     if (base === '0000000000000000000000000000000000000000') {
       response = await octokit.rest.repos.getCommit({
         owner,
@@ -60,15 +61,15 @@ export async function getChangedFiles(
       })
     }
 
-    // Ensure that the request was successful.
+    // Ensure that the request was successful
     if (response.status !== 200) {
       core.setFailed(
-        `The GitHub API for comparing the base and head commits for this ${eventName} event returned ${response.status}, expected 200. ` +
+        `The GitHub API request for comparing the base and head commits for this '${eventName}' event returned ${response.status}, expected 200. ` +
           "Please submit an issue on this action's GitHub repo."
       )
     }
 
-    // Get the changed files from the response payload.
+    // Get the changed files from the response payload
     const files = response.data.files
 
     if (files?.length) {
@@ -97,8 +98,9 @@ export async function getChangedFiles(
             renamed.push(filename)
             break
           default:
-            // prettier-ignore
-            core.setFailed(`One of your files includes an unsupported file status '${status}', expected added, modified, removed, renamed`)
+            core.setFailed(
+              `One of your files includes an unsupported file status '${status}', expected added, modified, removed, renamed`
+            )
         }
       }
     }

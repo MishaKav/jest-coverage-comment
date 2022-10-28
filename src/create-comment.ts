@@ -18,24 +18,27 @@ export async function createComment(
     if (body.length > MAX_COMMENT_LENGTH) {
       const warningsArr = [
         `Your comment is too long (maximum is ${MAX_COMMENT_LENGTH} characters), coverage report will not be added.`,
-        `Try one/some of the following:`,
-        `- add "['text-summary', { skipFull: true }]" - to remove fully covered files from report`,
-        `- add "hide-summary: true" - to remove the summary report`,
+        'Try one/some of the following:',
+        `- Add "['text-summary', { skipFull: true }]" - to remove fully covered files from report`,
+        '- Add "hide-summary: true" - to remove the summary report',
       ]
 
       if (!options.reportOnlyChangedFiles) {
-        // prettier-ignore
-        warningsArr.push(`- add "report-only-changed-files: true" - to report only changed files and not all files`)
+        warningsArr.push(
+          '- Add "report-only-changed-files: true" - to report only changed files and not all files'
+        )
       }
 
       if (!options.removeLinksToFiles) {
-        // prettier-ignore
-        warningsArr.push(`- add "remove-links-to-files: true" - to remove links to files`)
+        warningsArr.push(
+          '- Add "remove-links-to-files: true" - to remove links to files'
+        )
       }
 
       if (!options.removeLinksToLines) {
-        // prettier-ignore
-        warningsArr.push(`- add "remove-links-to-lines: true" - to remove links to lines`)
+        warningsArr.push(
+          '- Add "remove-links-to-lines: true" - to remove links to lines'
+        )
       }
 
       core.warning(warningsArr.join('\n'))
@@ -94,8 +97,9 @@ export async function createComment(
       }
     } else {
       if (!options.hideComment) {
-        // prettier-ignore
-        core.warning(`This action supports comments only on \`pull_request\` and \`push\` events. \`${eventName}\` events are not supported.\nYou can use the output of the action.`)
+        core.warning(
+          `This action supports comments only on 'pull_request' and 'push' events. '${eventName}' events are not supported.\nYou can use the output of the action.`
+        )
       }
     }
   } catch (error) {

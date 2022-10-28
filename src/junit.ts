@@ -4,11 +4,11 @@ import * as xml2js from 'xml2js'
 import { Junit, JunitReport, Options } from './types.d'
 import { getContentFile } from './utils'
 
-// parse junit.xml to Junit object
+/** Parse junit.xml to Junit object */
 export async function parseJunit(xmlContent: string): Promise<Junit | null> {
   try {
     if (!xmlContent) {
-      core.warning(`Junit xml was not provided`)
+      core.warning('JUnit XML was not provided')
       return null
     }
 
@@ -16,7 +16,7 @@ export async function parseJunit(xmlContent: string): Promise<Junit | null> {
     const parsedJunit = await parser.parseStringPromise(xmlContent)
 
     if (!parsedJunit) {
-      core.warning(`Junit xml file is not XML or not well formed`)
+      core.warning('JUnit XML file is not XML or not well formed')
       return null
     }
 
@@ -41,14 +41,14 @@ export async function parseJunit(xmlContent: string): Promise<Junit | null> {
     } as Junit
   } catch (error) {
     if (error instanceof Error) {
-      core.error(`Parse junit report. ${error.message}`)
+      core.error(`Parse JUnit report. ${error.message}`)
     }
   }
 
   return null
 }
 
-// convert junit from junitxml to md
+/** Convert JUnit from JUnit XML to md. */
 export function junitToMarkdown(
   junit: Junit,
   options: Options,
@@ -78,7 +78,7 @@ ${table}`
   return table
 }
 
-// return junit report
+/** Return JUnit report. */
 export async function getJunitReport(options: Options): Promise<JunitReport> {
   const { junitFile } = options
 
@@ -103,7 +103,7 @@ export async function getJunitReport(options: Options): Promise<JunitReport> {
     }
   } catch (error) {
     if (error instanceof Error) {
-      core.error(`Error on generating junit report. ${error.message}`)
+      core.error(`Error on generating JUnit report. ${error.message}`)
     }
   }
 
