@@ -155,7 +155,6 @@ async function main(): Promise<void> {
     }
 
     if (options.coverageFile) {
-      const coverageReport = getCoverageReport(options)
       const {
         coverageHtml,
         coverage: reportCoverage,
@@ -164,7 +163,7 @@ async function main(): Promise<void> {
         functions,
         lines,
         statements,
-      } = coverageReport
+      } = getCoverageReport(options)
       finalHtml += coverageHtml ? `\n\n${coverageHtml}` : ''
 
       if (lines || coverageHtml) {
@@ -188,11 +187,11 @@ async function main(): Promise<void> {
       }
     }
 
-    if (multipleFiles?.length) {
+    if (multipleFiles.length) {
       finalHtml += `\n\n${getMultipleReport(options)}`
     }
 
-    if (multipleJunitFiles?.length) {
+    if (multipleJunitFiles.length) {
       const markdown = await getMultipleJunitReport(options)
       finalHtml += markdown ? `\n\n${markdown}` : ''
     }

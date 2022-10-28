@@ -26,13 +26,16 @@ export function getMultipleReport(options: Options): string | null {
       '| --- | --- | --- | --- | --- |\n'
 
     for (const titleFileLine of lineReports) {
-      const { title, file } = titleFileLine
+      const { title, file, previousCoverage } = titleFileLine
       const jsonContent = getContentFile(file)
       const summary = parseSummary(jsonContent)
 
       if (summary) {
         const { color, coverage } = getCoverage(summary)
-        const contentMd = summaryToMarkdown(summary, options, true)
+        const contentMd = summaryToMarkdown(summary, options, {
+          withoutHeader: true,
+          previousCoverage,
+        })
         table += `| ${title} ${contentMd}\n`
 
         atLeastOneFileExists = true

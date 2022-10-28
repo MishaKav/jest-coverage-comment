@@ -97,4 +97,5 @@ export interface CoverageReport {
 export interface MultipleFilesLine {
   title: string
   file: string
+  previousCoverage?: string
 }
