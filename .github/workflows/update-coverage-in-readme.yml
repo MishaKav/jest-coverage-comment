@@ -39,7 +39,7 @@ jobs:
         run: npm run build
 
       - name: Run Tests
-        run: npm run test:coverage | tee ./coverage.txt
+        run: npm run test:coverage
 
       - name: Jest Coverage Comment
         id: coverageComment
