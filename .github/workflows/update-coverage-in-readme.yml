@@ -46,7 +46,7 @@ jobs:
         uses: MishaKav/jest-coverage-comment@main
         with:
           hide-comment: true
-          coverage-path: ./coverage.txt
+          coverage-summary-path: ./coverage/coverage-summary.json
           junitxml-path: ./coverage/junit.xml
 
       - name: Check the output coverage
