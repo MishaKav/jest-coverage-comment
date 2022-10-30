@@ -4,44 +4,43 @@ import { getJunitReport, parseJunit, junitToMarkdown } from '../src/junit'
 
 describe('parsing junit', () => {
   test('should parse xml string to junit', async () => {
-    const xml = `<?xml version="1.0" encoding="UTF-8"?><testsuites tests="6" failures="5" errors="4" time="0.732"></testsuites>`
+    const xml =
+      '<?xml version="1.0" encoding="UTF-8"?><testsuites tests="6" failures="5" errors="4" time="0.732"></testsuites>'
     const junit = await parseJunit(xml)
-    const { skipped, errors, failures, tests, time } = junit!
 
-    expect(skipped).toBe(0)
-    expect(errors).toBe(4)
-    expect(failures).toBe(5)
-    expect(tests).toBe(6)
-    expect(time).toBe(0.732)
+    expect(junit?.skipped).toBe(0)
+    expect(junit?.errors).toBe(4)
+    expect(junit?.failures).toBe(5)
+    expect(junit?.tests).toBe(6)
+    expect(junit?.time).toBe(0.732)
   })
 
   test('should count skipped testsuites', async () => {
-    const xml = `<?xml version="1.0" encoding="UTF-8"?><testsuites name="jest tests"><testsuite skipped="3"></testsuite><testsuite skipped="2"></testsuite><testsuite skipped="1"></testsuite></testsuites>`
+    const xml =
+      '<?xml version="1.0" encoding="UTF-8"?><testsuites name="jest tests"><testsuite skipped="3"></testsuite><testsuite skipped="2"></testsuite><testsuite skipped="1"></testsuite></testsuites>'
     const junit = await parseJunit(xml)
-    const { skipped } = junit!
 
-    expect(skipped).toBe(6)
+    expect(junit?.skipped).toBe(6)
   })
 
   test('should return null when no content', async () => {
     const spy = jest.spyOn(core, 'warning')
-    // @ts-ignore
-    const junit = await parseJunit(null)
+    const junit = await parseJunit(null as never)
 
     expect(junit).toBeNull()
     expect(spy).toHaveBeenCalledTimes(1)
-    expect(spy).toHaveBeenCalledWith(`Junit xml was not provided`)
+    expect(spy).toHaveBeenCalledWith('JUnit XML was not provided')
   })
 
   test('should return null on not well formed files', async () => {
     const spy = jest.spyOn(core, 'warning')
-    const xml = `<?xml version="1.0" encoding="UTF-8"?>`
+    const xml = '<?xml version="1.0" encoding="UTF-8"?>'
     const junit = await parseJunit(xml)
 
     expect(junit).toBeNull()
     expect(spy).toHaveBeenCalledTimes(1)
     expect(spy).toHaveBeenCalledWith(
-      `Junit xml file is not XML or not well formed`
+      'JUnit XML file is not XML or not well formed'
     )
   })
 
@@ -52,7 +51,7 @@ describe('parsing junit', () => {
     expect(junit).toBeNull()
     expect(spy).toHaveBeenCalledTimes(1)
     expect(spy).toHaveBeenCalledWith(
-      `Parse junit report. Non-whitespace before first tag.\nLine: 0\nColumn: 1\nChar: b`
+      'Parse JUnit report. Non-whitespace before first tag.\nLine: 0\nColumn: 1\nChar: b'
     )
   })
 })
@@ -62,7 +61,7 @@ describe('parse junit and check report output', () => {
     token: 'token_123',
     repository: 'MishaKav/jest-coverage-comment',
     commit: '05953710b21d222efa4f4535424a7af367be5a57',
-    watermark: `<!-- Jest Coverage Comment: 1 -->\n`,
+    watermark: '<!-- Jest Coverage Comment: 1 -->\n',
     summaryTitle: '',
     prefix: '',
     badgeTitle: 'Coverage',
@@ -95,8 +94,7 @@ describe('parse junit and check report output', () => {
   })
 
   test('should return default report', async () => {
-    // @ts-ignore
-    const junit = await getJunitReport({})
+    const junit = await getJunitReport({} as never)
     const { junitHtml, skipped, errors, failures, tests, time } = junit
 
     expect(junitHtml).toBe('')

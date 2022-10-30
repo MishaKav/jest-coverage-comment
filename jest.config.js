@@ -1,3 +1,8 @@
+// Turn off stdout in tests, so console doesn't get polluted by it and core output isn't interpreted in CI
+process.stdout.write = () => {
+  return false
+}
+
 module.exports = {
   clearMocks: true,
   moduleFileExtensions: ['js', 'ts'],

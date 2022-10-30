@@ -10,17 +10,17 @@ import { getMultipleJunitReport } from './multi-junit-files'
 // import { getSummaryReport, getParsedXml } from './junitXml'
 
 /*  
-  Usefull git commands
+  Useful git commands
   git tag -a -m "First release" v1.0.0 && git push --follow-tags 
   git tag -d v1.0 
   git tag -d origin v1.0  
 
-  # remove all workflows from repo
+  # Remove all workflows from repo
   gh api repos/MishaKav/pytest-coverage-comment/actions/runs \
   | jq -r '.workflow_runs[] | select(.head_branch != "main") | "\(.id)"' \
   | gxargs -n1 -I '{}' gh api repos/MishaKav/pytest-coverage-comment/actions/runs/{} -X DELETE --silent
 
-  # remove all local branches
+  # Remove all local branches
   git branch | grep -v "main" | xargs git branch -D
 */
 
@@ -29,7 +29,7 @@ function getPathToFile(pathToFile: string): string {
     return ''
   }
 
-  // suports absolute path like '/tmp/coverage-final.json'
+  // Supports absolute path like '/tmp/coverage-final.json'
   return pathToFile.startsWith('/') ? pathToFile : `${__dirname}/${pathToFile}`
 }
 
@@ -56,7 +56,7 @@ async function main(): Promise<void> {
       token: 'token_123',
       repository: 'MishaKav/jest-coverage-comment',
       commit: '05953710b21d222efa4f4535424a7af367be5a57',
-      watermark: `<!-- Jest Coverage Comment: 1 -->\n`,
+      watermark: '<!-- Jest Coverage Comment: 1 -->\n',
       title: 'Jest Coverage Comment',
       prefix,
       badgeTitle: 'Coverage',

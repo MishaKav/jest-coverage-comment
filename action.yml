@@ -1,5 +1,5 @@
 name: 'Jest Coverage Comment'
-description: 'Comments a pull request or commit with the jest code coverage badge, full report and tests summary'
+description: 'Comments a pull request or commit with the Jest code coverage badge, full report and tests summary'
 author: 'Misha Kav <misha.kav@gmail.com>'
 branding:
   icon: 'message-circle'
@@ -16,7 +16,7 @@ inputs:
     required: false
 
   coverage-summary-path:
-    description: 'The location of the coverage-summary of jest'
+    description: 'The location of the coverage-summary of Jest'
     default: './coverage/coverage-summary.json'
     required: false
 
@@ -66,7 +66,7 @@ inputs:
     required: false
 
   coverage-path:
-    description: 'The location of the coverage.txt (jest console output)'
+    description: 'The location of the coverage.txt (Jest console output)'
     default: ''
     required: false
 
@@ -88,7 +88,7 @@ inputs:
   multiple-files:
     description: >
       You can pass array of `json-summary.json` files and generate single comment with table of results
-      Single line should look like `Title1, ./path/to/json-sumamry.json`
+      Single line should look like `Title1, ./path/to/json-summary.json`
     default: ''
     required: false
 
@@ -101,11 +101,11 @@ inputs:
 
 outputs:
   coverage:
-    description: 'Value indicating the coverage percentage of your report based on jest, example 78'
+    description: 'Value indicating the coverage percentage of your report based on Jest, example 78'
   color:
     description: 'Color of coverage report'
   summaryHtml:
-    description: 'The html of the coverage summary report (markdown table)'
+    description: 'The HTML of the coverage summary report (markdown table)'
   tests:
     description: 'Total number of tests, get from `junitxml`'
   skipped:
@@ -117,13 +117,13 @@ outputs:
   time:
     description: 'Seconds the took to run all the tests, get from `junitxml`'
   lines:
-    description: 'Lines covered, get from jest text report'
+    description: 'Lines covered, get from Jest text report'
   branches:
-    description: 'Branches covered, get from jest text report'
+    description: 'Branches covered, get from Jest text report'
   functions:
-    description: 'Functions covered, get from jest text report'
+    description: 'Functions covered, get from Jest text report'
   statements:
-    description: 'Statements covered, get from jest text report'
+    description: 'Statements covered, get from Jest text report'
 
 runs:
   using: 'node16'

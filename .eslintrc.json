@@ -5,7 +5,7 @@
   "parserOptions": {
     "ecmaVersion": 9,
     "sourceType": "module",
-    "project": "./tsconfig.json"
+    "project": "./tsconfig.eslint.json"
   },
   "rules": {
     "i18n-text/no-en": "off",
@@ -51,7 +51,8 @@
     "semi": "off",
     "@typescript-eslint/semi": ["error", "never"],
     "@typescript-eslint/type-annotation-spacing": "error",
-    "@typescript-eslint/unbound-method": "error"
+    "@typescript-eslint/unbound-method": "error",
+    "filenames/match-regex": ["error", "^[a-z0-9-]+(.d|.config|.test)?$"]
   },
   "settings": {
     "import/resolver": {

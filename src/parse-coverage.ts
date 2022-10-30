@@ -1,4 +1,4 @@
-import { BUNCH_OF_DASHES, BUNCH_OF_EQUALS } from './consts'
+import { BUNCH_OF_DASHES, BUNCH_OF_EQUALS } from './constants'
 import { CoverageLine } from './types'
 import stripAnsi from 'strip-ansi'
 

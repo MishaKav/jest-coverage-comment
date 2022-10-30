@@ -101,7 +101,7 @@ async function main(): Promise<void> {
       const changedFiles = await getChangedFiles(options)
       options.changedFiles = changedFiles
 
-      // when github event come different from `pull_request` or `push`
+      // When GitHub event is different to 'pull_request' or 'push'
       if (!changedFiles) {
         options.reportOnlyChangedFiles = false
       }

@@ -12,7 +12,7 @@ const DEFAULT_COVERAGE: Omit<CoverageReport, 'coverageHtml'> = {
   statements: 0,
 }
 
-// convert coverage to md
+/** Convert coverage to md. */
 function coverageToMarkdown(
   coverageArr: CoverageLine[],
   options: Options
@@ -27,7 +27,7 @@ function coverageToMarkdown(
   return reportHtml
 }
 
-// get coverage and color from CoverageLine[]
+/** Get coverage and color from CoverageLine[]. */
 function getCoverage(
   coverageArr: CoverageLine[]
 ): Omit<CoverageReport, 'coverageHtml'> {
@@ -54,7 +54,7 @@ function getCoverage(
   }
 }
 
-// make html table from coverage.txt
+/** Make html table from coverage.txt. */
 function toTable(coverageArr: CoverageLine[], options: Options): string {
   const headTr = toHeadRow()
 
@@ -74,8 +74,8 @@ function toTable(coverageArr: CoverageLine[], options: Options): string {
 
         return changedFiles?.all.some((c) => c.includes(line.file))
       })
-      // filter folders without files
-      .filter((line, i, arr) => {
+      // Filter folders without files
+      .filter((_line, _i, arr) => {
         if (!reportOnlyChangedFiles) {
           return true
         }
@@ -89,19 +89,19 @@ function toTable(coverageArr: CoverageLine[], options: Options): string {
   const hasLines = rows.length > 1
   const isFilesChanged =
     reportOnlyChangedFiles && !hasLines
-      ? `<i>report-only-changed-files is enabled. No files were changed during this commit :)</i>`
+      ? '<i>report-only-changed-files is enabled. No files were changed in this commit :)</i>'
       : ''
 
   // prettier-ignore
   return `<table>${headTr}<tbody>${rows.join('')}</tbody></table>${isFilesChanged}`
 }
 
-// make html head row - th
+/** Make html head row - th. */
 function toHeadRow(): string {
-  return `<tr><th>File</th><th>% Stmts</th><th>% Branch</th><th>% Funcs</th><th>% Lines</th><th>Uncovered Line #s</th></tr>`
+  return '<tr><th>File</th><th>% Stmts</th><th>% Branch</th><th>% Funcs</th><th>% Lines</th><th>Uncovered Line #s</th></tr>'
 }
 
-// make html row - tr
+/** Make html row - tr. */
 function toRow(line: CoverageLine, indent = false, options: Options): string {
   const { stmts, branch, funcs, lines } = line
 
@@ -113,7 +113,7 @@ function toRow(line: CoverageLine, indent = false, options: Options): string {
   }</td><td>${stmts}</td><td>${branch}</td><td>${funcs}</td><td>${lines}</td><td>${missing}</td></tr>`
 }
 
-// make summary row - tr
+/** Make summary row - tr. */
 function toTotalRow(line: CoverageLine | undefined): string {
   if (!line) {
     return '&nbsp;'
@@ -123,7 +123,7 @@ function toTotalRow(line: CoverageLine | undefined): string {
   return `<tr><td><b>${file}</b></td><td><b>${stmts}</b></td><td><b>${branch}</b></td><td><b>${funcs}</b></td><td><b>${lines}</b></td><td>&nbsp;</td></tr>`
 }
 
-// make fileName cell - td
+/** Make fileName cell - td. */
 function toFileNameTd(
   line: CoverageLine,
   indent = false,
@@ -140,9 +140,9 @@ function toFileNameTd(
     : `${space}<a href="${href}">${last}</a>`
 }
 
-// make missing cell - td
+/** Make missing cell - td. */
 function toMissingTd(line: CoverageLine, options: Options): string {
-  if (!line?.uncoveredLines?.length) {
+  if (!line.uncoveredLines?.length) {
     return '&nbsp;'
   }
 
@@ -159,7 +159,7 @@ function toMissingTd(line: CoverageLine, options: Options): string {
     .join(', ')
 }
 
-// collapse all lines to folders structure
+/** Collapse all lines to folders structure. */
 function makeFolders(
   coverageArr: CoverageLine[],
   options: Options
@@ -180,7 +180,7 @@ function makeFolders(
   return folders
 }
 
-// return full html coverage report and coverage percentage
+/** Return full html coverage report and coverage percentage. */
 export function getCoverageReport(options: Options): CoverageReport {
   const { coverageFile } = options
 

@@ -1,9 +1,9 @@
 import * as core from '@actions/core'
 import { junitToMarkdown, parseJunit } from './junit'
 import { Options } from './types'
-import { getContentFile, parseLine } from './utils'
+import { getContentFile, notNull, parseLine } from './utils'
 
-// return multiple report in markdown format
+/** Return multiple report in markdown format. */
 export async function getMultipleJunitReport(
   options: Options
 ): Promise<string | null> {
@@ -14,21 +14,21 @@ export async function getMultipleJunitReport(
   }
 
   try {
-    const lineReports = multipleJunitFiles.map(parseLine).filter((l) => l)
-    if (!lineReports?.length) {
-      // prettier-ignore
-      core.error(`Generating report for multiple junit files. No files are provided`)
+    const lineReports = multipleJunitFiles.map(parseLine).filter(notNull)
+    if (!lineReports.length) {
+      core.error(
+        'Generating report for multiple JUnit files. No files are provided'
+      )
       return null
     }
 
     let atLeastOneFileExists = false
-    let table = `| Title | Tests | Skipped | Failures | Errors | Time |
-| ----- | ----- | ------- | -------- | -------- | ------------------ |
-`
+    let table =
+      '| Title | Tests | Skipped | Failures | Errors | Time |\n' +
+      '| --- | --- | --- | --- | --- | --- |\n'
 
     for (const titleFileLine of lineReports) {
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      const { title, file } = titleFileLine!
+      const { title, file } = titleFileLine
       const xmlContent = getContentFile(file)
       const parsedXml = await parseJunit(xmlContent)
 
@@ -44,8 +44,9 @@ export async function getMultipleJunitReport(
     }
   } catch (error) {
     if (error instanceof Error) {
-      // prettier-ignore
-      core.error(`Generating summary report for multiple junit files. ${error.message}`)
+      core.error(
+        `Generating summary report for multiple JUnit files. ${error.message}`
+      )
     }
   }
 
