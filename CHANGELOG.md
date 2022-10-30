@@ -1,5 +1,17 @@
 # Changelog of the Jest Coverage Comment
 
+## [Jest Coverage Comment 1.0.20](https://github.com/MishaKav/jest-coverage-comment/tree/v1.0.20)
+
+**Release Date:** 2022-10-31
+
+#### Changes
+
+- Huge thanks to [@paescuj](https://github.com/paescuj) for contribution. Many internal things such:
+  - Consistent usage of terms and letter casing
+  - Fix typos and enhance formatting in `README.md`
+  - Use single quotes whenever possible
+  - Use [JSDoc](https://jsdoc.app) to describe the functions, so the descriptions are displayed in IDE
+
 ## [Jest Coverage Comment 1.0.19](https://github.com/MishaKav/jest-coverage-comment/tree/v1.0.19)
 
 **Release Date:** 2022-10-20
