@@ -1,6 +1,8 @@
-import * as core from '@actions/core'
-import { expect, test, describe, jest } from '@jest/globals'
+import { expect, test, describe } from '@jest/globals'
 import { getMultipleJunitReport } from '../src/multi-junit-files'
+import { setup, spyCore } from './setup'
+
+setup()
 
 describe('multi junit report', () => {
   test('should not parse when no files', async () => {
@@ -16,28 +18,28 @@ describe('multi junit report', () => {
   })
 
   test('should throw error on bad format', async () => {
-    const spy = jest.spyOn(core, 'error')
     const result = await getMultipleJunitReport({
       multipleJunitFiles: ['./path/to/file.xml'],
     } as never)
 
     expect(result).toBeNull()
-    expect(spy).toHaveBeenCalledTimes(1)
-    expect(spy).toHaveBeenCalledWith(
+    expect(spyCore.error).toHaveBeenCalledTimes(1)
+    expect(spyCore.error).toHaveBeenCalledWith(
       'Generating report for multiple JUnit files. No files are provided'
     )
   })
 
   test('should throw warning when file not exist', async () => {
-    const spy = jest.spyOn(core, 'warning')
     const result = await getMultipleJunitReport({
       multipleJunitFiles: ['title1, ./path/to/junit.xml'],
     } as never)
 
     expect(result).toBeNull()
-    expect(spy).toHaveBeenCalledTimes(2)
-    expect(spy).toHaveBeenCalledWith(`File "./path/to/junit.xml" doesn't exist`)
-    expect(spy).toHaveBeenCalledWith('JUnit XML was not provided')
+    expect(spyCore.warning).toHaveBeenCalledTimes(2)
+    expect(spyCore.warning).toHaveBeenCalledWith(
+      `File "./path/to/junit.xml" doesn't exist`
+    )
+    expect(spyCore.warning).toHaveBeenCalledWith('JUnit XML was not provided')
   })
 
   test('should generate markdown for one file', async () => {

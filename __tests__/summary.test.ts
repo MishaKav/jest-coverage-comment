@@ -1,5 +1,4 @@
-import * as core from '@actions/core'
-import { expect, test, describe, jest } from '@jest/globals'
+import { expect, test, describe } from '@jest/globals'
 import {
   getSummaryReport,
   parseSummary,
@@ -9,6 +8,10 @@ import {
 } from '../src/summary'
 import { Options } from '../src/types'
 import { getContentFile } from '../src/utils'
+import { setup, spyCore } from './setup'
+
+setup()
+
 const { lineSummaryToTd } = exportedForTesting
 
 describe('coverage from summary', () => {
@@ -100,12 +103,11 @@ describe('should parse summary', () => {
   })
 
   test('should throw error on parsing', () => {
-    const spy = jest.spyOn(core, 'error')
     const parsedSummary = parseSummary('bad content')
 
     expect(parsedSummary).toBeNull()
-    expect(spy).toHaveBeenCalledTimes(1)
-    expect(spy).toHaveBeenCalledWith(
+    expect(spyCore.error).toHaveBeenCalledTimes(1)
+    expect(spyCore.error).toHaveBeenCalledWith(
       'Parse summary report. Unexpected token b in JSON at position 0'
     )
   })

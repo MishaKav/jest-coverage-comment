@@ -1,6 +1,8 @@
-import * as core from '@actions/core'
-import { expect, test, describe, jest } from '@jest/globals'
+import { expect, test, describe } from '@jest/globals'
 import { getMultipleReport } from '../src/multi-files'
+import { setup, spyCore } from './setup'
+
+setup()
 
 describe('multi report', () => {
   test('should not parse when no files', () => {
@@ -12,30 +14,30 @@ describe('multi report', () => {
   })
 
   test('should throw error on bad format', () => {
-    const spy = jest.spyOn(core, 'error')
     const result = getMultipleReport({
       multipleFiles: ['./path/to/file.json'],
     } as never)
 
     expect(result).toBeNull()
-    expect(spy).toHaveBeenCalledTimes(1)
-    expect(spy).toHaveBeenCalledWith(
+    expect(spyCore.error).toHaveBeenCalledTimes(1)
+    expect(spyCore.error).toHaveBeenCalledWith(
       'Generating summary report for multiple files. No files are provided'
     )
   })
 
   test('should throw warning when file not exist', () => {
-    const spy = jest.spyOn(core, 'warning')
     const result = getMultipleReport({
       multipleFiles: ['title1, ./path/to/file.json'],
     } as never)
 
     expect(result).toBeNull()
-    expect(spy).toHaveBeenCalledTimes(2)
-    expect(spy).toHaveBeenCalledWith(
+    expect(spyCore.warning).toHaveBeenCalledTimes(2)
+    expect(spyCore.warning).toHaveBeenCalledWith(
       'File "./path/to/file.json" doesn\'t exist'
     )
-    expect(spy).toHaveBeenCalledWith('Summary JSON was not provided')
+    expect(spyCore.warning).toHaveBeenCalledWith(
+      'Summary JSON was not provided'
+    )
   })
 
   test('should generate markdown for one file', () => {

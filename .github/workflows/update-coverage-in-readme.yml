@@ -7,7 +7,6 @@ on:
       - '.github/**'
       - 'data/**'
       - 'dist/**'
-      - '**/app/local/**'
 
 jobs:
   update-coverage-in-readme:
@@ -39,14 +38,14 @@ jobs:
         run: npm run build
 
       - name: Run Tests
-        run: npm run test:coverage
+        run: npm run test:coverage | tee ./coverage.txt
 
       - name: Jest Coverage Comment
         id: coverageComment
         uses: MishaKav/jest-coverage-comment@main
         with:
           hide-comment: true
-          coverage-summary-path: ./coverage/coverage-summary.json
+          coverage-path: ./coverage.txt
           junitxml-path: ./coverage/junit.xml
 
       - name: Check the output coverage
