@@ -1,19 +1,12 @@
-import * as core from '@actions/core'
 import { readFileSync } from 'fs'
-import {
-  expect,
-  test,
-  describe,
-  jest,
-  beforeAll,
-  afterAll,
-} from '@jest/globals'
+import { expect, test, describe, beforeAll, afterAll } from '@jest/globals'
 import {
   getContentFile,
   getCoverageColor,
   getPathToFile,
   parseLine,
 } from '../src/utils'
+import { spyCore } from './setup'
 
 describe('should check all utils functions', () => {
   const GITHUB_WORKSPACE = process.cwd()
@@ -46,51 +39,48 @@ describe('should check all utils functions', () => {
 
   describe('should check getContentFile', () => {
     test('should return empty string', () => {
-      const spy = jest.spyOn(core, 'warning')
       const content = getContentFile('')
 
       expect(content).toEqual('')
-      expect(spy).toHaveBeenCalledTimes(1)
-      expect(spy).toHaveBeenCalledWith('Path to file was not provided')
+      expect(spyCore.warning).toHaveBeenCalledTimes(1)
+      expect(spyCore.warning).toHaveBeenCalledWith(
+        'Path to file was not provided'
+      )
     })
 
     test('should return empty string on non exist file', () => {
-      const spy = jest.spyOn(core, 'warning')
       const content = getContentFile('non-exist-file.json')
 
       expect(content).toEqual('')
-      expect(spy).toHaveBeenCalledTimes(1)
-      expect(spy).toHaveBeenCalledWith(
+      expect(spyCore.warning).toHaveBeenCalledTimes(1)
+      expect(spyCore.warning).toHaveBeenCalledWith(
         `File "non-exist-file.json" doesn't exist`
       )
     })
 
     test('should return empty content on empty file', () => {
-      const spy = jest.spyOn(core, 'warning')
       const pathToFile = '__mocks__/empty.json'
       const content = getContentFile(pathToFile)
 
-      expect(spy).toHaveBeenCalledTimes(1)
+      expect(spyCore.warning).toHaveBeenCalledTimes(1)
       expect(content).toEqual('')
-      expect(spy).toHaveBeenCalledWith(
+      expect(spyCore.warning).toHaveBeenCalledWith(
         `No content found in file "${pathToFile}"`
       )
     })
 
     test('should return empty content on empty file', () => {
-      const spy = jest.spyOn(core, 'warning')
       const pathToFile = '__mocks__/empty.json'
       const content = getContentFile(pathToFile)
 
-      expect(spy).toHaveBeenCalledTimes(1)
+      expect(spyCore.warning).toHaveBeenCalledTimes(1)
       expect(content).toEqual('')
-      expect(spy).toHaveBeenCalledWith(
+      expect(spyCore.warning).toHaveBeenCalledWith(
         `No content found in file "${pathToFile}"`
       )
     })
 
     test('should return full content on file', () => {
-      const spy = jest.spyOn(core, 'info')
       const pathToFile = '__mocks__/coverage.txt'
       const originalContent = readFileSync(
         `${GITHUB_WORKSPACE}/${pathToFile}`,
@@ -98,9 +88,11 @@ describe('should check all utils functions', () => {
       )
       const content = getContentFile(pathToFile)
 
-      expect(spy).toHaveBeenCalledTimes(1)
+      expect(spyCore.info).toHaveBeenCalledTimes(1)
       expect(content).toEqual(originalContent)
-      expect(spy).toHaveBeenCalledWith(`File read successfully "${pathToFile}"`)
+      expect(spyCore.info).toHaveBeenCalledWith(
+        `File read successfully "${pathToFile}"`
+      )
     })
   })
 

@@ -1,7 +1,7 @@
-import * as core from '@actions/core'
-import { expect, test, describe, jest } from '@jest/globals'
+import { expect, test, describe } from '@jest/globals'
 import { getCoverageReport } from '../src/coverage'
 import { Options } from '../src/types'
+import { spyCore } from './setup'
 
 describe('get coverage report', () => {
   const options: Options = {
@@ -141,7 +141,6 @@ describe('get coverage report', () => {
   })
 
   test('should return default report on error', () => {
-    const spy = jest.spyOn(core, 'error')
     const optionsWithWrongFile = {
       ...options,
       coverageFile: options.summaryFile,
@@ -156,8 +155,8 @@ describe('get coverage report', () => {
       statements,
     } = getCoverageReport(optionsWithWrongFile)
 
-    expect(spy).toHaveBeenCalledTimes(1)
-    expect(spy).toHaveBeenCalledWith(
+    expect(spyCore.error).toHaveBeenCalledTimes(1)
+    expect(spyCore.error).toHaveBeenCalledWith(
       "Generating coverage report. Cannot read properties of undefined (reading 'length')"
     )
     expect(coverageHtml).toBe('')

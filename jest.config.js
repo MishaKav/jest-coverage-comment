@@ -1,8 +1,3 @@
-// Turn off stdout in tests, so console doesn't get polluted by it and core output isn't interpreted in CI
-process.stdout.write = () => {
-  return false
-}
-
 module.exports = {
   clearMocks: true,
   moduleFileExtensions: ['js', 'ts'],
@@ -10,6 +5,7 @@ module.exports = {
   transform: {
     '^.+\\.ts$': 'ts-jest',
   },
+  setupFilesAfterEnv: ['<rootDir>/__tests__/setup.ts'],
   collectCoverageFrom: ['src/**/*.ts'],
   coveragePathIgnorePatterns: [
     'src/cli.ts',
