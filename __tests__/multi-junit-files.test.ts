@@ -1,8 +1,6 @@
 import { expect, test, describe } from '@jest/globals'
 import { getMultipleJunitReport } from '../src/multi-junit-files'
-import { setup, spyCore } from './setup'
-
-setup()
+import { spyCore } from './setup'
 
 describe('multi junit report', () => {
   test('should not parse when no files', async () => {

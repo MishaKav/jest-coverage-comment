@@ -1,8 +1,6 @@
 import { expect, test, describe } from '@jest/globals'
 import { getJunitReport, parseJunit, junitToMarkdown } from '../src/junit'
-import { setup, spyCore } from './setup'
-
-setup()
+import { spyCore } from './setup'
 
 describe('parsing junit', () => {
   test('should parse xml string to junit', async () => {

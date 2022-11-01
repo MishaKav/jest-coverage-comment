@@ -8,9 +8,7 @@ import {
 } from '../src/summary'
 import { Options } from '../src/types'
 import { getContentFile } from '../src/utils'
-import { setup, spyCore } from './setup'
-
-setup()
+import { spyCore } from './setup'
 
 const { lineSummaryToTd } = exportedForTesting
 

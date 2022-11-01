@@ -6,9 +6,7 @@ import {
   getPathToFile,
   parseLine,
 } from '../src/utils'
-import { setup, spyCore } from './setup'
-
-setup()
+import { spyCore } from './setup'
 
 describe('should check all utils functions', () => {
   const GITHUB_WORKSPACE = process.cwd()

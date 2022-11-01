@@ -1,8 +1,6 @@
 import { expect, test, describe } from '@jest/globals'
 import { getMultipleReport } from '../src/multi-files'
-import { setup, spyCore } from './setup'
-
-setup()
+import { spyCore } from './setup'
 
 describe('multi report', () => {
   test('should not parse when no files', () => {

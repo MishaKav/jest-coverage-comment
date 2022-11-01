@@ -7,9 +7,6 @@ import {
   exportedForTesting,
 } from '../src/parse-coverage'
 import { CoverageLine } from '../src/types'
-import { setup } from './setup'
-
-setup()
 
 const {
   parseLine,

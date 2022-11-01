@@ -1,9 +1,7 @@
 import { expect, test, describe } from '@jest/globals'
 import { getCoverageReport } from '../src/coverage'
 import { Options } from '../src/types'
-import { setup, spyCore } from './setup'
-
-setup()
+import { spyCore } from './setup'
 
 describe('get coverage report', () => {
   const options: Options = {
