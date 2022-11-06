@@ -185,8 +185,11 @@ describe('summary to markdown', () => {
 
   test('should convert summary to markdown without coverage change on wrong value', () => {
     const parsedSummary = summaryToMarkdown(summary, options, {
-      previousCoverage: 'test',
+      previousCoverage: 'wrong-value',
     })
+    expect(spyCore.warning).toHaveBeenCalledWith(
+      "Previous coverage is ignored because the value doesn't lie between 0 and 100"
+    )
     expect(parsedSummary).toMatchInlineSnapshot(`
       "| Lines | Statements | Branches | Functions |
       | --- | --- | --- | --- |
