@@ -129,7 +129,7 @@ describe('summary to markdown', () => {
   }
 
   test('should convert summary to markdown with title', () => {
-    const parsedSummary = summaryToMarkdown(summary, options, false)
+    const parsedSummary = summaryToMarkdown(summary, options)
     expect(parsedSummary).toMatchInlineSnapshot(`
       "| Lines | Statements | Branches | Functions |
       | --- | --- | --- | --- |
@@ -139,9 +139,62 @@ describe('summary to markdown', () => {
   })
 
   test('should convert summary to markdown without title', () => {
-    const parsedSummary = summaryToMarkdown(summary, options, true)
+    const parsedSummary = summaryToMarkdown(summary, options, {
+      withoutHeader: true,
+    })
     expect(parsedSummary).toMatchInlineSnapshot(
       `"| <a href="https://github.com/MishaKav/jest-coverage-comment/blob/05953710b21d222efa4f4535424a7af367be5a57/README.md"><img alt="Coverage: 78%" src="https://img.shields.io/badge/Coverage-78%25-yellow.svg" /></a><br/> | 76.74% (33/43) | 100% (0/0) | 33.33% (2/6) |"`
     )
+  })
+
+  test('should convert summary to markdown with positive coverage change', () => {
+    const parsedSummary = summaryToMarkdown(summary, options, {
+      previousCoverage: '70',
+    })
+    expect(parsedSummary).toMatchInlineSnapshot(`
+      "| Lines | Statements | Branches | Functions |
+      | --- | --- | --- | --- |
+      | <a href="https://github.com/MishaKav/jest-coverage-comment/blob/05953710b21d222efa4f4535424a7af367be5a57/README.md"><img alt="Coverage: 78%" src="https://img.shields.io/badge/Coverage-78%25-yellow.svg" /></a><br/>▲ Increased (+8%) | 76.74% (33/43) | 100% (0/0) | 33.33% (2/6) |
+      "
+    `)
+  })
+
+  test('should convert summary to markdown with negative coverage change', () => {
+    const parsedSummary = summaryToMarkdown(summary, options, {
+      previousCoverage: '90',
+    })
+    expect(parsedSummary).toMatchInlineSnapshot(`
+      "| Lines | Statements | Branches | Functions |
+      | --- | --- | --- | --- |
+      | <a href="https://github.com/MishaKav/jest-coverage-comment/blob/05953710b21d222efa4f4535424a7af367be5a57/README.md"><img alt="Coverage: 78%" src="https://img.shields.io/badge/Coverage-78%25-yellow.svg" /></a><br/>▼ Decreased (-12%) | 76.74% (33/43) | 100% (0/0) | 33.33% (2/6) |
+      "
+    `)
+  })
+
+  test('should convert summary to markdown with no coverage change', () => {
+    const parsedSummary = summaryToMarkdown(summary, options, {
+      previousCoverage: '78',
+    })
+    expect(parsedSummary).toMatchInlineSnapshot(`
+      "| Lines | Statements | Branches | Functions |
+      | --- | --- | --- | --- |
+      | <a href="https://github.com/MishaKav/jest-coverage-comment/blob/05953710b21d222efa4f4535424a7af367be5a57/README.md"><img alt="Coverage: 78%" src="https://img.shields.io/badge/Coverage-78%25-yellow.svg" /></a><br/>■ Unchanged | 76.74% (33/43) | 100% (0/0) | 33.33% (2/6) |
+      "
+    `)
+  })
+
+  test('should convert summary to markdown without coverage change on wrong value', () => {
+    const parsedSummary = summaryToMarkdown(summary, options, {
+      previousCoverage: 'wrong-value',
+    })
+    expect(spyCore.warning).toHaveBeenCalledWith(
+      "Previous coverage is ignored because the value doesn't lie between 0 and 100"
+    )
+    expect(parsedSummary).toMatchInlineSnapshot(`
+      "| Lines | Statements | Branches | Functions |
+      | --- | --- | --- | --- |
+      | <a href="https://github.com/MishaKav/jest-coverage-comment/blob/05953710b21d222efa4f4535424a7af367be5a57/README.md"><img alt="Coverage: 78%" src="https://img.shields.io/badge/Coverage-78%25-yellow.svg" /></a><br/> | 76.74% (33/43) | 100% (0/0) | 33.33% (2/6) |
+      "
+    `)
   })
 })

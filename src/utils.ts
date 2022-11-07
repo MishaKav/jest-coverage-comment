@@ -79,7 +79,11 @@ export const parseLine = (line: string): MultipleFilesLine | null => {
   }
 
   const lineArr = line.split(',')
-  return { title: lineArr[0].trim(), file: lineArr[1].trim() }
+  return {
+    title: lineArr[0].trim(),
+    file: lineArr[1].trim(),
+    previousCoverage: lineArr[2],
+  }
 }
 
 /** Helper function to filter null entries out of an array. */

@@ -627,8 +627,7 @@ async function main() {
             }
         }
         if (options.coverageFile) {
-            const coverageReport = (0, coverage_1.getCoverageReport)(options);
-            const { coverageHtml, coverage: reportCoverage, color: coverageColor, branches, functions, lines, statements, } = coverageReport;
+            const { coverageHtml, coverage: reportCoverage, color: coverageColor, branches, functions, lines, statements, } = (0, coverage_1.getCoverageReport)(options);
             finalHtml += coverageHtml ? `\n\n${coverageHtml}` : '';
             if (lines || coverageHtml) {
                 core.startGroup(options.coverageTitle || 'Coverage');
@@ -649,10 +648,10 @@ async function main() {
                 core.endGroup();
             }
         }
-        if (multipleFiles?.length) {
+        if (multipleFiles.length) {
             finalHtml += `\n\n${(0, multi_files_1.getMultipleReport)(options)}`;
         }
-        if (multipleJunitFiles?.length) {
+        if (multipleJunitFiles.length) {
             const markdown = await (0, multi_junit_files_1.getMultipleJunitReport)(options);
             finalHtml += markdown ? `\n\n${markdown}` : '';
         }
@@ -855,12 +854,15 @@ function getMultipleReport(options) {
         let table = '| Title | Lines | Statements | Branches | Functions |\n' +
             '| --- | --- | --- | --- | --- |\n';
         for (const titleFileLine of lineReports) {
-            const { title, file } = titleFileLine;
+            const { title, file, previousCoverage } = titleFileLine;
             const jsonContent = (0, utils_1.getContentFile)(file);
             const summary = (0, summary_1.parseSummary)(jsonContent);
             if (summary) {
                 const { color, coverage } = (0, summary_1.getCoverage)(summary);
-                const contentMd = (0, summary_1.summaryToMarkdown)(summary, options, true);
+                const contentMd = (0, summary_1.summaryToMarkdown)(summary, options, {
+                    withoutHeader: true,
+                    previousCoverage,
+                });
                 table += `| ${title} ${contentMd}\n`;
                 atLeastOneFileExists = true;
                 core.startGroup(title);
@@ -1116,20 +1118,35 @@ function lineSummaryToTd(line) {
     return `${pct}% (${covered}/${total})`;
 }
 /** Convert summary to md. */
-function summaryToMarkdown(summary, options, withoutHeader = false) {
+function summaryToMarkdown(summary, options, props = {}) {
     const { repository, commit, badgeTitle } = options;
     const { statements, functions, branches } = summary;
     const { color, coverage } = getCoverage(summary);
     const readmeHref = `https://github.com/${repository}/blob/${commit}/README.md`;
     const badge = `<a href="${readmeHref}"><img alt="${badgeTitle}: ${coverage}%" src="https://img.shields.io/badge/${badgeTitle}-${coverage}%25-${color}.svg" /></a><br/>`;
+    let coverageChange = '';
+    if (props.previousCoverage) {
+        const previousCoverage = parseInt(props.previousCoverage);
+        if (previousCoverage >= 0 && previousCoverage <= 100) {
+            coverageChange =
+                coverage === previousCoverage
+                    ? '■ Unchanged'
+                    : coverage > previousCoverage
+                        ? `▲ Increased (+${coverage - previousCoverage}%)`
+                        : `▼ Decreased (${coverage - previousCoverage}%)`;
+        }
+        else {
+            core.warning("Previous coverage is ignored because the value doesn't lie between 0 and 100");
+        }
+    }
     const tableHeader = '| Lines | Statements | Branches | Functions |\n' +
         '| --- | --- | --- | --- |';
-    const tableBody = `| ${badge} |` +
+    const tableBody = `| ${badge}${coverageChange} |` +
         ` ${lineSummaryToTd(statements)} |` +
         ` ${lineSummaryToTd(branches)} |` +
         ` ${lineSummaryToTd(functions)} |`;
     const table = `${tableHeader}\n${tableBody}\n`;
-    if (withoutHeader) {
+    if (props.withoutHeader) {
         return tableBody;
     }
     if (options.summaryTitle) {
@@ -1152,12 +1169,17 @@ exports.getCoverage = getCoverage;
 /** Return full html coverage report and coverage percentage. */
 function getSummaryReport(options) {
     const { summaryFile } = options;
+    const summaryFileArr = (summaryFile ?? '').split(',');
+    const file = summaryFileArr[0].trim();
+    const previousCoverage = summaryFileArr[1];
     try {
-        const jsonContent = (0, utils_1.getContentFile)(summaryFile);
+        const jsonContent = (0, utils_1.getContentFile)(file);
         const summary = parseSummary(jsonContent);
         if (summary) {
             const { color, coverage } = getCoverage(summary);
-            const summaryHtml = summaryToMarkdown(summary, options);
+            const summaryHtml = summaryToMarkdown(summary, options, {
+                previousCoverage,
+            });
             return { color, coverage, summaryHtml };
         }
     }
@@ -1274,7 +1296,11 @@ const parseLine = (line) => {
         return null;
     }
     const lineArr = line.split(',');
-    return { title: lineArr[0].trim(), file: lineArr[1].trim() };
+    return {
+        title: lineArr[0].trim(),
+        file: lineArr[1].trim(),
+        previousCoverage: lineArr[2],
+    };
 };
 exports.parseLine = parseLine;
 /** Helper function to filter null entries out of an array. */

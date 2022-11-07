@@ -37,7 +37,7 @@ function lineSummaryToTd(line: LineSummary): string {
 export function summaryToMarkdown(
   summary: Summary,
   options: Options,
-  withoutHeader = false
+  props: { withoutHeader?: boolean; previousCoverage?: string } = {}
 ): string {
   const { repository, commit, badgeTitle } = options
   const { statements, functions, branches } = summary
@@ -45,17 +45,34 @@ export function summaryToMarkdown(
   const readmeHref = `https://github.com/${repository}/blob/${commit}/README.md`
   const badge = `<a href="${readmeHref}"><img alt="${badgeTitle}: ${coverage}%" src="https://img.shields.io/badge/${badgeTitle}-${coverage}%25-${color}.svg" /></a><br/>`
 
+  let coverageChange = ''
+  if (props.previousCoverage) {
+    const previousCoverage = parseInt(props.previousCoverage)
+    if (previousCoverage >= 0 && previousCoverage <= 100) {
+      coverageChange =
+        coverage === previousCoverage
+          ? '■ Unchanged'
+          : coverage > previousCoverage
+          ? `▲ Increased (+${coverage - previousCoverage}%)`
+          : `▼ Decreased (${coverage - previousCoverage}%)`
+    } else {
+      core.warning(
+        "Previous coverage is ignored because the value doesn't lie between 0 and 100"
+      )
+    }
+  }
+
   const tableHeader =
     '| Lines | Statements | Branches | Functions |\n' +
     '| --- | --- | --- | --- |'
   const tableBody =
-    `| ${badge} |` +
+    `| ${badge}${coverageChange} |` +
     ` ${lineSummaryToTd(statements)} |` +
     ` ${lineSummaryToTd(branches)} |` +
     ` ${lineSummaryToTd(functions)} |`
   const table = `${tableHeader}\n${tableBody}\n`
 
-  if (withoutHeader) {
+  if (props.withoutHeader) {
     return tableBody
   }
 
@@ -86,13 +103,19 @@ export function getCoverage(
 export function getSummaryReport(options: Options): SummaryReport {
   const { summaryFile } = options
 
+  const summaryFileArr = (summaryFile ?? '').split(',')
+  const file = summaryFileArr[0].trim()
+  const previousCoverage = summaryFileArr[1]
+
   try {
-    const jsonContent = getContentFile(summaryFile)
+    const jsonContent = getContentFile(file)
     const summary = parseSummary(jsonContent)
 
     if (summary) {
       const { color, coverage } = getCoverage(summary)
-      const summaryHtml = summaryToMarkdown(summary, options)
+      const summaryHtml = summaryToMarkdown(summary, options, {
+        previousCoverage,
+      })
 
       return { color, coverage, summaryHtml }
     }
