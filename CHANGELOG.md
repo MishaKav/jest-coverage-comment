@@ -1,5 +1,13 @@
 # Changelog of the Jest Coverage Comment
 
+## [Jest Coverage Comment 1.0.21](https://github.com/MishaKav/jest-coverage-comment/tree/v1.0.21)
+
+**Release Date:** 2022-12-03
+
+#### Changes
+
+- Support matrix with individual comments. When you run in a matrix, and you want that every job will post a comment, you can use the `unique-id-for-comment: ${{ matrix.node-version }}`. This will post a comment for every job, and will update them on every run.
+
 ## [Jest Coverage Comment 1.0.20](https://github.com/MishaKav/jest-coverage-comment/tree/v1.0.20)
 
 **Release Date:** 2022-10-31
