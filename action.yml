@@ -99,6 +99,11 @@ inputs:
     default: ''
     required: false
 
+  unique-id-for-comment:
+    description: 'When running in a matrix, pass the matrix value, so each comment will be updated its own comment'
+    default: ''
+    required: false
+
 outputs:
   coverage:
     description: 'Value indicating the coverage percentage of your report based on Jest, example 78'
