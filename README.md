@@ -46,6 +46,7 @@ You can add this action to your GitHub workflow for Ubuntu runners (e.g. `runs-o
 | `report-only-changed-files` |          | false                              | Show in report only changed files for this commit, and not all files                                                                                                     |
 | `multiple-files`            |          | ''                                 | You can pass array of `json-summary.json` files and generate single comment with table of results<br/>Single line should look like `Title1, ./path/to/json-summary.json` |
 | `multiple-junitxml-files`   |          | ''                                 | You can pass array of `junit.xml` files and generate single comment with table of results<br/>Single line should look like `Title1, ./path/to/junit.xml`                 |
+| `unique-id-for-comment`     |          | ''                                 | When running in a matrix, pass the matrix value, so each comment will be updated its own comment `unique-id-for-comment: ${{ matrix.node-version }}`                     |
 
 ## Output Variables
 

@@ -53,14 +53,18 @@ async function main(): Promise<void> {
     })
     const multipleJunitFiles = core.getMultilineInput(
       'multiple-junitxml-files',
-      {
-        required: false,
-      }
+      { required: false }
     )
+    const uniqueIdForComment = core.getInput('unique-id-for-comment', {
+      required: false,
+    })
 
     const { repo, owner } = context.repo
     const { eventName, payload } = context
-    const watermark = `<!-- Jest Coverage Comment: ${context.job} -->\n`
+    const watermarkUniqueId = uniqueIdForComment
+      ? `| ${uniqueIdForComment} `
+      : ''
+    const watermark = `<!-- Jest Coverage Comment: ${context.job} ${watermarkUniqueId}-->\n`
     let finalHtml = ''
 
     const options: Options = {
