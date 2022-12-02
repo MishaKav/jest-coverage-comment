@@ -539,12 +539,16 @@ async function main() {
         const multipleFiles = core.getMultilineInput('multiple-files', {
             required: false,
         });
-        const multipleJunitFiles = core.getMultilineInput('multiple-junitxml-files', {
+        const multipleJunitFiles = core.getMultilineInput('multiple-junitxml-files', { required: false });
+        const uniqueIdForComment = core.getInput('unique-id-for-comment', {
             required: false,
         });
         const { repo, owner } = github_1.context.repo;
         const { eventName, payload } = github_1.context;
-        const watermark = `<!-- Jest Coverage Comment: ${github_1.context.job} -->\n`;
+        const watermarkUniqueId = uniqueIdForComment
+            ? `| ${uniqueIdForComment} `
+            : '';
+        const watermark = `<!-- Jest Coverage Comment: ${github_1.context.job} ${watermarkUniqueId}-->\n`;
         let finalHtml = '';
         const options = {
             token,
