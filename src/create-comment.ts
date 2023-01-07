@@ -53,7 +53,10 @@ export async function createComment(
         commit_sha: options.commit,
         body,
       })
-    } else if (eventName === 'pull_request' || eventName === 'pull_request_target') {
+    } else if (
+      eventName === 'pull_request' ||
+      eventName === 'pull_request_target'
+    ) {
       if (options.createNewComment) {
         core.info('Creating a new comment')
 

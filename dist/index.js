@@ -406,7 +406,8 @@ async function createComment(options, body) {
                 body,
             });
         }
-        else if (eventName === 'pull_request' || eventName === 'pull_request_target') {
+        else if (eventName === 'pull_request' ||
+            eventName === 'pull_request_target') {
             if (options.createNewComment) {
                 core.info('Creating a new comment');
                 await octokit.rest.issues.createComment({
