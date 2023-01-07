@@ -53,7 +53,7 @@ export async function createComment(
         commit_sha: options.commit,
         body,
       })
-    } else if (eventName === 'pull_request') {
+    } else if (eventName === 'pull_request' || eventName === 'pull_request_target') {
       if (options.createNewComment) {
         core.info('Creating a new comment')
 
@@ -98,7 +98,7 @@ export async function createComment(
     } else {
       if (!options.hideComment) {
         core.warning(
-          `This action supports comments only on 'pull_request' and 'push' events. '${eventName}' events are not supported.\nYou can use the output of the action.`
+          `This action supports comments only on 'pull_request', 'pull_request_target' and 'push' events. '${eventName}' events are not supported.\nYou can use the output of the action.`
         )
       }
     }
