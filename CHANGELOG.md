@@ -1,5 +1,13 @@
 # Changelog of the Jest Coverage Comment
 
+## [Jest Coverage Comment 1.0.22](https://github.com/MishaKav/jest-coverage-comment/tree/v1.0.22)
+
+**Release Date:** 2023-01-07
+
+#### Changes
+
+- Support `pull_request_target` event to add comments, thanks to [@chirag-madlani](https://github.com/chirag-madlani) for contribution
+
 ## [Jest Coverage Comment 1.0.21](https://github.com/MishaKav/jest-coverage-comment/tree/v1.0.21)
 
 **Release Date:** 2022-12-03
