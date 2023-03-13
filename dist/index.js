@@ -1091,6 +1091,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.exportedForTesting = exports.getSummaryReport = exports.getCoverage = exports.summaryToMarkdown = exports.parseSummary = void 0;
 const core = __importStar(__nccwpck_require__(2186));
+const fs_1 = __nccwpck_require__(7147);
 const utils_1 = __nccwpck_require__(918);
 /** Parse coverage-summary.json to Summary object. */
 function parseSummary(jsonContent) {
@@ -1156,8 +1157,26 @@ function getCoverage(summary) {
 exports.getCoverage = getCoverage;
 /** Return full html coverage report and coverage percentage. */
 function getSummaryReport(options) {
-    const { summaryFile } = options;
+    const defaultResponse = {
+        summaryHtml: '',
+        coverage: 0,
+        color: 'red',
+    };
+    const { summaryFile, junitFile, coverageFile, multipleFiles, multipleJunitFiles, } = options;
     try {
+        // https://github.com/MishaKav/jest-coverage-comment/issues/66
+        // prevent warning when 'summaryFile' has default value and other options are provided
+        if (summaryFile === './coverage/coverage-summary.json') {
+            const fixedFilePath = (0, utils_1.getPathToFile)(summaryFile);
+            const fileExists = (0, fs_1.existsSync)(fixedFilePath);
+            if (!fileExists &&
+                (junitFile ||
+                    coverageFile ||
+                    multipleFiles?.length ||
+                    multipleJunitFiles?.length)) {
+                return defaultResponse;
+            }
+        }
         const jsonContent = (0, utils_1.getContentFile)(summaryFile);
         const summary = parseSummary(jsonContent);
         if (summary) {
@@ -1171,7 +1190,7 @@ function getSummaryReport(options) {
             core.error(`Generating summary report. ${error.message}`);
         }
     }
-    return { summaryHtml: '', coverage: 0, color: 'red' };
+    return defaultResponse;
 }
 exports.getSummaryReport = getSummaryReport;
 exports.exportedForTesting = {

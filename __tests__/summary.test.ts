@@ -145,3 +145,26 @@ describe('summary to markdown', () => {
     )
   })
 })
+
+describe('coverage when have default values', () => {
+  const options: Options = {
+    token: 'token_123',
+    repository: 'MishaKav/jest-coverage-comment',
+    commit: '05953710b21d222efa4f4535424a7af367be5a57',
+    watermark: '<!-- Jest Coverage Comment: 1 -->\n',
+    summaryTitle: '',
+    prefix: '',
+    badgeTitle: 'Coverage',
+    summaryFile: './coverage/coverage-summary.json',
+    multipleFiles: ['Title1, some/path/to/file/coverage.json'],
+  }
+
+  test('should ignore warning when summaryFile have default value and have multiple-files', () => {
+    const { summaryHtml, coverage, color } = getSummaryReport(options)
+
+    expect(summaryHtml).toBe('')
+    expect(coverage).toBe(0)
+    expect(color).toBe('red')
+    expect(spyCore.warning).toHaveBeenCalledTimes(0)
+  })
+})
