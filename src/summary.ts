@@ -1,6 +1,7 @@
 import * as core from '@actions/core'
+import { existsSync } from 'fs'
 import { SummaryReport, LineSummary, Options, Summary } from './types.d'
-import { getContentFile, getCoverageColor } from './utils'
+import { getContentFile, getCoverageColor, getPathToFile } from './utils'
 
 /** Parse coverage-summary.json to Summary object. */
 export function parseSummary(jsonContent: string): Summary | null {
@@ -84,9 +85,36 @@ export function getCoverage(
 
 /** Return full html coverage report and coverage percentage. */
 export function getSummaryReport(options: Options): SummaryReport {
-  const { summaryFile } = options
+  const defaultResponse: SummaryReport = {
+    summaryHtml: '',
+    coverage: 0,
+    color: 'red',
+  }
+  const {
+    summaryFile,
+    junitFile,
+    coverageFile,
+    multipleFiles,
+    multipleJunitFiles,
+  } = options
 
   try {
+    // https://github.com/MishaKav/jest-coverage-comment/issues/66
+    // prevent warning when 'summaryFile' has default value and other options are provided
+    if (summaryFile === './coverage/coverage-summary.json') {
+      const fixedFilePath = getPathToFile(summaryFile)
+      const fileExists = existsSync(fixedFilePath)
+      if (
+        !fileExists &&
+        (junitFile ||
+          coverageFile ||
+          multipleFiles?.length ||
+          multipleJunitFiles?.length)
+      ) {
+        return defaultResponse
+      }
+    }
+
     const jsonContent = getContentFile(summaryFile)
     const summary = parseSummary(jsonContent)
 
@@ -102,7 +130,7 @@ export function getSummaryReport(options: Options): SummaryReport {
     }
   }
 
-  return { summaryHtml: '', coverage: 0, color: 'red' }
+  return defaultResponse
 }
 
 export const exportedForTesting = {
