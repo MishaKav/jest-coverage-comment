@@ -1,5 +1,13 @@
 # Changelog of the Jest Coverage Comment
 
+## [Jest Coverage Comment 1.0.23](https://github.com/MishaKav/jest-coverage-comment/tree/v1.0.23)
+
+**Release Date:** 2023-03-13
+
+#### Changes
+
+- Remove summary error in annotations when provide one of `junitxml-path / coverage-path / multiple-files / multiple-junitxml-files` and not provide `coverage-summary-path` which have default value
+
 ## [Jest Coverage Comment 1.0.22](https://github.com/MishaKav/jest-coverage-comment/tree/v1.0.22)
 
 **Release Date:** 2023-01-07
