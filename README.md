@@ -221,7 +221,7 @@ The nice thing, is that will link all your files inside that commit and ability 
 ```yaml
 - name: Run tests
   run: |
-    npx jest --coverage | tee ./coverage.txt
+    npx jest --coverage | tee ./coverage.txt && exit ${PIPESTATUS[0]}
 
 - name: Jest Coverage Comment
   uses: MishaKav/jest-coverage-comment@main
