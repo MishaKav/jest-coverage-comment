@@ -129,13 +129,21 @@ function toFileNameTd(
   indent = false,
   options: Options
 ): string {
-  const relative = line.file.replace(options.prefix, '')
-  const href = `https://github.com/${options.repository}/blob/${options.commit}/${options.coveragePathPrefix}${relative}`
+  const {
+    serverUrl = 'https://github.com',
+    repository,
+    prefix,
+    commit,
+    coveragePathPrefix,
+    removeLinksToFiles,
+  } = options
+  const relative = line.file.replace(prefix, '')
+  const href = `${serverUrl}/${repository}/blob/${commit}/${coveragePathPrefix}${relative}`
   const parts = relative.split('/')
   const last = parts[parts.length - 1]
   const space = indent ? '&nbsp; &nbsp;' : ''
 
-  return options.removeLinksToFiles
+  return removeLinksToFiles
     ? `${space}${last}`
     : `${space}<a href="${href}">${last}</a>`
 }
@@ -148,13 +156,20 @@ function toMissingTd(line: CoverageLine, options: Options): string {
 
   return line.uncoveredLines
     .map((range) => {
+      const {
+        serverUrl = 'https://github.com',
+        repository,
+        commit,
+        coveragePathPrefix,
+        removeLinksToLines,
+      } = options
       const [start, end = start] = range.split('-')
       const fragment = start === end ? `L${start}` : `L${start}-L${end}`
       const relative = line.file
-      const href = `https://github.com/${options.repository}/blob/${options.commit}/${options.coveragePathPrefix}${relative}#${fragment}`
+      const href = `${serverUrl}/${repository}/blob/${commit}/${coveragePathPrefix}${relative}#${fragment}`
       const text = start === end ? start : `${start}&ndash;${end}`
 
-      return options.removeLinksToLines ? text : `<a href="${href}">${text}</a>`
+      return removeLinksToLines ? text : `<a href="${href}">${text}</a>`
     })
     .join(', ')
 }

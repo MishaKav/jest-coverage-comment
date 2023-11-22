@@ -47,6 +47,7 @@ describe('summary to td', () => {
 describe('parse summary', () => {
   const options: Options = {
     token: 'token_123',
+    serverUrl: 'https://github.com',
     repository: 'MishaKav/jest-coverage-comment',
     commit: '05953710b21d222efa4f4535424a7af367be5a57',
     watermark: '<!-- Jest Coverage Comment: 1 -->\n',
@@ -106,7 +107,7 @@ describe('should parse summary', () => {
     expect(parsedSummary).toBeNull()
     expect(spyCore.error).toHaveBeenCalledTimes(1)
     expect(spyCore.error).toHaveBeenCalledWith(
-      'Parse summary report. Unexpected token b in JSON at position 0'
+      'Parse summary report. Unexpected token \'b\', "bad content" is not valid JSON'
     )
   })
 })
@@ -115,6 +116,7 @@ describe('summary to markdown', () => {
   const options: Options = {
     token: 'token_123',
     repository: 'MishaKav/jest-coverage-comment',
+    serverUrl: 'https://github.com',
     commit: '05953710b21d222efa4f4535424a7af367be5a57',
     watermark: '<!-- Jest Coverage Comment: 1 -->\n',
     summaryTitle: '',
@@ -150,6 +152,7 @@ describe('coverage when have default values', () => {
   const options: Options = {
     token: 'token_123',
     repository: 'MishaKav/jest-coverage-comment',
+    serverUrl: 'https://github.com',
     commit: '05953710b21d222efa4f4535424a7af367be5a57',
     watermark: '<!-- Jest Coverage Comment: 1 -->\n',
     summaryTitle: '',

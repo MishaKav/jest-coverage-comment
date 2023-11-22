@@ -70,6 +70,7 @@ async function main(): Promise<void> {
     const options: Options = {
       token,
       repository: `${owner}/${repo}`,
+      serverUrl: `${process.env.GITHUB_SERVER_URL}`,
       prefix: `${process.env.GITHUB_WORKSPACE}/`,
       commit: '',
       watermark,
