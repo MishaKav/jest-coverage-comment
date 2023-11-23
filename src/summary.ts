@@ -40,10 +40,16 @@ export function summaryToMarkdown(
   options: Options,
   withoutHeader = false
 ): string {
-  const { repository, commit, badgeTitle } = options
+  const {
+    repository,
+    commit,
+    badgeTitle,
+    serverUrl = 'https://github.com',
+    summaryTitle,
+  } = options
   const { statements, functions, branches } = summary
   const { color, coverage } = getCoverage(summary)
-  const readmeHref = `https://github.com/${repository}/blob/${commit}/README.md`
+  const readmeHref = `${serverUrl}/${repository}/blob/${commit}/README.md`
   const badge = `<a href="${readmeHref}"><img alt="${badgeTitle}: ${coverage}%" src="https://img.shields.io/badge/${badgeTitle}-${coverage}%25-${color}.svg" /></a><br/>`
 
   const tableHeader =
@@ -60,8 +66,8 @@ export function summaryToMarkdown(
     return tableBody
   }
 
-  if (options.summaryTitle) {
-    return `## ${options.summaryTitle}\n\n${table}`
+  if (summaryTitle) {
+    return `## ${summaryTitle}\n\n${table}`
   }
 
   return table
