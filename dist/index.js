@@ -274,12 +274,13 @@ function toTotalRow(line) {
 }
 /** Make fileName cell - td. */
 function toFileNameTd(line, indent = false, options) {
-    const relative = line.file.replace(options.prefix, '');
-    const href = `https://github.com/${options.repository}/blob/${options.commit}/${options.coveragePathPrefix}${relative}`;
+    const { serverUrl = 'https://github.com', repository, prefix, commit, coveragePathPrefix, removeLinksToFiles, } = options;
+    const relative = line.file.replace(prefix, '');
+    const href = `${serverUrl}/${repository}/blob/${commit}/${coveragePathPrefix}${relative}`;
     const parts = relative.split('/');
     const last = parts[parts.length - 1];
     const space = indent ? '&nbsp; &nbsp;' : '';
-    return options.removeLinksToFiles
+    return removeLinksToFiles
         ? `${space}${last}`
         : `${space}<a href="${href}">${last}</a>`;
 }
@@ -290,12 +291,13 @@ function toMissingTd(line, options) {
     }
     return line.uncoveredLines
         .map((range) => {
+        const { serverUrl = 'https://github.com', repository, commit, coveragePathPrefix, removeLinksToLines, } = options;
         const [start, end = start] = range.split('-');
         const fragment = start === end ? `L${start}` : `L${start}-L${end}`;
         const relative = line.file;
-        const href = `https://github.com/${options.repository}/blob/${options.commit}/${options.coveragePathPrefix}${relative}#${fragment}`;
+        const href = `${serverUrl}/${repository}/blob/${commit}/${coveragePathPrefix}${relative}#${fragment}`;
         const text = start === end ? start : `${start}&ndash;${end}`;
-        return options.removeLinksToLines ? text : `<a href="${href}">${text}</a>`;
+        return removeLinksToLines ? text : `<a href="${href}">${text}</a>`;
     })
         .join(', ');
 }
@@ -544,6 +546,8 @@ async function main() {
         const uniqueIdForComment = core.getInput('unique-id-for-comment', {
             required: false,
         });
+        const serverUrl = github_1.context.serverUrl || 'https://github.com';
+        core.info(`Uses Github URL: ${serverUrl}`);
         const { repo, owner } = github_1.context.repo;
         const { eventName, payload } = github_1.context;
         const watermarkUniqueId = uniqueIdForComment
@@ -554,6 +558,7 @@ async function main() {
         const options = {
             token,
             repository: `${owner}/${repo}`,
+            serverUrl,
             prefix: `${process.env.GITHUB_WORKSPACE}/`,
             commit: '',
             watermark,
@@ -1123,10 +1128,10 @@ function lineSummaryToTd(line) {
 }
 /** Convert summary to md. */
 function summaryToMarkdown(summary, options, withoutHeader = false) {
-    const { repository, commit, badgeTitle } = options;
+    const { repository, commit, badgeTitle, serverUrl = 'https://github.com', summaryTitle, } = options;
     const { statements, functions, branches } = summary;
     const { color, coverage } = getCoverage(summary);
-    const readmeHref = `https://github.com/${repository}/blob/${commit}/README.md`;
+    const readmeHref = `${serverUrl}/${repository}/blob/${commit}/README.md`;
     const badge = `<a href="${readmeHref}"><img alt="${badgeTitle}: ${coverage}%" src="https://img.shields.io/badge/${badgeTitle}-${coverage}%25-${color}.svg" /></a><br/>`;
     const tableHeader = '| Lines | Statements | Branches | Functions |\n' +
         '| --- | --- | --- | --- |';
@@ -1138,8 +1143,8 @@ function summaryToMarkdown(summary, options, withoutHeader = false) {
     if (withoutHeader) {
         return tableBody;
     }
-    if (options.summaryTitle) {
-        return `## ${options.summaryTitle}\n\n${table}`;
+    if (summaryTitle) {
+        return `## ${summaryTitle}\n\n${table}`;
     }
     return table;
 }
