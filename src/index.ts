@@ -59,7 +59,10 @@ async function main(): Promise<void> {
     const uniqueIdForComment = core.getInput('unique-id-for-comment', {
       required: false,
     })
-    const serverUrl = context.serverUrl
+
+    const serverUrl = context.serverUrl || 'https://github.com'
+    core.info(`Uses Github URL: ${serverUrl}`)
+
     const { repo, owner } = context.repo
     const { eventName, payload } = context
     const watermarkUniqueId = uniqueIdForComment
@@ -71,7 +74,7 @@ async function main(): Promise<void> {
     const options: Options = {
       token,
       repository: `${owner}/${repo}`,
-      serverUrl: serverUrl || 'https://github.com',
+      serverUrl,
       prefix: `${process.env.GITHUB_WORKSPACE}/`,
       commit: '',
       watermark,
