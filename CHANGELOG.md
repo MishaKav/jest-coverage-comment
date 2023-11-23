@@ -1,5 +1,13 @@
 # Changelog of the Jest Coverage Comment
 
+## [Jest Coverage Comment 1.0.24](https://github.com/MishaKav/jest-coverage-comment/tree/v1.0.24)
+
+**Release Date:** 2023-11-23
+
+#### Changes
+
+- Take right `serverUrl` in non github.com environments like selfhosted github, e.g. link to lines uses then the correct link, thanks to [@c0un7-z3r0](https://github.com/c0un7-z3r0) for contribution
+
 ## [Jest Coverage Comment 1.0.23](https://github.com/MishaKav/jest-coverage-comment/tree/v1.0.23)
 
 **Release Date:** 2023-03-13

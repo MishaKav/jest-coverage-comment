@@ -1,6 +1,7 @@
 export interface Options {
   token: string
   repository: string
+  serverUrl: string
   summaryFile: string
   summaryTitle?: string
   badgeTitle: string

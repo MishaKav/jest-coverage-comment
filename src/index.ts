@@ -12,6 +12,7 @@ import { getMultipleJunitReport } from './multi-junit-files'
 async function main(): Promise<void> {
   try {
     const token = core.getInput('github-token', { required: true })
+
     const title = core.getInput('title', { required: false })
     const badgeTitle = core.getInput('badge-title', { required: false })
     const hideSummary = core.getBooleanInput('hide-summary', {
@@ -59,6 +60,9 @@ async function main(): Promise<void> {
       required: false,
     })
 
+    const serverUrl = context.serverUrl || 'https://github.com'
+    core.info(`Uses Github URL: ${serverUrl}`)
+
     const { repo, owner } = context.repo
     const { eventName, payload } = context
     const watermarkUniqueId = uniqueIdForComment
@@ -70,6 +74,7 @@ async function main(): Promise<void> {
     const options: Options = {
       token,
       repository: `${owner}/${repo}`,
+      serverUrl,
       prefix: `${process.env.GITHUB_WORKSPACE}/`,
       commit: '',
       watermark,
