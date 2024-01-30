@@ -131,5 +131,5 @@ outputs:
     description: 'Statements covered, get from Jest text report'
 
 runs:
-  using: 'node16'
+  using: 'node20'
   main: 'dist/index.js'
