@@ -1,5 +1,13 @@
 # Changelog of the Jest Coverage Comment
 
+## [Jest Coverage Comment 1.0.25](https://github.com/MishaKav/jest-coverage-comment/tree/v1.0.25)
+
+**Release Date:** 2024-01-30
+
+#### Changes
+
+- Change `node16` to `node20`, thanks to [@kagankan](https://github.com/kagankan) for contribution
+
 ## [Jest Coverage Comment 1.0.24](https://github.com/MishaKav/jest-coverage-comment/tree/v1.0.24)
 
 **Release Date:** 2023-11-23
