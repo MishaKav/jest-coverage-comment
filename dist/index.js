@@ -731,8 +731,17 @@ async function parseJunit(xmlContent) {
             core.warning('JUnit XML file is not XML or not well formed');
             return null;
         }
-        const main = parsedJunit.testsuites['$'];
-        const testsuites = parsedJunit.testsuites.testsuite;
+        /**
+         * <testsuites> Usually the root element of a JUnit XML file. Some tools leave out
+         * the <testsuites> element if there is only a single top-level <testsuite> element (which
+         * is then used as the root element).
+         */
+        const main = parsedJunit.testsuites?.$ ?? parsedJunit.testsuite?.$;
+        const testsuites = parsedJunit.testsuites?.testsuite
+            ? parsedJunit.testsuites?.testsuite
+            : parsedJunit.testsuite
+                ? [parsedJunit.testsuite]
+                : null;
         const errors = testsuites
             ?.map((t) => Number(t['$'].errors))
             .reduce((sum, a) => sum + a, 0) || 0;
