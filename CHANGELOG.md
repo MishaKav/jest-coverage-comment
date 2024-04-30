@@ -1,5 +1,13 @@
 # Changelog of the Jest Coverage Comment
 
+## [Jest Coverage Comment 1.0.26](https://github.com/MishaKav/jest-coverage-comment/tree/v1.0.26)
+
+**Release Date:** 2024-04-30
+
+#### Changes
+
+- Handle case when testsuites is not the root element of the JUnit xml file, thanks to [@JakeFDev](https://github.com/JakeFDev) for contribution
+
 ## [Jest Coverage Comment 1.0.25](https://github.com/MishaKav/jest-coverage-comment/tree/v1.0.25)
 
 **Release Date:** 2024-01-30
