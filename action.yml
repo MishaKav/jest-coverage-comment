@@ -103,6 +103,11 @@ inputs:
     description: 'When running in a matrix, pass the matrix value, so each comment will be updated its own comment'
     default: ''
     required: false
+  
+  lineCoverageMain:
+    description: 'Line coverage of main branch'
+    default: '0'
+    required: false
 
 outputs:
   coverage:
