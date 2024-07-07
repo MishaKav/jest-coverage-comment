@@ -55,6 +55,7 @@ describe('parse summary', () => {
     prefix: '',
     badgeTitle: 'Coverage',
     summaryFile: `${__dirname}/../data/coverage_1/coverage-summary.json`,
+    lineCoverageMain: '0',
   }
 
   test('should return summary report', () => {
@@ -63,7 +64,7 @@ describe('parse summary', () => {
     expect(summaryHtml).toMatchInlineSnapshot(`
       "| Lines | Statements | Branches | Functions |
       | --- | --- | --- | --- |
-      | <a href="https://github.com/MishaKav/jest-coverage-comment/blob/05953710b21d222efa4f4535424a7af367be5a57/README.md"><img alt="Coverage: 78%" src="https://img.shields.io/badge/Coverage-78%25-yellow.svg" /></a><br/> | 76.74% (33/43) | 100% (0/0) | 33.33% (2/6) |
+      | <a href="https://github.com/MishaKav/jest-coverage-comment/blob/05953710b21d222efa4f4535424a7af367be5a57/README.md"><img alt="Coverage: 78%" src="https://img.shields.io/badge/Coverage-78%25-yellow.svg" /></a><br/> ▲ Increased (+78%) | 76.74% (33/43) | 100% (0/0) | 33.33% (2/6) |
       "
     `)
     expect(coverage).toBe(78)
@@ -123,6 +124,7 @@ describe('summary to markdown', () => {
     prefix: '',
     badgeTitle: 'Coverage',
     summaryFile: `${__dirname}/../data/coverage_1/coverage-summary.json`,
+    lineCoverageMain: '0',
   }
   const jsonContent = getContentFile(options.summaryFile)
   const summary = parseSummary(jsonContent)
@@ -135,7 +137,7 @@ describe('summary to markdown', () => {
     expect(parsedSummary).toMatchInlineSnapshot(`
       "| Lines | Statements | Branches | Functions |
       | --- | --- | --- | --- |
-      | <a href="https://github.com/MishaKav/jest-coverage-comment/blob/05953710b21d222efa4f4535424a7af367be5a57/README.md"><img alt="Coverage: 78%" src="https://img.shields.io/badge/Coverage-78%25-yellow.svg" /></a><br/> | 76.74% (33/43) | 100% (0/0) | 33.33% (2/6) |
+      | <a href="https://github.com/MishaKav/jest-coverage-comment/blob/05953710b21d222efa4f4535424a7af367be5a57/README.md"><img alt="Coverage: 78%" src="https://img.shields.io/badge/Coverage-78%25-yellow.svg" /></a><br/> ▲ Increased (+78%) | 76.74% (33/43) | 100% (0/0) | 33.33% (2/6) |
       "
     `)
   })
@@ -143,7 +145,7 @@ describe('summary to markdown', () => {
   test('should convert summary to markdown without title', () => {
     const parsedSummary = summaryToMarkdown(summary, options, true)
     expect(parsedSummary).toMatchInlineSnapshot(
-      `"| <a href="https://github.com/MishaKav/jest-coverage-comment/blob/05953710b21d222efa4f4535424a7af367be5a57/README.md"><img alt="Coverage: 78%" src="https://img.shields.io/badge/Coverage-78%25-yellow.svg" /></a><br/> | 76.74% (33/43) | 100% (0/0) | 33.33% (2/6) |"`
+      `"| <a href="https://github.com/MishaKav/jest-coverage-comment/blob/05953710b21d222efa4f4535424a7af367be5a57/README.md"><img alt="Coverage: 78%" src="https://img.shields.io/badge/Coverage-78%25-yellow.svg" /></a><br/> ▲ Increased (+78%) | 76.74% (33/43) | 100% (0/0) | 33.33% (2/6) |"`
     )
   })
 })
@@ -160,6 +162,7 @@ describe('coverage when have default values', () => {
     badgeTitle: 'Coverage',
     summaryFile: './coverage/coverage-summary.json',
     multipleFiles: ['Title1, some/path/to/file/coverage.json'],
+    lineCoverageMain: '0',
   }
 
   test('should ignore warning when summaryFile have default value and have multiple-files', () => {

@@ -1,4 +1,5 @@
 export interface Options {
+  lineCoverageMain: string
   token: string
   repository: string
   serverUrl: string

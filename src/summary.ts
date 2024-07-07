@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import * as core from '@actions/core'
 import { existsSync } from 'fs'
 import { SummaryReport, LineSummary, Options, Summary } from './types.d'
@@ -55,8 +56,26 @@ export function summaryToMarkdown(
   const tableHeader =
     '| Lines | Statements | Branches | Functions |\n' +
     '| --- | --- | --- | --- |'
+
+  const coverageType = summaryTitle?.includes('unit') ? 'unit' : 'integration'
+  const lineCoverageMain = parseInt(
+    options.lineCoverageMain ? options.lineCoverageMain : '0'
+  )
+
+  console.log('Coverage type', coverageType)
+  console.log('Line coverage main', lineCoverageMain)
+
+  const coverageChange =
+    coverage === lineCoverageMain
+      ? '■ Unchanged'
+      : coverage > lineCoverageMain
+      ? `▲ Increased (+${coverage - lineCoverageMain}%)`
+      : `▼ Decreased (${coverage - lineCoverageMain}%)`
+
+  console.log('Coverage change', coverageChange)
+
   const tableBody =
-    `| ${badge} |` +
+    `| ${badge} ${coverageChange} |` +
     ` ${lineSummaryToTd(statements)} |` +
     ` ${lineSummaryToTd(branches)} |` +
     ` ${lineSummaryToTd(functions)} |`

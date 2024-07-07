@@ -60,6 +60,10 @@ async function main(): Promise<void> {
       required: false,
     })
 
+    const lineCoverageMain = core.getInput('lineCoverageMain', {
+      required: false,
+    })
+
     const serverUrl = context.serverUrl || 'https://github.com'
     core.info(`Uses Github URL: ${serverUrl}`)
 
@@ -95,6 +99,7 @@ async function main(): Promise<void> {
       reportOnlyChangedFiles,
       multipleFiles,
       multipleJunitFiles,
+      lineCoverageMain,
     }
 
     if (eventName === 'pull_request' && payload) {

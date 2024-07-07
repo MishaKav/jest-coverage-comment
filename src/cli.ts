@@ -77,6 +77,7 @@ async function main(): Promise<void> {
       },
       multipleFiles,
       multipleJunitFiles,
+      lineCoverageMain: '0',
     }
 
     const { summaryHtml } = getSummaryReport(options)

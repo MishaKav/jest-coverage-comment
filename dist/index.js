@@ -546,6 +546,9 @@ async function main() {
         const uniqueIdForComment = core.getInput('unique-id-for-comment', {
             required: false,
         });
+        const lineCoverageMain = core.getInput('lineCoverageMain', {
+            required: false,
+        });
         const serverUrl = github_1.context.serverUrl || 'https://github.com';
         core.info(`Uses Github URL: ${serverUrl}`);
         const { repo, owner } = github_1.context.repo;
@@ -579,6 +582,7 @@ async function main() {
             reportOnlyChangedFiles,
             multipleFiles,
             multipleJunitFiles,
+            lineCoverageMain,
         };
         if (eventName === 'pull_request' && payload) {
             options.commit = payload.pull_request?.head.sha;
@@ -1095,6 +1099,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.exportedForTesting = exports.getSummaryReport = exports.getCoverage = exports.summaryToMarkdown = exports.parseSummary = void 0;
+/* eslint-disable no-console */
 const core = __importStar(__nccwpck_require__(2186));
 const fs_1 = __nccwpck_require__(7147);
 const utils_1 = __nccwpck_require__(918);
@@ -1135,7 +1140,17 @@ function summaryToMarkdown(summary, options, withoutHeader = false) {
     const badge = `<a href="${readmeHref}"><img alt="${badgeTitle}: ${coverage}%" src="https://img.shields.io/badge/${badgeTitle}-${coverage}%25-${color}.svg" /></a><br/>`;
     const tableHeader = '| Lines | Statements | Branches | Functions |\n' +
         '| --- | --- | --- | --- |';
-    const tableBody = `| ${badge} |` +
+    const coverageType = summaryTitle?.includes('unit') ? 'unit' : 'integration';
+    const lineCoverageMain = parseInt(options.lineCoverageMain ? options.lineCoverageMain : '0');
+    console.log('Coverage type', coverageType);
+    console.log('Line coverage main', lineCoverageMain);
+    const coverageChange = coverage === lineCoverageMain
+        ? '■ Unchanged'
+        : coverage > lineCoverageMain
+            ? `▲ Increased (+${coverage - lineCoverageMain}%)`
+            : `▼ Decreased (${coverage - lineCoverageMain}%)`;
+    console.log('Coverage change', coverageChange);
+    const tableBody = `| ${badge} ${coverageChange} |` +
         ` ${lineSummaryToTd(statements)} |` +
         ` ${lineSummaryToTd(branches)} |` +
         ` ${lineSummaryToTd(functions)} |`;

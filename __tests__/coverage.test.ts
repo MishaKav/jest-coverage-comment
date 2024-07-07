@@ -17,6 +17,7 @@ describe('get coverage report', () => {
     coverageTitle: 'Coverage Report',
     coverageFile: `${__dirname}/../data/coverage_1/coverage.txt`,
     summaryFile: `${__dirname}/../data/coverage_1/coverage-summary.json`,
+    lineCoverageMain: '0',
   }
 
   test('should return coverage report', () => {

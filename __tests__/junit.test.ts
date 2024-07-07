@@ -65,6 +65,7 @@ describe('parse junit and check report output', () => {
     badgeTitle: 'Coverage',
     summaryFile: `${__dirname}/../data/coverage_1/coverage-summary.json`,
     junitFile: `${__dirname}/../data/coverage_1/junit.xml`,
+    lineCoverageMain: '0',
   }
 
   test('should return junit report', async () => {
