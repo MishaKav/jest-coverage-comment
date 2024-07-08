@@ -13,11 +13,11 @@ describe('get coverage report', () => {
     summaryTitle: '',
     prefix: '',
     coveragePathPrefix: '',
-    badgeTitle: 'Coverage',
+    badgeTitle: 'Net Coverage',
     coverageTitle: 'Coverage Report',
     coverageFile: `${__dirname}/../data/coverage_1/coverage.txt`,
     summaryFile: `${__dirname}/../data/coverage_1/coverage-summary.json`,
-    lineCoverageMain: '0',
+    netCoverageMain: '0',
   }
 
   test('should return coverage report', () => {

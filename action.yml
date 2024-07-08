@@ -27,7 +27,7 @@ inputs:
 
   badge-title:
     description: 'Title for the badge icon'
-    default: 'Coverage'
+    default: 'Net Coverage'
     required: false
 
   hide-summary:
@@ -104,7 +104,7 @@ inputs:
     default: ''
     required: false
   
-  lineCoverageMain:
+  netCoverageMain:
     description: 'Line coverage of main branch'
     default: '0'
     required: false

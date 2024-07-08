@@ -48,7 +48,7 @@ export function summaryToMarkdown(
     serverUrl = 'https://github.com',
     summaryTitle,
   } = options
-  const { statements, functions, branches } = summary
+  const { lines, statements, functions, branches } = summary
   const { color, coverage } = getCoverage(summary)
   const readmeHref = `${serverUrl}/${repository}/blob/${commit}/README.md`
   const badge = `<a href="${readmeHref}"><img alt="${badgeTitle}: ${coverage}%" src="https://img.shields.io/badge/${badgeTitle}-${coverage}%25-${color}.svg" /></a><br/>`
@@ -58,24 +58,24 @@ export function summaryToMarkdown(
     '| --- | --- | --- | --- |'
 
   const coverageType = summaryTitle?.includes('unit') ? 'unit' : 'integration'
-  const lineCoverageMain = parseInt(
-    options.lineCoverageMain ? options.lineCoverageMain : '0'
+  const netCoverageMain = parseInt(
+    options.netCoverageMain ? options.netCoverageMain : '0'
   )
 
   console.log('Coverage type', coverageType)
-  console.log('Line coverage main', lineCoverageMain)
+  console.log('Net coverage main', netCoverageMain)
 
   const coverageChange =
-    coverage === lineCoverageMain
+    coverage === netCoverageMain
       ? '■ Unchanged'
-      : coverage > lineCoverageMain
-      ? `▲ Increased (+${coverage - lineCoverageMain}%)`
-      : `▼ Decreased (${coverage - lineCoverageMain}%)`
+      : coverage > netCoverageMain
+      ? `▲ Increased (+${coverage - netCoverageMain}%)`
+      : `▼ Decreased (${coverage - netCoverageMain}%)`
 
   console.log('Coverage change', coverageChange)
 
   const tableBody =
-    `| ${badge} ${coverageChange} |` +
+    ` | ${lineSummaryToTd(lines)} |` +
     ` ${lineSummaryToTd(statements)} |` +
     ` ${lineSummaryToTd(branches)} |` +
     ` ${lineSummaryToTd(functions)} |`
@@ -86,7 +86,11 @@ export function summaryToMarkdown(
   }
 
   if (summaryTitle) {
-    return `## ${summaryTitle}\n\n${table}`
+    const summaryTitleCase = summaryTitle
+      .split(' ')
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ')
+    return `## ${summaryTitleCase}\n ${badge} ${coverageChange}\n\n${table}`
   }
 
   return table
@@ -100,10 +104,12 @@ export function getCoverage(
     return { coverage: 0, color: 'red' }
   }
 
-  const { lines } = summary
+  const { lines, statements, branches, functions } = summary
 
-  const color = getCoverageColor(lines.pct)
-  const coverage = parseInt(lines.pct.toString())
+  const netCoverage = lines.pct + statements.pct + branches.pct + functions.pct
+
+  const color = getCoverageColor(netCoverage)
+  const coverage = parseInt(netCoverage.toString())
 
   return { color, coverage }
 }

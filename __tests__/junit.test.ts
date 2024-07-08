@@ -62,10 +62,10 @@ describe('parse junit and check report output', () => {
     watermark: '<!-- Jest Coverage Comment: 1 -->\n',
     summaryTitle: '',
     prefix: '',
-    badgeTitle: 'Coverage',
+    badgeTitle: 'Net Coverage',
     summaryFile: `${__dirname}/../data/coverage_1/coverage-summary.json`,
     junitFile: `${__dirname}/../data/coverage_1/junit.xml`,
-    lineCoverageMain: '0',
+    netCoverageMain: '0',
   }
 
   test('should return junit report', async () => {

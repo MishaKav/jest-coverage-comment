@@ -546,7 +546,7 @@ async function main() {
         const uniqueIdForComment = core.getInput('unique-id-for-comment', {
             required: false,
         });
-        const lineCoverageMain = core.getInput('lineCoverageMain', {
+        const netCoverageMain = core.getInput('netCoverageMain', {
             required: false,
         });
         const serverUrl = github_1.context.serverUrl || 'https://github.com';
@@ -582,7 +582,7 @@ async function main() {
             reportOnlyChangedFiles,
             multipleFiles,
             multipleJunitFiles,
-            lineCoverageMain,
+            netCoverageMain,
         };
         if (eventName === 'pull_request' && payload) {
             options.commit = payload.pull_request?.head.sha;
@@ -1134,23 +1134,23 @@ function lineSummaryToTd(line) {
 /** Convert summary to md. */
 function summaryToMarkdown(summary, options, withoutHeader = false) {
     const { repository, commit, badgeTitle, serverUrl = 'https://github.com', summaryTitle, } = options;
-    const { statements, functions, branches } = summary;
+    const { lines, statements, functions, branches } = summary;
     const { color, coverage } = getCoverage(summary);
     const readmeHref = `${serverUrl}/${repository}/blob/${commit}/README.md`;
     const badge = `<a href="${readmeHref}"><img alt="${badgeTitle}: ${coverage}%" src="https://img.shields.io/badge/${badgeTitle}-${coverage}%25-${color}.svg" /></a><br/>`;
     const tableHeader = '| Lines | Statements | Branches | Functions |\n' +
         '| --- | --- | --- | --- |';
     const coverageType = summaryTitle?.includes('unit') ? 'unit' : 'integration';
-    const lineCoverageMain = parseInt(options.lineCoverageMain ? options.lineCoverageMain : '0');
+    const netCoverageMain = parseInt(options.netCoverageMain ? options.netCoverageMain : '0');
     console.log('Coverage type', coverageType);
-    console.log('Line coverage main', lineCoverageMain);
-    const coverageChange = coverage === lineCoverageMain
+    console.log('Net coverage main', netCoverageMain);
+    const coverageChange = coverage === netCoverageMain
         ? '■ Unchanged'
-        : coverage > lineCoverageMain
-            ? `▲ Increased (+${coverage - lineCoverageMain}%)`
-            : `▼ Decreased (${coverage - lineCoverageMain}%)`;
+        : coverage > netCoverageMain
+            ? `▲ Increased (+${coverage - netCoverageMain}%)`
+            : `▼ Decreased (${coverage - netCoverageMain}%)`;
     console.log('Coverage change', coverageChange);
-    const tableBody = `| ${badge} ${coverageChange} |` +
+    const tableBody = ` | ${lineSummaryToTd(lines)} |` +
         ` ${lineSummaryToTd(statements)} |` +
         ` ${lineSummaryToTd(branches)} |` +
         ` ${lineSummaryToTd(functions)} |`;
@@ -1159,7 +1159,11 @@ function summaryToMarkdown(summary, options, withoutHeader = false) {
         return tableBody;
     }
     if (summaryTitle) {
-        return `## ${summaryTitle}\n\n${table}`;
+        const summaryTitleCase = summaryTitle
+            .split(' ')
+            .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+            .join(' ');
+        return `## ${summaryTitleCase}\n ${badge} ${coverageChange}\n\n${table}`;
     }
     return table;
 }
@@ -1169,9 +1173,10 @@ function getCoverage(summary) {
     if (!summary?.lines) {
         return { coverage: 0, color: 'red' };
     }
-    const { lines } = summary;
-    const color = (0, utils_1.getCoverageColor)(lines.pct);
-    const coverage = parseInt(lines.pct.toString());
+    const { lines, statements, branches, functions } = summary;
+    const netCoverage = lines.pct + statements.pct + branches.pct + functions.pct;
+    const color = (0, utils_1.getCoverageColor)(netCoverage);
+    const coverage = parseInt(netCoverage.toString());
     return { color, coverage };
 }
 exports.getCoverage = getCoverage;

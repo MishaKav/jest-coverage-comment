@@ -60,7 +60,7 @@ async function main(): Promise<void> {
       required: false,
     })
 
-    const lineCoverageMain = core.getInput('lineCoverageMain', {
+    const netCoverageMain = core.getInput('netCoverageMain', {
       required: false,
     })
 
@@ -99,7 +99,7 @@ async function main(): Promise<void> {
       reportOnlyChangedFiles,
       multipleFiles,
       multipleJunitFiles,
-      lineCoverageMain,
+      netCoverageMain,
     }
 
     if (eventName === 'pull_request' && payload) {

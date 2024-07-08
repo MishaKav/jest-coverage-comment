@@ -53,9 +53,9 @@ describe('parse summary', () => {
     watermark: '<!-- Jest Coverage Comment: 1 -->\n',
     summaryTitle: '',
     prefix: '',
-    badgeTitle: 'Coverage',
+    badgeTitle: 'Net Coverage',
     summaryFile: `${__dirname}/../data/coverage_1/coverage-summary.json`,
-    lineCoverageMain: '0',
+    netCoverageMain: '0',
   }
 
   test('should return summary report', () => {
@@ -124,7 +124,7 @@ describe('summary to markdown', () => {
     prefix: '',
     badgeTitle: 'Coverage',
     summaryFile: `${__dirname}/../data/coverage_1/coverage-summary.json`,
-    lineCoverageMain: '0',
+    netCoverageMain: '0',
   }
   const jsonContent = getContentFile(options.summaryFile)
   const summary = parseSummary(jsonContent)
@@ -162,7 +162,7 @@ describe('coverage when have default values', () => {
     badgeTitle: 'Coverage',
     summaryFile: './coverage/coverage-summary.json',
     multipleFiles: ['Title1, some/path/to/file/coverage.json'],
-    lineCoverageMain: '0',
+    netCoverageMain: '0',
   }
 
   test('should ignore warning when summaryFile have default value and have multiple-files', () => {
