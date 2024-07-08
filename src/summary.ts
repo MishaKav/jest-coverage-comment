@@ -65,16 +65,12 @@ export function summaryToMarkdown(
   console.log('Coverage type', coverageType)
   console.log('Line coverage main', lineCoverageMain)
 
-  const green = '\x1b[32m' // ANSI code for green
-  const red = '\x1b[31m' // ANSI code for red
-  const reset = '\x1b[0m' // ANSI code to reset to default color
-
   const coverageChange =
     coverage === lineCoverageMain
       ? '■ Unchanged'
       : coverage > lineCoverageMain
-      ? `▲ Increased (${green}+${coverage - lineCoverageMain}%${reset})`
-      : `▼ Decreased (${red}${coverage - lineCoverageMain}%${reset})`
+      ? `▲ Increased (+${coverage - lineCoverageMain}%)`
+      : `▼ Decreased (${coverage - lineCoverageMain}%)`
 
   console.log('Coverage change', coverageChange)
 
