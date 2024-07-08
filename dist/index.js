@@ -614,7 +614,14 @@ async function main() {
             core.endGroup();
         }
         if (title) {
-            finalHtml += `# ${title}\n\n`;
+            const summaryTitleCase = title
+                .split(' ')
+                .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+                .join(' ');
+            const { repository, commit } = options;
+            const readmeHref = `${serverUrl}/${repository}/blob/${commit}/README.md`;
+            const badge = `<a href="${readmeHref}"><img alt="${badgeTitle}: ${coverage}%" src="https://img.shields.io/badge/${badgeTitle}-${coverage}%25-${color}.svg" /></a><br/>`;
+            finalHtml += `# ${summaryTitleCase}\n ${badge}\n\n`;
         }
         if (!options.hideSummary) {
             finalHtml += summaryHtml;
