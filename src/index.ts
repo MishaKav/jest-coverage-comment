@@ -137,23 +137,42 @@ async function main(): Promise<void> {
     }
 
     if (title) {
-      const summaryTitleCase = title
+      const titleCase = title
         .split(' ')
         .map(
           (word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
         )
         .join(' ')
 
-      const { repository, commit } = options
+      // const badge = `<a href="${readmeHref}"><img alt="${badgeTitle}: ${coverage}%" src="https://img.shields.io/badge/${badgeTitle}-${coverage}%25-${color}.svg" /></a><br/>`
+      const altText = `Net Coverage: ${coverage}`
+      const badgeUrl = `https://img.shields.io/badge/${badgeTitle}-${coverage}%25-${color}.svg`
 
-      const readmeHref = `${serverUrl}/${repository}/blob/${commit}/README.md`
-      const badge = `<a href="${readmeHref}"><img alt="${badgeTitle}: ${coverage}%" src="https://img.shields.io/badge/${badgeTitle}-${coverage}%25-${color}.svg" /></a><br/>`
+      const badge = `![${altText}](${badgeUrl})`
 
-      finalHtml += `# ${summaryTitleCase}\n ${badge}\n\n`
+      finalHtml += `# ${titleCase}\n- ${badge}`
+    }
+
+    if (options.netCoverageMain) {
+      const netCoverageMainBranch = parseInt(
+        options.netCoverageMain ? options.netCoverageMain : '0'
+      )
+
+      const coverageChange =
+        coverage === netCoverageMainBranch
+          ? '■ Unchanged'
+          : coverage > netCoverageMainBranch
+          ? `▲ Increased (+${coverage - netCoverageMainBranch}%)`
+          : `▼ Decreased (${coverage - netCoverageMainBranch}%)`
+
+      // eslint-disable-next-line no-console
+      console.log('Coverage change', coverageChange)
+
+      finalHtml += `\n- Diff against \`develop\`: ${coverageChange}`
     }
 
     if (!options.hideSummary) {
-      finalHtml += summaryHtml
+      finalHtml += `\n\n${summaryHtml}`
     }
 
     if (options.junitFile) {

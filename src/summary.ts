@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import * as core from '@actions/core'
 import { existsSync } from 'fs'
 import { SummaryReport, LineSummary, Options, Summary } from './types.d'
@@ -41,38 +40,12 @@ export function summaryToMarkdown(
   options: Options,
   withoutHeader = false
 ): string {
-  const {
-    repository,
-    commit,
-    badgeTitle,
-    serverUrl = 'https://github.com',
-    summaryTitle,
-  } = options
+  const { summaryTitle } = options
   const { lines, statements, functions, branches } = summary
-  const { color, coverage } = getCoverage(summary)
-  const readmeHref = `${serverUrl}/${repository}/blob/${commit}/README.md`
-  const badge = `<a href="${readmeHref}"><img alt="${badgeTitle}: ${coverage}%" src="https://img.shields.io/badge/${badgeTitle}-${coverage}%25-${color}.svg" /></a><br/>`
 
   const tableHeader =
     '| Lines | Statements | Branches | Functions |\n' +
     '| --- | --- | --- | --- |'
-
-  const coverageType = summaryTitle?.includes('unit') ? 'unit' : 'integration'
-  const netCoverageMain = parseInt(
-    options.netCoverageMain ? options.netCoverageMain : '0'
-  )
-
-  console.log('Coverage type', coverageType)
-  console.log('Net coverage main', netCoverageMain)
-
-  const coverageChange =
-    coverage === netCoverageMain
-      ? '■ Unchanged'
-      : coverage > netCoverageMain
-      ? `▲ Increased (+${coverage - netCoverageMain}%)`
-      : `▼ Decreased (${coverage - netCoverageMain}%)`
-
-  console.log('Coverage change', coverageChange)
 
   const tableBody =
     ` | ${lineSummaryToTd(lines)} |` +
@@ -86,12 +59,7 @@ export function summaryToMarkdown(
   }
 
   if (summaryTitle) {
-    const summaryTitleCase = summaryTitle
-      .split(' ')
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-      .join(' ')
-
-    return `## ${summaryTitleCase}\n ${badge} ${coverageChange}\n\n${table}`
+    return `## ${summaryTitle}\n\n${table}`
   }
 
   return table
@@ -107,7 +75,8 @@ export function getCoverage(
 
   const { lines, statements, branches, functions } = summary
 
-  const netCoverage = lines.pct + statements.pct + branches.pct + functions.pct
+  const netCoverage =
+    (lines.pct + statements.pct + branches.pct + functions.pct) / 4
 
   const color = getCoverageColor(netCoverage)
   const coverage = parseInt(netCoverage.toString())

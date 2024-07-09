@@ -614,17 +614,29 @@ async function main() {
             core.endGroup();
         }
         if (title) {
-            const summaryTitleCase = title
+            const titleCase = title
                 .split(' ')
                 .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
                 .join(' ');
-            const { repository, commit } = options;
-            const readmeHref = `${serverUrl}/${repository}/blob/${commit}/README.md`;
-            const badge = `<a href="${readmeHref}"><img alt="${badgeTitle}: ${coverage}%" src="https://img.shields.io/badge/${badgeTitle}-${coverage}%25-${color}.svg" /></a><br/>`;
-            finalHtml += `# ${summaryTitleCase}\n ${badge}\n\n`;
+            // const badge = `<a href="${readmeHref}"><img alt="${badgeTitle}: ${coverage}%" src="https://img.shields.io/badge/${badgeTitle}-${coverage}%25-${color}.svg" /></a><br/>`
+            const altText = `Net Coverage: ${coverage}`;
+            const badgeUrl = `https://img.shields.io/badge/${badgeTitle}-${coverage}%25-${color}.svg`;
+            const badge = `![${altText}](${badgeUrl})`;
+            finalHtml += `# ${titleCase}\n- ${badge}`;
+        }
+        if (options.netCoverageMain) {
+            const netCoverageMainBranch = parseInt(options.netCoverageMain ? options.netCoverageMain : '0');
+            const coverageChange = coverage === netCoverageMainBranch
+                ? '■ Unchanged'
+                : coverage > netCoverageMainBranch
+                    ? `▲ Increased (+${coverage - netCoverageMainBranch}%)`
+                    : `▼ Decreased (${coverage - netCoverageMainBranch}%)`;
+            // eslint-disable-next-line no-console
+            console.log('Coverage change', coverageChange);
+            finalHtml += `\n- Diff against \`develop\`: ${coverageChange}`;
         }
         if (!options.hideSummary) {
-            finalHtml += summaryHtml;
+            finalHtml += `\n\n${summaryHtml}`;
         }
         if (options.junitFile) {
             const junit = await (0, junit_1.getJunitReport)(options);
@@ -1106,7 +1118,6 @@ var __importStar = (this && this.__importStar) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.exportedForTesting = exports.getSummaryReport = exports.getCoverage = exports.summaryToMarkdown = exports.parseSummary = void 0;
-/* eslint-disable no-console */
 const core = __importStar(__nccwpck_require__(2186));
 const fs_1 = __nccwpck_require__(7147);
 const utils_1 = __nccwpck_require__(918);
@@ -1140,23 +1151,10 @@ function lineSummaryToTd(line) {
 }
 /** Convert summary to md. */
 function summaryToMarkdown(summary, options, withoutHeader = false) {
-    const { repository, commit, badgeTitle, serverUrl = 'https://github.com', summaryTitle, } = options;
+    const { summaryTitle } = options;
     const { lines, statements, functions, branches } = summary;
-    const { color, coverage } = getCoverage(summary);
-    const readmeHref = `${serverUrl}/${repository}/blob/${commit}/README.md`;
-    const badge = `<a href="${readmeHref}"><img alt="${badgeTitle}: ${coverage}%" src="https://img.shields.io/badge/${badgeTitle}-${coverage}%25-${color}.svg" /></a><br/>`;
     const tableHeader = '| Lines | Statements | Branches | Functions |\n' +
         '| --- | --- | --- | --- |';
-    const coverageType = summaryTitle?.includes('unit') ? 'unit' : 'integration';
-    const netCoverageMain = parseInt(options.netCoverageMain ? options.netCoverageMain : '0');
-    console.log('Coverage type', coverageType);
-    console.log('Net coverage main', netCoverageMain);
-    const coverageChange = coverage === netCoverageMain
-        ? '■ Unchanged'
-        : coverage > netCoverageMain
-            ? `▲ Increased (+${coverage - netCoverageMain}%)`
-            : `▼ Decreased (${coverage - netCoverageMain}%)`;
-    console.log('Coverage change', coverageChange);
     const tableBody = ` | ${lineSummaryToTd(lines)} |` +
         ` ${lineSummaryToTd(statements)} |` +
         ` ${lineSummaryToTd(branches)} |` +
@@ -1166,11 +1164,7 @@ function summaryToMarkdown(summary, options, withoutHeader = false) {
         return tableBody;
     }
     if (summaryTitle) {
-        const summaryTitleCase = summaryTitle
-            .split(' ')
-            .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-            .join(' ');
-        return `## ${summaryTitleCase}\n ${badge} ${coverageChange}\n\n${table}`;
+        return `## ${summaryTitle}\n\n${table}`;
     }
     return table;
 }
@@ -1181,7 +1175,7 @@ function getCoverage(summary) {
         return { coverage: 0, color: 'red' };
     }
     const { lines, statements, branches, functions } = summary;
-    const netCoverage = lines.pct + statements.pct + branches.pct + functions.pct;
+    const netCoverage = (lines.pct + statements.pct + branches.pct + functions.pct) / 4;
     const color = (0, utils_1.getCoverageColor)(netCoverage);
     const coverage = parseInt(netCoverage.toString());
     return { color, coverage };
