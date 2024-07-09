@@ -618,22 +618,22 @@ async function main() {
                 .split(' ')
                 .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
                 .join(' ');
-            // const badge = `<a href="${readmeHref}"><img alt="${badgeTitle}: ${coverage}%" src="https://img.shields.io/badge/${badgeTitle}-${coverage}%25-${color}.svg" /></a><br/>`
             const altText = `Net Coverage: ${coverage}`;
-            const badgeUrl = `https://img.shields.io/badge/${badgeTitle}-${coverage}%25-${color}.svg`;
+            const badgeUrl = `https://img.shields.io/badge/${badgeTitle
+                .split(' ')
+                .join('_')}-${coverage}%25-${color}.svg`;
             const badge = `![${altText}](${badgeUrl})`;
             finalHtml += `# ${titleCase}\n- ${badge}`;
         }
         if (options.netCoverageMain) {
             const netCoverageMainBranch = parseInt(options.netCoverageMain ? options.netCoverageMain : '0');
-            const coverageChange = coverage === netCoverageMainBranch
-                ? '■ Unchanged'
-                : coverage > netCoverageMainBranch
-                    ? `▲ Increased (+${coverage - netCoverageMainBranch}%)`
-                    : `▼ Decreased (${coverage - netCoverageMainBranch}%)`;
-            // eslint-disable-next-line no-console
-            console.log('Coverage change', coverageChange);
-            finalHtml += `\n- Diff against \`develop\`: ${coverageChange}`;
+            const coverageChange = coverage - netCoverageMainBranch;
+            const coverageChangeText = `${coverageChange === 0 ? '■' : coverageChange > 0 ? '▲' : '▼'}_${Math.abs(coverageChange)}`;
+            const coverageChangeColor = coverageChange === 0 ? 'grey' : coverageChange > 0 ? 'green' : 'red';
+            const altText = `Coverage change: ${coverageChange}`;
+            const badgeUrl = `https://img.shields.io/badge/${coverageChangeText}%25-${coverageChangeColor}.svg`;
+            const badge = `![${altText}](${badgeUrl})`;
+            finalHtml += `\n- Diff against \`develop\`: ${badge}`;
         }
         if (!options.hideSummary) {
             finalHtml += `\n\n${summaryHtml}`;
