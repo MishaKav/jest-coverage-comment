@@ -60,11 +60,6 @@ async function main(): Promise<void> {
       required: false,
     })
 
-    const commentAuthorProperty = core.getInput('comment-author', {
-      required: false,
-    })
-    const commentAuthor = commentAuthorProperty ?? 'github-actions[bot]'
-
     const serverUrl = context.serverUrl || 'https://github.com'
     core.info(`Uses Github URL: ${serverUrl}`)
 
@@ -100,7 +95,6 @@ async function main(): Promise<void> {
       reportOnlyChangedFiles,
       multipleFiles,
       multipleJunitFiles,
-      commentAuthor,
     }
 
     if (eventName === 'pull_request' && payload) {

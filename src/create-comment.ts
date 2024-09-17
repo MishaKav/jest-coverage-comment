@@ -1,6 +1,6 @@
 import * as core from '@actions/core'
 import { context, getOctokit } from '@actions/github'
-import { Options } from './types'
+import { Options } from './types.d'
 
 const MAX_COMMENT_LENGTH = 65536
 
@@ -46,6 +46,7 @@ export async function createComment(
 
     if (eventName === 'push') {
       core.info('Create commit comment')
+
       await octokit.rest.repos.createCommitComment({
         repo,
         owner,
@@ -73,23 +74,22 @@ export async function createComment(
           issue_number,
         })
 
-        const existingComment = comments.find((comment) => {
-          const hasSameCommentAuthor =
-            comment.user?.login === options.commentAuthor
-          const hasWatermark = comment.body?.includes(options.watermark)
-          return hasSameCommentAuthor && hasWatermark
-        })
+        const comment = comments.find(
+          (c) =>
+            c.user?.login === 'github-actions[bot]' &&
+            c.body?.startsWith(options.watermark)
+        )
 
-        if (existingComment) {
-          core.info('Found previous comment, updating it.')
+        if (comment) {
+          core.info('Found previous comment, updating')
           await octokit.rest.issues.updateComment({
             repo,
             owner,
-            comment_id: existingComment.id,
+            comment_id: comment.id,
             body,
           })
         } else {
-          core.info('No previous comment found, creating a new one.')
+          core.info('No previous comment found, creating a new one')
           await octokit.rest.issues.createComment({
             repo,
             owner,
