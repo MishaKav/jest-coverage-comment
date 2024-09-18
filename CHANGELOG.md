@@ -1,5 +1,13 @@
 # Changelog of the Jest Coverage Comment
 
+## [Jest Coverage Comment 1.0.27](https://github.com/MishaKav/jest-coverage-comment/tree/v1.0.27)
+
+**Release Date:** 2024-09-18
+
+#### Changes
+
+- Fix use cases when comment post by not `github-actions[bot]` and not updated, thanks to [@mluizaa00](https://github.com/mluizaa00) for contribution
+
 ## [Jest Coverage Comment 1.0.26](https://github.com/MishaKav/jest-coverage-comment/tree/v1.0.26)
 
 **Release Date:** 2024-04-30
