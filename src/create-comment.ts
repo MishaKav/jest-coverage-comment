@@ -74,10 +74,8 @@ export async function createComment(
           issue_number,
         })
 
-        const comment = comments.find(
-          (c) =>
-            c.user?.login === 'github-actions[bot]' &&
-            c.body?.startsWith(options.watermark)
+        const comment = comments.find((c) =>
+          c.body?.startsWith(options.watermark)
         )
 
         if (comment) {
