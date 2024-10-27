@@ -1,5 +1,13 @@
 # Changelog of the Jest Coverage Comment
 
+## [Jest Coverage Comment 1.0.28](https://github.com/MishaKav/jest-coverage-comment/tree/v1.0.28)
+
+**Release Date:** 2024-10-27
+
+#### Changes
+
+- Add the ability to specify the `issue_number` of the issue being commented on as an optional argument. Helpfull when triggering the workflow manually (for example `workflow_dispatch` event)
+
 ## [Jest Coverage Comment 1.0.27](https://github.com/MishaKav/jest-coverage-comment/tree/v1.0.27)
 
 **Release Date:** 2024-09-18
