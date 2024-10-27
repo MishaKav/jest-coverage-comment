@@ -380,7 +380,7 @@ async function createComment(options, body) {
         const { eventName, payload } = github_1.context;
         const { repo, owner } = github_1.context.repo;
         const octokit = (0, github_1.getOctokit)(options.token);
-        const issue_number = payload.pull_request ? payload.pull_request.number : 0;
+        const issue_number = options.issueNumber || (payload.pull_request ? payload.pull_request.number : 0);
         if (body.length > MAX_COMMENT_LENGTH) {
             const warningsArr = [
                 `Your comment is too long (maximum is ${MAX_COMMENT_LENGTH} characters), coverage report will not be added.`,
@@ -545,6 +545,7 @@ async function main() {
         const uniqueIdForComment = core.getInput('unique-id-for-comment', {
             required: false,
         });
+        const issueNumber = core.getInput('issue-number', { required: false });
         const serverUrl = github_1.context.serverUrl || 'https://github.com';
         core.info(`Uses Github URL: ${serverUrl}`);
         const { repo, owner } = github_1.context.repo;
@@ -578,6 +579,7 @@ async function main() {
             reportOnlyChangedFiles,
             multipleFiles,
             multipleJunitFiles,
+            issueNumber: issueNumber ? parseInt(issueNumber) : undefined,
         };
         if (eventName === 'pull_request' && payload) {
             options.commit = payload.pull_request?.head.sha;

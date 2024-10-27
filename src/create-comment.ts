@@ -13,7 +13,9 @@ export async function createComment(
     const { repo, owner } = context.repo
 
     const octokit = getOctokit(options.token)
-    const issue_number = options.issueNumber || (payload.pull_request ? payload.pull_request.number : 0)
+    const issue_number =
+      options.issueNumber ||
+      (payload.pull_request ? payload.pull_request.number : 0)
 
     if (body.length > MAX_COMMENT_LENGTH) {
       const warningsArr = [
