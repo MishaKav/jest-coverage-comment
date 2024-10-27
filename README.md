@@ -47,6 +47,7 @@ You can add this action to your GitHub workflow for Ubuntu runners (e.g. `runs-o
 | `multiple-files`            |          | ''                                 | You can pass array of `json-summary.json` files and generate single comment with table of results<br/>Single line should look like `Title1, ./path/to/json-summary.json` |
 | `multiple-junitxml-files`   |          | ''                                 | You can pass array of `junit.xml` files and generate single comment with table of results<br/>Single line should look like `Title1, ./path/to/junit.xml`                 |
 | `unique-id-for-comment`     |          | ''                                 | When running in a matrix, pass the matrix value, so each comment will be updated its own comment `unique-id-for-comment: ${{ matrix.node-version }}`                     |
+| `issue-number`              |          | ''                                 | Specify the issue number to comment on                                                                                                                                   |
 
 ## Output Variables
 
@@ -77,7 +78,7 @@ You can add this action to your GitHub workflow for Ubuntu runners (e.g. `runs-o
 > | Lines                                                                                                                                                                                                               | Statements     | Branches     | Functions  |
 > | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------- | ------------ | ---------- |
 > | <a href="https://github.com/MishaKav/api-testing-example/blob/725508e4be6d3bc9d49fa611bd9fba96d5374a13/README.md"><img alt="Coverage: 78%" src="https://img.shields.io/badge/Coverage-78%25-yellow.svg" /></a><br/> | 76.74% (33/43) | 33.33% (2/6) | 100% (0/0) |
->
+
 > ## My JUnit Title
 >
 > | Tests | Skipped | Failures | Errors   | Time               |

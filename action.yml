@@ -104,6 +104,10 @@ inputs:
     default: ''
     required: false
 
+  issue-number:
+    description: 'Specify the issue number to comment on (when triggering the workflow manually)'
+    required: false
+
 outputs:
   coverage:
     description: 'Value indicating the coverage percentage of your report based on Jest, example 78'
