@@ -58,6 +58,8 @@ async function main(): Promise<void> {
     )
     const uniqueIdForComment = core.getInput('unique-id-for-comment', {
       required: false,
+    const uniqueIdForComment = core.getInput('unique-id-for-comment', {
+      required: false,
     })
     const issueNumber = core.getInput('issue-number', { required: false })
     
@@ -101,7 +103,11 @@ async function main(): Promise<void> {
     if (issueNumber) {
       options.issueNumber = parseInt(issueNumber, 10)
     }
-
+    
+    if (issueNumber) {
+      options.issueNumber = parseInt(issueNumber, 10)
+    }
+    
     if (eventName === 'pull_request' && payload) {
       options.commit = payload.pull_request?.head.sha
       options.head = payload.pull_request?.head.ref
