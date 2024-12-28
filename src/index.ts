@@ -59,7 +59,8 @@ async function main(): Promise<void> {
     const uniqueIdForComment = core.getInput('unique-id-for-comment', {
       required: false,
     })
-
+    const issueNumber = core.getInput('issue-number', { required: false })
+    
     const serverUrl = context.serverUrl || 'https://github.com'
     core.info(`Uses Github URL: ${serverUrl}`)
 
@@ -95,6 +96,10 @@ async function main(): Promise<void> {
       reportOnlyChangedFiles,
       multipleFiles,
       multipleJunitFiles,
+    }
+    
+    if (issueNumber) {
+      options.issueNumber = parseInt(issueNumber, 10)
     }
 
     if (eventName === 'pull_request' && payload) {

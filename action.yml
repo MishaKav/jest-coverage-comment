@@ -104,6 +104,11 @@ inputs:
     default: ''
     required: false
 
+  issue-number:
+    description: 'The issue number to which the comment should be added'
+    required: false
+
+outputs:
 outputs:
   coverage:
     description: 'Value indicating the coverage percentage of your report based on Jest, example 78'

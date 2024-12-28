@@ -47,6 +47,7 @@ You can add this action to your GitHub workflow for Ubuntu runners (e.g. `runs-o
 | `multiple-files`            |          | ''                                 | You can pass array of `json-summary.json` files and generate single comment with table of results<br/>Single line should look like `Title1, ./path/to/json-summary.json` |
 | `multiple-junitxml-files`   |          | ''                                 | You can pass array of `junit.xml` files and generate single comment with table of results<br/>Single line should look like `Title1, ./path/to/junit.xml`                 |
 | `unique-id-for-comment`     |          | ''                                 | When running in a matrix, pass the matrix value, so each comment will be updated its own comment `unique-id-for-comment: ${{ matrix.node-version }}`                     |
+| `issue-number`              |          | ''                                 | The issue number to which the comment should be added. Useful for associating comments with specific issues.                                                             |
 
 ## Output Variables
 
@@ -111,6 +112,8 @@ jobs:
 
       - name: Jest Coverage Comment
         uses: MishaKav/jest-coverage-comment@main
+        with:
+          issue-number: ${{ github.event.issue.number }}
 ```
 
 Example GitHub Action workflow that uses coverage percentage as output and update the badge in `README.md` without commits to the repo (see the [live workflow](../main/.github/workflows/update-coverage-in-readme.yml)):
