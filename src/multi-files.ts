@@ -5,7 +5,7 @@ import { getContentFile, notNull, parseLine } from './utils'
 
 /** Return multiple report in markdown format. */
 export function getMultipleReport(options: Options): string | null {
-  const { multipleFiles } = options
+  const { multipleFiles, issueNumber } = options
 
   if (!multipleFiles?.length) {
     return null
@@ -44,6 +44,9 @@ export function getMultipleReport(options: Options): string | null {
     }
 
     if (atLeastOneFileExists) {
+      if (issueNumber) {
+        table += `\n\nIssue Number: #${issueNumber}`
+      }
       return table
     }
   } catch (error) {

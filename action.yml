@@ -104,6 +104,11 @@ inputs:
     default: ''
     required: false
 
+  issue-number:
+    description: 'Specify the issue number to reference in coverage comments'
+    default: ''
+    required: false
+outputs:
 outputs:
   coverage:
     description: 'Value indicating the coverage percentage of your report based on Jest, example 78'

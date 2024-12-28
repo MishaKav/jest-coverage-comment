@@ -48,6 +48,7 @@ async function main(): Promise<void> {
       `Title1, ${getPathToFile('./../data/coverage_1/junit.xml')}`,
       `Title2, ${getPathToFile('./../data/coverage_1/junit.xml')}`,
     ]
+    const issueNumber = process.env['INPUT_ISSUE-NUMBER'] || ''
     const prefix = __dirname
 
     let finalHtml = ''
@@ -77,6 +78,8 @@ async function main(): Promise<void> {
       },
       multipleFiles,
       multipleJunitFiles,
+      issueNumber,
+      issueNumber: '',
     }
 
     const { summaryHtml } = getSummaryReport(options)
@@ -107,6 +110,10 @@ async function main(): Promise<void> {
     if (!finalHtml || options.hideComment) {
       console.log('Nothing to report')
       return
+    }
+
+    if (issueNumber) {
+      finalHtml += `\n\nIssue Number: #${issueNumber}`
     }
 
     const resultFile = `${__dirname}/../tmp/result.md`

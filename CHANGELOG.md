@@ -1,5 +1,13 @@
 # Changelog of the Jest Coverage Comment
 
+## [Jest Coverage Comment 1.0.28](https://github.com/MishaKav/jest-coverage-comment/tree/v1.0.28)
+
+**Release Date:** 2024-10-15
+
+#### Changes
+
+- Add support for `issue-number` input to reference specific issues in coverage comments.
+
 ## [Jest Coverage Comment 1.0.27](https://github.com/MishaKav/jest-coverage-comment/tree/v1.0.27)
 
 **Release Date:** 2024-09-18

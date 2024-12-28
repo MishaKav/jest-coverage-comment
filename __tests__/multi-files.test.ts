@@ -69,4 +69,25 @@ describe('multi report', () => {
       "
     `)
   })
+
+  test('should include issue number in markdown when provided', () => {
+    const result = getMultipleReport({
+      multipleCoverageSummaryFiles: [
+        `title1, ${__dirname}/../data/coverage_1/coverage-summary.json`,
+      ],
+      issueNumber: '123'
+    } as never)
+
+    expect(result).toContain('Issue Number: #123')
+  })
+
+  test('should not include issue number in markdown when not provided', () => {
+    const result = getMultipleReport({
+      multipleCoverageSummaryFiles: [
+        `title1, ${__dirname}/../data/coverage_1/coverage-summary.json`,
+      ],
+    } as never)
+
+    expect(result).not.toContain('Issue Number:')
+  })
 })

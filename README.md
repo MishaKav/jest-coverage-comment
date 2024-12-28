@@ -47,6 +47,7 @@ You can add this action to your GitHub workflow for Ubuntu runners (e.g. `runs-o
 | `multiple-files`            |          | ''                                 | You can pass array of `json-summary.json` files and generate single comment with table of results<br/>Single line should look like `Title1, ./path/to/json-summary.json` |
 | `multiple-junitxml-files`   |          | ''                                 | You can pass array of `junit.xml` files and generate single comment with table of results<br/>Single line should look like `Title1, ./path/to/junit.xml`                 |
 | `unique-id-for-comment`     |          | ''                                 | When running in a matrix, pass the matrix value, so each comment will be updated its own comment `unique-id-for-comment: ${{ matrix.node-version }}`                     |
+| `issue-number`              |          | ''                                 | Specify the issue number to reference in coverage comments                                                                                                               |
 
 ## Output Variables
 
@@ -170,6 +171,7 @@ Example GitHub Action workflow that passes all params to Jest Coverage Comment:
     junitxml-path: ./coverage/junit.xml
     coverage-title: My Coverage Title
     coverage-path: ./coverage.txt
+    issue-number: 123
 ```
 
 <img alt="Example Comment" width="600px" src="https://user-images.githubusercontent.com/289035/161066760-40876696-c2cc-432a-9a7c-0952239941f3.png">
