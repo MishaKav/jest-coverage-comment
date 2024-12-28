@@ -4,8 +4,8 @@ import { spyCore } from './setup'
 
 describe('multi report', () => {
   test('should not parse when no files', () => {
-    const result1 = getMultipleReport({ multipleFiles: [] } as never)
-    const result2 = getMultipleReport({ multipleFiles: [' '] } as never)
+    const result1 = getMultipleReport({ multipleCoverageSummaryFiles: [] } as never)
+    const result2 = getMultipleReport({ multipleCoverageSummaryFiles: [' '] } as never)
 
     expect(result1).toBeNull()
     expect(result2).toBeNull()
@@ -13,7 +13,7 @@ describe('multi report', () => {
 
   test('should throw error on bad format', () => {
     const result = getMultipleReport({
-      multipleFiles: ['./path/to/file.json'],
+      multipleCoverageSummaryFiles: ['./path/to/file.json'],
     } as never)
 
     expect(result).toBeNull()
@@ -25,7 +25,7 @@ describe('multi report', () => {
 
   test('should throw warning when file not exist', () => {
     const result = getMultipleReport({
-      multipleFiles: ['title1, ./path/to/file.json'],
+      multipleCoverageSummaryFiles: ['title1, ./path/to/file.json'],
     } as never)
 
     expect(result).toBeNull()
@@ -40,7 +40,7 @@ describe('multi report', () => {
 
   test('should generate markdown for one file', () => {
     const result = getMultipleReport({
-      multipleFiles: [
+      multipleCoverageSummaryFiles: [
         `title1, ${__dirname}/../data/coverage_1/coverage-summary.json`,
       ],
     } as never)
@@ -55,7 +55,7 @@ describe('multi report', () => {
 
   test('should generate markdown for two files', () => {
     const result = getMultipleReport({
-      multipleFiles: [
+      multipleCoverageSummaryFiles: [
         `title1, ${__dirname}/../data/coverage_1/coverage-summary.json`,
         `title2, ${__dirname}/../data/coverage_1/coverage-summary_2.json`,
       ],
