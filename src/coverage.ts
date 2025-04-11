@@ -56,6 +56,7 @@ function getCoverage(
 
 /** Make html table from coverage.txt. */
 function toTable(coverageArr: CoverageLine[], options: Options): string {
+  core.info(`CoverageArr ${coverageArr}`)
   const headTr = toHeadRow()
 
   const totalRow = getTotalLine(coverageArr)
@@ -64,6 +65,8 @@ function toTable(coverageArr: CoverageLine[], options: Options): string {
   const folders = makeFolders(coverageArr, options)
   const { reportOnlyChangedFiles, changedFiles } = options
   const rows = [totalTr]
+
+  core.info(`Changed files ${JSON.stringify(changedFiles)}`)
 
   for (const key of Object.keys(folders)) {
     const files = folders[key]
@@ -85,6 +88,8 @@ function toTable(coverageArr: CoverageLine[], options: Options): string {
       .map((line) => toRow(line, isFile(line), options))
     rows.push(...files)
   }
+
+  core.info(`Files ${JSON.stringify(rows)}`)
 
   const hasLines = rows.length > 1
   const isFilesChanged =

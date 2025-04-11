@@ -222,12 +222,14 @@ function getCoverage(coverageArr) {
 }
 /** Make html table from coverage.txt. */
 function toTable(coverageArr, options) {
+    core.info(`CoverageArr ${coverageArr}`);
     const headTr = toHeadRow();
     const totalRow = (0, parse_coverage_1.getTotalLine)(coverageArr);
     const totalTr = toTotalRow(totalRow);
     const folders = makeFolders(coverageArr, options);
     const { reportOnlyChangedFiles, changedFiles } = options;
     const rows = [totalTr];
+    core.info(`Changed files ${JSON.stringify(changedFiles)}`);
     for (const key of Object.keys(folders)) {
         const files = folders[key]
             .filter((line) => {
@@ -246,6 +248,7 @@ function toTable(coverageArr, options) {
             .map((line) => toRow(line, (0, parse_coverage_1.isFile)(line), options));
         rows.push(...files);
     }
+    core.info(`Files ${JSON.stringify(rows)}`);
     const hasLines = rows.length > 1;
     const isFilesChanged = reportOnlyChangedFiles && !hasLines
         ? '<i>report-only-changed-files is enabled. No files were changed in this commit :)</i>'
