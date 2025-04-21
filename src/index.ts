@@ -8,6 +8,7 @@ import { getSummaryReport } from './summary'
 import { getChangedFiles } from './changed-files'
 import { getMultipleReport } from './multi-files'
 import { getMultipleJunitReport } from './multi-junit-files'
+import { execSync } from 'child_process'
 
 async function main(): Promise<void> {
   try {
@@ -60,7 +61,7 @@ async function main(): Promise<void> {
       required: false,
     })
 
-    const netCoverageMain = core.getInput('netCoverageMain', {
+    const netCoverageMain = core.getInput('net-coverage-main', {
       required: false,
     })
 
@@ -173,7 +174,14 @@ async function main(): Promise<void> {
 
       const badge = `![${altText}](${badgeUrl})`
 
-      finalHtml += `\n- Diff against \`develop\`: ${badge}`
+      // Get the default branch name
+      const defaultBranch = execSync(
+        'git remote show origin | grep "HEAD branch" | cut -d ":" -f2'
+      )
+        .toString()
+        .trim()
+
+      finalHtml += `\n- Diff against \`${defaultBranch}\`: ${badge}`
     }
 
     if (!options.hideSummary) {
