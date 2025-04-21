@@ -105,7 +105,7 @@ inputs:
     required: false
   
   netCoverageMain:
-    description: 'Line coverage of main branch'
+    description: 'Main branch coverage percentage'
     default: '0'
     required: false
 
