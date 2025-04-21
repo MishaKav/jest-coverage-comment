@@ -16,8 +16,8 @@ describe('coverage from summary', () => {
   test('should extract coverage from summary', () => {
     const coverage = getCoverage({ lines: { pct: 78.57 } } as never)
 
-    expect(coverage.color).toBe('yellow')
-    expect(coverage.coverage).toBe(78)
+    expect(coverage.color).toBe('red')
+    expect(coverage.coverage).toBe(19)
   })
 
   test('should return default coverage from summary', () => {
@@ -64,10 +64,10 @@ describe('parse summary', () => {
     expect(summaryHtml).toMatchInlineSnapshot(`
       "| Lines | Statements | Branches | Functions |
       | --- | --- | --- | --- |
-      | <a href="https://github.com/MishaKav/jest-coverage-comment/blob/05953710b21d222efa4f4535424a7af367be5a57/README.md"><img alt="Coverage: 78%" src="https://img.shields.io/badge/Coverage-78%25-yellow.svg" /></a><br/> ▲ Increased (+78%) | 76.74% (33/43) | 100% (0/0) | 33.33% (2/6) |
+      | 78.57% (33/42) | 76.74% (33/43) | 100% (0/0) | 33.33% (2/6) |
       "
     `)
-    expect(coverage).toBe(78)
+    expect(coverage).toBe(72)
     expect(color).toBe('yellow')
   })
 
@@ -137,7 +137,7 @@ describe('summary to markdown', () => {
     expect(parsedSummary).toMatchInlineSnapshot(`
       "| Lines | Statements | Branches | Functions |
       | --- | --- | --- | --- |
-      | <a href="https://github.com/MishaKav/jest-coverage-comment/blob/05953710b21d222efa4f4535424a7af367be5a57/README.md"><img alt="Coverage: 78%" src="https://img.shields.io/badge/Coverage-78%25-yellow.svg" /></a><br/> ▲ Increased (+78%) | 76.74% (33/43) | 100% (0/0) | 33.33% (2/6) |
+      | 78.57% (33/42) | 76.74% (33/43) | 100% (0/0) | 33.33% (2/6) |
       "
     `)
   })
@@ -145,7 +145,7 @@ describe('summary to markdown', () => {
   test('should convert summary to markdown without title', () => {
     const parsedSummary = summaryToMarkdown(summary, options, true)
     expect(parsedSummary).toMatchInlineSnapshot(
-      `"| <a href="https://github.com/MishaKav/jest-coverage-comment/blob/05953710b21d222efa4f4535424a7af367be5a57/README.md"><img alt="Coverage: 78%" src="https://img.shields.io/badge/Coverage-78%25-yellow.svg" /></a><br/> ▲ Increased (+78%) | 76.74% (33/43) | 100% (0/0) | 33.33% (2/6) |"`
+      `"| 78.57% (33/42) | 76.74% (33/43) | 100% (0/0) | 33.33% (2/6) |"`
     )
   })
 })

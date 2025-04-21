@@ -143,7 +143,7 @@ describe('get coverage report', () => {
     }
     const { coverageHtml } = getCoverageReport(optionsChangedFiles)
     expect(coverageHtml).toContain(
-      '<details><summary>Coverage Report • (<b>71%</b>)</summary><table><tr><th>File</th><th>% Stmts</th><th>% Branch</th><th>% Funcs</th><th>% Lines</th><th>Uncovered Line #s</th></tr><tbody><tr><td><b>All files</b></td><td><b>70.21</b></td><td><b>100</b></td><td><b>28.57</b></td><td><b>71.73</b></td><td>&nbsp;</td></tr><tr><td>src/utils</td><td>83.33</td><td>100</td><td>0</td><td>100</td><td>&nbsp;</td></tr><tr><td>&nbsp; &nbsp;<a href="https://github.com/MishaKav/jest-coverage-comment/blob/05953710b21d222efa4f4535424a7af367be5a57/src/utils/config.js">config.js</a></td><td>100</td><td>100</td><td>100</td><td>100</td><td>&nbsp;</td></tr></tbody></table></details>'
+      '<details><summary>Coverage Report • (<b>71%</b>)</summary><table><tr><th>File</th><th>% Stmts</th><th>% Branch</th><th>% Funcs</th><th>% Lines</th><th>Uncovered Line #s</th></tr><tbody><tr><td><b>All files</b></td><td><b>70.21</b></td><td><b>100</b></td><td><b>28.57</b></td><td><b>71.73</b></td><td>&nbsp;</td></tr><tr><td>src</td><td>68.29</td><td>100</td><td>33.33</td><td>68.29</td><td>&nbsp;</td></tr><tr><td>src/utils</td><td>83.33</td><td>100</td><td>0</td><td>100</td><td>&nbsp;</td></tr><tr><td>&nbsp; &nbsp;<a href="https://github.com/MishaKav/jest-coverage-comment/blob/05953710b21d222efa4f4535424a7af367be5a57/src/utils/config.js">config.js</a></td><td>100</td><td>100</td><td>100</td><td>100</td><td>&nbsp;</td></tr></tbody></table></details>'
     )
   })
 

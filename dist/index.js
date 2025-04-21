@@ -496,6 +496,7 @@ const summary_1 = __nccwpck_require__(8608);
 const changed_files_1 = __nccwpck_require__(6503);
 const multi_files_1 = __nccwpck_require__(8796);
 const multi_junit_files_1 = __nccwpck_require__(441);
+const child_process_1 = __nccwpck_require__(2081);
 async function main() {
     try {
         const token = core.getInput('github-token', { required: true });
@@ -539,7 +540,7 @@ async function main() {
         const uniqueIdForComment = core.getInput('unique-id-for-comment', {
             required: false,
         });
-        const netCoverageMain = core.getInput('netCoverageMain', {
+        const netCoverageMain = core.getInput('net-coverage-main', {
             required: false,
         });
         const serverUrl = github_1.context.serverUrl || 'https://github.com';
@@ -626,7 +627,11 @@ async function main() {
             const altText = `Coverage change: ${coverageChange}`;
             const badgeUrl = `https://img.shields.io/badge/${coverageChangeText}%25-${coverageChangeColor}.svg`;
             const badge = `![${altText}](${badgeUrl})`;
-            finalHtml += `\n- Diff against \`develop\`: ${badge}`;
+            // Get the default branch name
+            const defaultBranch = (0, child_process_1.execSync)('git remote show origin | grep "HEAD branch" | cut -d ":" -f2')
+                .toString()
+                .trim();
+            finalHtml += `\n- Diff against \`${defaultBranch}\`: ${badge}`;
         }
         if (!options.hideSummary) {
             finalHtml += `\n\n${summaryHtml}`;
@@ -1148,7 +1153,7 @@ function summaryToMarkdown(summary, options, withoutHeader = false) {
     const { lines, statements, functions, branches } = summary;
     const tableHeader = '| Lines | Statements | Branches | Functions |\n' +
         '| --- | --- | --- | --- |';
-    const tableBody = ` | ${lineSummaryToTd(lines)} |` +
+    const tableBody = `| ${lineSummaryToTd(lines)} |` +
         ` ${lineSummaryToTd(statements)} |` +
         ` ${lineSummaryToTd(branches)} |` +
         ` ${lineSummaryToTd(functions)} |`;
@@ -1168,7 +1173,11 @@ function getCoverage(summary) {
         return { coverage: 0, color: 'red' };
     }
     const { lines, statements, branches, functions } = summary;
-    const netCoverage = (lines.pct + statements.pct + branches.pct + functions.pct) / 4;
+    const netCoverage = ((lines?.pct || 0) +
+        (statements?.pct || 0) +
+        (branches?.pct || 0) +
+        (functions?.pct || 0)) /
+        4;
     const color = (0, utils_1.getCoverageColor)(netCoverage);
     const coverage = parseInt(netCoverage.toString());
     return { color, coverage };
@@ -17438,6 +17447,14 @@ module.exports = eval("require")("encoding");
 
 "use strict";
 module.exports = require("assert");
+
+/***/ }),
+
+/***/ 2081:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("child_process");
 
 /***/ }),
 

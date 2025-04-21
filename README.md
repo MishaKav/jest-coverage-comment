@@ -47,6 +47,7 @@ You can add this action to your GitHub workflow for Ubuntu runners (e.g. `runs-o
 | `multiple-files`            |          | ''                                 | You can pass array of `json-summary.json` files and generate single comment with table of results<br/>Single line should look like `Title1, ./path/to/json-summary.json` |
 | `multiple-junitxml-files`   |          | ''                                 | You can pass array of `junit.xml` files and generate single comment with table of results<br/>Single line should look like `Title1, ./path/to/junit.xml`                 |
 | `unique-id-for-comment`     |          | ''                                 | When running in a matrix, pass the matrix value, so each comment will be updated its own comment `unique-id-for-comment: ${{ matrix.node-version }}`                     |
+| `net-coverage-main`         |          | '0'                                | Pass default branch's coverage |
 
 ## Output Variables
 
@@ -76,7 +77,7 @@ You can add this action to your GitHub workflow for Ubuntu runners (e.g. `runs-o
 >
 > | Lines                                                                                                                                                                                                               | Statements     | Branches     | Functions  |
 > | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------- | ------------ | ---------- |
-> | <a href="https://github.com/MishaKav/api-testing-example/blob/725508e4be6d3bc9d49fa611bd9fba96d5374a13/README.md"><img alt="Coverage: 78%" src="https://img.shields.io/badge/Coverage-78%25-yellow.svg" /></a><br/> | 76.74% (33/43) | 33.33% (2/6) | 100% (0/0) |
+> | 78% (39/50) | 76.74% (33/43) | 33.33% (2/6) | 100% (0/0) |
 >
 > ## My JUnit Title
 >
@@ -111,6 +112,76 @@ jobs:
 
       - name: Jest Coverage Comment
         uses: MishaKav/jest-coverage-comment@main
+```
+
+Example GitHub Action workflow that shows coverage diff wrt to default branch:
+*NOTE* for the first PR, we won't see a coverage diff as the coverage is not yet saved to the cache. As and when the first PR gets merged, workflow will trigger on the default branch & it'll update the cache with the latest coverage.
+
+```yaml
+name: Jest Coverage comment with coverage diff
+on:
+  push:
+
+jobs:
+  coverage-diff-comment:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: |
+          npx jest --coverage --coverageReporters json-summary
+
+      - name: ⬇️ Download baseline coverage-summary.json from cache
+        uses: actions/cache/restore@v4
+        with:
+          key: coverage-summary-baseline
+          path: coverage-summary-baseline.json
+
+      - name: 💾 Save net coverage in env variables
+        run: |
+          if [ -f coverage-summary-baseline ]; then
+            NET_COVERAGE_BASELINE=$(jq '(.total.lines.pct + .total.statements.pct + .total.functions.pct + .total.branches.pct) / 4' coverage-summary-baseline.json)
+          else
+            NET_COVERAGE_BASELINE=0
+          fi
+          echo "NET_COVERAGE_BASELINE=$NET_COVERAGE_BASELINE" >> "$GITHUB_ENV"
+          echo "Baseline Coverage: $NET_COVERAGE_BASELINE"
+        shell: bash
+
+      - name: 💬 Jest Coverage Comment
+        uses: MishaKav/jest-coverage-comment@main
+        with:
+          netCoverageMain: ${{ env.NET_COVERAGE_BASELINE }}
+
+        - name: Get main branch name
+          run: |
+            MAIN_BRANCH_NAME=$(git remote show origin | sed -n '/HEAD branch/s/.*: //p')
+            echo "Main branch: $MAIN_BRANCH_NAME"
+            echo "MAIN_BRANCH_NAME=$MAIN_BRANCH_NAME" >> "$GITHUB_ENV"
+            echo "Feature branch: ${{ github.ref }}"
+          shell: bash
+
+        - name: 🧹 Delete old cache
+          if: ${{ github.event_name == 'push' && github.ref_name == env.MAIN_BRANCH_NAME }}
+          run: |
+            curl -L \
+              -X DELETE \
+              -H "Accept: application/vnd.github+json" \
+              -H "Authorization: Bearer ${{ env.GH_TOKEN }}" \
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              "https://api.github.com/repos/${{env.GITHUB_REPOSITORY}}/actions/caches?key=coverage-summary-baseline"
+          shell: bash
+
+        - name: ⬆️ Upload latest coverage-summary.json to cache
+          if: ${{ github.event_name == 'push' && github.ref_name == env.MAIN_BRANCH_NAME }}
+          uses: actions/cache/save@v4
+          with:
+            key: coverage-summary-baseline
+            path: coverage/coverage-summary.json
 ```
 
 Example GitHub Action workflow that uses coverage percentage as output and update the badge in `README.md` without commits to the repo (see the [live workflow](../main/.github/workflows/update-coverage-in-readme.yml)):

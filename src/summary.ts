@@ -48,7 +48,7 @@ export function summaryToMarkdown(
     '| --- | --- | --- | --- |'
 
   const tableBody =
-    ` | ${lineSummaryToTd(lines)} |` +
+    `| ${lineSummaryToTd(lines)} |` +
     ` ${lineSummaryToTd(statements)} |` +
     ` ${lineSummaryToTd(branches)} |` +
     ` ${lineSummaryToTd(functions)} |`
@@ -76,7 +76,11 @@ export function getCoverage(
   const { lines, statements, branches, functions } = summary
 
   const netCoverage =
-    (lines.pct + statements.pct + branches.pct + functions.pct) / 4
+    ((lines?.pct || 0) +
+      (statements?.pct || 0) +
+      (branches?.pct || 0) +
+      (functions?.pct || 0)) /
+    4
 
   const color = getCoverageColor(netCoverage)
   const coverage = parseInt(netCoverage.toString())
