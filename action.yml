@@ -27,7 +27,7 @@ inputs:
 
   badge-title:
     description: 'Title for the badge icon'
-    default: 'Coverage'
+    default: 'Net Coverage'
     required: false
 
   hide-summary:
@@ -102,6 +102,11 @@ inputs:
   unique-id-for-comment:
     description: 'When running in a matrix, pass the matrix value, so each comment will be updated its own comment'
     default: ''
+    required: false
+  
+  net-coverage-main:
+    description: 'Main branch coverage percentage'
+    default: '0'
     required: false
 
 outputs:
