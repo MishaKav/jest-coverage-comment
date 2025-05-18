@@ -39,7 +39,6 @@ jobs:
         with:
           title: Test code coverage
           coverage-summary-path: coverage/coverage-summary.json
-          netCoverageMain: ${{ env.NET_COVERAGE_BASELINE }}
 
       - name: Get main branch name
         run: |
