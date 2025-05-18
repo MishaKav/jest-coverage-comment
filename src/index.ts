@@ -8,6 +8,7 @@ import { getSummaryReport } from './summary'
 import { getChangedFiles } from './changed-files'
 import { getMultipleReport } from './multi-files'
 import { getMultipleJunitReport } from './multi-junit-files'
+import { execSync } from 'child_process'
 
 async function main(): Promise<void> {
   try {
@@ -60,6 +61,10 @@ async function main(): Promise<void> {
       required: false,
     })
 
+    const netCoverageMain = core.getInput('net-coverage-main', {
+      required: false,
+    })
+
     const serverUrl = context.serverUrl || 'https://github.com'
     core.info(`Uses Github URL: ${serverUrl}`)
 
@@ -95,6 +100,7 @@ async function main(): Promise<void> {
       reportOnlyChangedFiles,
       multipleFiles,
       multipleJunitFiles,
+      netCoverageMain,
     }
 
     if (eventName === 'pull_request' && payload) {
@@ -132,11 +138,54 @@ async function main(): Promise<void> {
     }
 
     if (title) {
-      finalHtml += `# ${title}\n\n`
+      const titleCase = title
+        .split(' ')
+        .map(
+          (word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+        )
+        .join(' ')
+
+      const altText = `Net Coverage: ${coverage}`
+      const badgeUrl = `https://img.shields.io/badge/${badgeTitle
+        .split(' ')
+        .join('_')}-${coverage}%25-${color}.svg`
+
+      const badge = `![${altText}](${badgeUrl})`
+
+      finalHtml += `# ${titleCase}\n- ${badge}`
+    }
+
+    if (options.netCoverageMain) {
+      const netCoverageMainBranch = parseInt(
+        options.netCoverageMain ? options.netCoverageMain : '0'
+      )
+
+      const coverageChange = coverage - netCoverageMainBranch
+
+      const coverageChangeText = `${
+        coverageChange === 0 ? '■' : coverageChange > 0 ? '▲' : '▼'
+      }_${Math.abs(coverageChange)}`
+
+      const coverageChangeColor =
+        coverageChange === 0 ? 'grey' : coverageChange > 0 ? 'green' : 'red'
+
+      const altText = `Coverage change: ${coverageChange}`
+      const badgeUrl = `https://img.shields.io/badge/${coverageChangeText}%25-${coverageChangeColor}.svg`
+
+      const badge = `![${altText}](${badgeUrl})`
+
+      // Get the default branch name
+      const defaultBranch = execSync(
+        'git remote show origin | grep "HEAD branch" | cut -d ":" -f2'
+      )
+        .toString()
+        .trim()
+
+      finalHtml += `\n- Diff against \`${defaultBranch}\`: ${badge}`
     }
 
     if (!options.hideSummary) {
-      finalHtml += summaryHtml
+      finalHtml += `\n\n${summaryHtml}`
     }
 
     if (options.junitFile) {

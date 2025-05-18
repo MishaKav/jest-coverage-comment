@@ -1,0 +1,68 @@
+name: Jest Coverage comment with coverage diff
+on: 
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  coverage-diff-comment:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: npm i
+
+      - name: Run tests
+        run: npm run test:coverage
+
+      - name: ⬇️ Download baseline coverage-summary.json from cache
+        uses: actions/cache/restore@v4
+        with:
+          key: coverage-summary-baseline
+          path: coverage-summary-baseline.json
+
+      - name: 💾 Save net coverage in env variables
+        run: |
+          if [ -f coverage-summary-baseline ]; then
+            NET_COVERAGE_BASELINE=$(jq '(.total.lines.pct + .total.statements.pct + .total.functions.pct + .total.branches.pct) / 4' coverage-summary-baseline.json)
+          else
+            NET_COVERAGE_BASELINE=0
+          fi
+          echo "NET_COVERAGE_BASELINE=$NET_COVERAGE_BASELINE" >> "$GITHUB_ENV"
+          echo "Baseline Coverage: $NET_COVERAGE_BASELINE"
+        shell: bash
+
+      - name: 💬 Jest Coverage Comment
+        uses: aviralpostman/jest-coverage-comment-aviral-fork@coverage-diff-wrt-to-main-branch
+        with:
+          title: Test code coverage
+          coverage-summary-path: coverage/coverage-summary.json
+          netCoverageMain: ${{ env.NET_COVERAGE_BASELINE }}
+
+      - name: Get main branch name
+        run: |
+          MAIN_BRANCH_NAME=$(git remote show origin | sed -n '/HEAD branch/s/.*: //p')
+          echo "Main branch: $MAIN_BRANCH_NAME"
+          echo "MAIN_BRANCH_NAME=$MAIN_BRANCH_NAME" >> "$GITHUB_ENV"
+          echo "Feature branch: ${{ github.ref }}"
+        shell: bash
+
+      - name: 🧹 Delete old cache
+        if: ${{ github.event_name == 'push' && github.ref_name == env.MAIN_BRANCH_NAME }}
+        run: |
+          curl -L \
+          -X DELETE \
+          -H "Accept: application/vnd.github+json" \
+          -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+          -H "X-GitHub-Api-Version: 2022-11-28" \
+          "https://api.github.com/repos/${{ github.repository }}/actions/caches?key=coverage-summary-baseline"
+        shell: bash
+
+      - name: ⬆️ Upload latest coverage-summary.json to cache
+        if: ${{ github.event_name == 'push' && github.ref_name == env.MAIN_BRANCH_NAME }}
+        uses: actions/cache/save@v4
+        with:
+          key: coverage-summary-baseline
+          path: coverage/coverage-summary.json

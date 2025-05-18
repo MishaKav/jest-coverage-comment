@@ -234,14 +234,7 @@ function toTable(coverageArr, options) {
             if (!reportOnlyChangedFiles) {
                 return true;
             }
-            return changedFiles?.all.some((c) => c.includes(line.file));
-        })
-            // Filter folders without files
-            .filter((_line, _i, arr) => {
-            if (!reportOnlyChangedFiles) {
-                return true;
-            }
-            return arr.length > 1;
+            return changedFiles?.all.some((c) => c.includes(line.file) || line.file.includes(c));
         })
             .map((line) => toRow(line, (0, parse_coverage_1.isFile)(line), options));
         rows.push(...files);
@@ -426,7 +419,8 @@ async function createComment(options, body) {
                     owner,
                     issue_number,
                 });
-                const comment = comments.find((c) => c.body?.startsWith(options.watermark));
+                const comment = comments.find((c) => c.user?.login === 'github-actions[bot]' &&
+                    c.body?.startsWith(options.watermark));
                 if (comment) {
                     core.info('Found previous comment, updating');
                     await octokit.rest.issues.updateComment({
@@ -502,6 +496,7 @@ const summary_1 = __nccwpck_require__(8608);
 const changed_files_1 = __nccwpck_require__(6503);
 const multi_files_1 = __nccwpck_require__(8796);
 const multi_junit_files_1 = __nccwpck_require__(441);
+const child_process_1 = __nccwpck_require__(2081);
 async function main() {
     try {
         const token = core.getInput('github-token', { required: true });
@@ -545,6 +540,9 @@ async function main() {
         const uniqueIdForComment = core.getInput('unique-id-for-comment', {
             required: false,
         });
+        const netCoverageMain = core.getInput('net-coverage-main', {
+            required: false,
+        });
         const serverUrl = github_1.context.serverUrl || 'https://github.com';
         core.info(`Uses Github URL: ${serverUrl}`);
         const { repo, owner } = github_1.context.repo;
@@ -578,6 +576,7 @@ async function main() {
             reportOnlyChangedFiles,
             multipleFiles,
             multipleJunitFiles,
+            netCoverageMain,
         };
         if (eventName === 'pull_request' && payload) {
             options.commit = payload.pull_request?.head.sha;
@@ -609,10 +608,33 @@ async function main() {
             core.endGroup();
         }
         if (title) {
-            finalHtml += `# ${title}\n\n`;
+            const titleCase = title
+                .split(' ')
+                .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+                .join(' ');
+            const altText = `Net Coverage: ${coverage}`;
+            const badgeUrl = `https://img.shields.io/badge/${badgeTitle
+                .split(' ')
+                .join('_')}-${coverage}%25-${color}.svg`;
+            const badge = `![${altText}](${badgeUrl})`;
+            finalHtml += `# ${titleCase}\n- ${badge}`;
+        }
+        if (options.netCoverageMain) {
+            const netCoverageMainBranch = parseInt(options.netCoverageMain ? options.netCoverageMain : '0');
+            const coverageChange = coverage - netCoverageMainBranch;
+            const coverageChangeText = `${coverageChange === 0 ? '■' : coverageChange > 0 ? '▲' : '▼'}_${Math.abs(coverageChange)}`;
+            const coverageChangeColor = coverageChange === 0 ? 'grey' : coverageChange > 0 ? 'green' : 'red';
+            const altText = `Coverage change: ${coverageChange}`;
+            const badgeUrl = `https://img.shields.io/badge/${coverageChangeText}%25-${coverageChangeColor}.svg`;
+            const badge = `![${altText}](${badgeUrl})`;
+            // Get the default branch name
+            const defaultBranch = (0, child_process_1.execSync)('git remote show origin | grep "HEAD branch" | cut -d ":" -f2')
+                .toString()
+                .trim();
+            finalHtml += `\n- Diff against \`${defaultBranch}\`: ${badge}`;
         }
         if (!options.hideSummary) {
-            finalHtml += summaryHtml;
+            finalHtml += `\n\n${summaryHtml}`;
         }
         if (options.junitFile) {
             const junit = await (0, junit_1.getJunitReport)(options);
@@ -730,17 +752,8 @@ async function parseJunit(xmlContent) {
             core.warning('JUnit XML file is not XML or not well formed');
             return null;
         }
-        /**
-         * <testsuites> Usually the root element of a JUnit XML file. Some tools leave out
-         * the <testsuites> element if there is only a single top-level <testsuite> element (which
-         * is then used as the root element).
-         */
-        const main = parsedJunit.testsuites?.$ ?? parsedJunit.testsuite?.$;
-        const testsuites = parsedJunit.testsuites?.testsuite
-            ? parsedJunit.testsuites?.testsuite
-            : parsedJunit.testsuite
-                ? [parsedJunit.testsuite]
-                : null;
+        const main = parsedJunit.testsuites['$'];
+        const testsuites = parsedJunit.testsuites.testsuite;
         const errors = testsuites
             ?.map((t) => Number(t['$'].errors))
             .reduce((sum, a) => sum + a, 0) || 0;
@@ -1136,14 +1149,11 @@ function lineSummaryToTd(line) {
 }
 /** Convert summary to md. */
 function summaryToMarkdown(summary, options, withoutHeader = false) {
-    const { repository, commit, badgeTitle, serverUrl = 'https://github.com', summaryTitle, } = options;
-    const { statements, functions, branches } = summary;
-    const { color, coverage } = getCoverage(summary);
-    const readmeHref = `${serverUrl}/${repository}/blob/${commit}/README.md`;
-    const badge = `<a href="${readmeHref}"><img alt="${badgeTitle}: ${coverage}%" src="https://img.shields.io/badge/${badgeTitle}-${coverage}%25-${color}.svg" /></a><br/>`;
+    const { summaryTitle } = options;
+    const { lines, statements, functions, branches } = summary;
     const tableHeader = '| Lines | Statements | Branches | Functions |\n' +
         '| --- | --- | --- | --- |';
-    const tableBody = `| ${badge} |` +
+    const tableBody = `| ${lineSummaryToTd(lines)} |` +
         ` ${lineSummaryToTd(statements)} |` +
         ` ${lineSummaryToTd(branches)} |` +
         ` ${lineSummaryToTd(functions)} |`;
@@ -1162,9 +1172,14 @@ function getCoverage(summary) {
     if (!summary?.lines) {
         return { coverage: 0, color: 'red' };
     }
-    const { lines } = summary;
-    const color = (0, utils_1.getCoverageColor)(lines.pct);
-    const coverage = parseInt(lines.pct.toString());
+    const { lines, statements, branches, functions } = summary;
+    const netCoverage = ((lines?.pct || 0) +
+        (statements?.pct || 0) +
+        (branches?.pct || 0) +
+        (functions?.pct || 0)) /
+        4;
+    const color = (0, utils_1.getCoverageColor)(netCoverage);
+    const coverage = parseInt(netCoverage.toString());
     return { color, coverage };
 }
 exports.getCoverage = getCoverage;
@@ -37150,6 +37165,14 @@ module.exports = require("async_hooks");
 
 "use strict";
 module.exports = require("buffer");
+
+/***/ }),
+
+/***/ 2081:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("child_process");
 
 /***/ }),
 

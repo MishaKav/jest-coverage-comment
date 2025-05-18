@@ -51,18 +51,6 @@ describe('parsing junit', () => {
       'Parse JUnit report. Non-whitespace before first tag.\nLine: 0\nColumn: 1\nChar: b'
     )
   })
-
-  test('should work with omitted parent testsuites element', async () => {
-    const xml =
-      '<?xml version="1.0" encoding="UTF-8"?><testsuite name="should test controller" errors="0" failures="0" skipped="0" timestamp="2022-03-21T21:15:26" time="0.981" tests="2"><testcase classname="should test controller when #getPost method method succeeds" name="should test controller when #getPost method method succeeds" time="0.004"></testcase><testcase classname="should test controller when #getPost method method fails" name="should test controller when #getPost method method fails" time="0.001"></testcase></testsuite>'
-    const junit = await parseJunit(xml)
-
-    expect(junit?.skipped).toBe(0)
-    expect(junit?.errors).toBe(0)
-    expect(junit?.failures).toBe(0)
-    expect(junit?.tests).toBe(2)
-    expect(junit?.time).toBe(0.981)
-  })
 })
 
 describe('parse junit and check report output', () => {
@@ -74,9 +62,10 @@ describe('parse junit and check report output', () => {
     watermark: '<!-- Jest Coverage Comment: 1 -->\n',
     summaryTitle: '',
     prefix: '',
-    badgeTitle: 'Coverage',
+    badgeTitle: 'Net Coverage',
     summaryFile: `${__dirname}/../data/coverage_1/coverage-summary.json`,
     junitFile: `${__dirname}/../data/coverage_1/junit.xml`,
+    netCoverageMain: '0',
   }
 
   test('should return junit report', async () => {

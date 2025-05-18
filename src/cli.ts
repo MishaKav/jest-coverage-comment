@@ -60,7 +60,7 @@ async function main(): Promise<void> {
       watermark: '<!-- Jest Coverage Comment: 1 -->\n',
       title: 'Jest Coverage Comment',
       prefix,
-      badgeTitle: 'Coverage',
+      badgeTitle: 'Net Coverage',
       summaryFile: getPathToFile(summaryFile),
       summaryTitle: '',
       junitFile: getPathToFile(junitFile),
@@ -77,6 +77,7 @@ async function main(): Promise<void> {
       },
       multipleFiles,
       multipleJunitFiles,
+      netCoverageMain: '0',
     }
 
     const { summaryHtml } = getSummaryReport(options)
