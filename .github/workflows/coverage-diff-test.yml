@@ -15,7 +15,7 @@ jobs:
         run: npm i
 
       - name: Run tests
-        run: npm run test:coverage:tee
+        run: npm run test:coverage
 
       - name: ⬇️ Download baseline coverage-summary.json from cache
         uses: actions/cache/restore@v4
@@ -39,8 +39,6 @@ jobs:
         with:
           title: Test code coverage
           coverage-summary-path: coverage/coverage-summary.json
-          coverage-path: ./coverage.txt
-          coverage-title: Coverage Breakdown
           netCoverageMain: ${{ env.NET_COVERAGE_BASELINE }}
 
       - name: Get main branch name
