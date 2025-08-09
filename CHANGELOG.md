@@ -1,5 +1,16 @@
 # Changelog of the Jest Coverage Comment
 
+## [Jest Coverage Comment 1.0.28](https://github.com/MishaKav/jest-coverage-comment/tree/v1.0.28)
+
+**Release Date:** 2025-08-09
+
+#### Changes
+
+- Add support for `workflow_dispatch` and `workflow_run` events with new `issue-number` input
+- Support for `report-only-changed-files` with manual PR specification
+- Update README with enhanced structure, examples, and troubleshooting guide
+- Update package dependencies to latest versions
+
 ## [Jest Coverage Comment 1.0.27](https://github.com/MishaKav/jest-coverage-comment/tree/v1.0.27)
 
 **Release Date:** 2024-09-18
