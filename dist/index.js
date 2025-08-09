@@ -619,7 +619,8 @@ async function main() {
         const uniqueIdForComment = core.getInput('unique-id-for-comment', {
             required: false,
         });
-        const issueNumber = core.getInput('issue-number', { required: false });
+        const issueNumberInput = core.getInput('issue-number', { required: false });
+        const issueNumber = issueNumberInput ? issueNumberInput.trim() : undefined;
         const serverUrl = github_1.context.serverUrl || 'https://github.com';
         core.info(`Uses Github URL: ${serverUrl}`);
         const { repo, owner } = github_1.context.repo;

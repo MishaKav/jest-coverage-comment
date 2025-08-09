@@ -637,7 +637,7 @@ Coverage badges automatically change color based on the percentage:
 - Set `hide-summary: true` to show only badge
 - Use `remove-links-to-files: true` to remove clickable file links
 - Use `remove-links-to-lines: true` to remove clickable line number links
-- Use `--cov-report=term-missing:skip-covered` in Jest
+- Use `["text-summary", { "skipFull": true }]` in Jest coverage reporters to skip fully covered files
 
 ### Coverage Shows 0%
 
