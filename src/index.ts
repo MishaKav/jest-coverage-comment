@@ -59,6 +59,8 @@ async function main(): Promise<void> {
     const uniqueIdForComment = core.getInput('unique-id-for-comment', {
       required: false,
     })
+    const issueNumberInput = core.getInput('issue-number', { required: false })
+    const issueNumber = issueNumberInput ? issueNumberInput.trim() : undefined
 
     const serverUrl = context.serverUrl || 'https://github.com'
     core.info(`Uses Github URL: ${serverUrl}`)
@@ -82,6 +84,7 @@ async function main(): Promise<void> {
       badgeTitle,
       summaryFile,
       summaryTitle,
+      issueNumber,
       junitTitle,
       junitFile,
       coverageTitle,
@@ -104,13 +107,19 @@ async function main(): Promise<void> {
     } else if (eventName === 'push') {
       options.commit = payload.after
       options.head = context.ref
+    } else if (eventName === 'workflow_dispatch') {
+      options.commit = context.sha
+      options.head = context.ref
+    } else if (eventName === 'workflow_run') {
+      options.commit = payload.workflow_run?.head_sha
+      options.head = payload.workflow_run?.head_branch
     }
 
     if (options.reportOnlyChangedFiles) {
-      const changedFiles = await getChangedFiles(options)
+      const changedFiles = await getChangedFiles(options, issueNumber)
       options.changedFiles = changedFiles
 
-      // When GitHub event is different to 'pull_request' or 'push'
+      // When GitHub event is different to supported events
       if (!changedFiles) {
         options.reportOnlyChangedFiles = false
       }

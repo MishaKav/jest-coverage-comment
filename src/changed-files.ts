@@ -4,7 +4,8 @@ import { ChangedFiles, Options } from './types.d'
 
 /** Generate object of all files that changed based on commit through GitHub API. */
 export async function getChangedFiles(
-  options: Options
+  options: Options,
+  pr_number?: string
 ): Promise<ChangedFiles | null> {
   const all: string[] = []
   const added: string[] = []
@@ -31,10 +32,33 @@ export async function getChangedFiles(
         base = payload.before
         head = payload.after
         break
+      case 'workflow_run':
+      case 'workflow_dispatch': {
+        if (!pr_number) {
+          // prettier-ignore
+          core.warning(`"report-only-changed-files: true" for '${eventName}' event requires 'issue-number' input to be provided.`)
+          return null
+        }
+
+        try {
+          const { data } = await octokit.rest.pulls.get({
+            owner,
+            repo,
+            pull_number: parseInt(pr_number),
+          })
+
+          base = data.base.sha
+          head = data.head.sha
+        } catch (error) {
+          // prettier-ignore
+          core.warning(`Failed to fetch PR #${pr_number} for '${eventName}' event: ${error instanceof Error ? error.message : 'Unknown error'}`)
+          return null
+        }
+        break
+      }
       default:
-        core.warning(
-          `"report-only-changed-files: true" supported only on 'pull_request' and 'push', '${eventName}' events are not supported.`
-        )
+        // prettier-ignore
+        core.warning(`"report-only-changed-files: true" supported only on 'pull_request', 'push', 'workflow_dispatch' and 'workflow_run', '${eventName}' events are not supported.`)
         return null
     }
 
