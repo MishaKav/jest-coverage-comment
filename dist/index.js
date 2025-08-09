@@ -34,7 +34,7 @@ exports.getChangedFiles = void 0;
 const core = __importStar(__nccwpck_require__(7484));
 const github_1 = __nccwpck_require__(3228);
 /** Generate object of all files that changed based on commit through GitHub API. */
-async function getChangedFiles(options) {
+async function getChangedFiles(options, pr_number) {
     const all = [];
     const added = [];
     const modified = [];
@@ -57,8 +57,32 @@ async function getChangedFiles(options) {
                 base = payload.before;
                 head = payload.after;
                 break;
+            case 'workflow_run':
+            case 'workflow_dispatch': {
+                if (!pr_number) {
+                    // prettier-ignore
+                    core.warning(`"report-only-changed-files: true" for '${eventName}' event requires 'issue-number' input to be provided.`);
+                    return null;
+                }
+                try {
+                    const { data } = await octokit.rest.pulls.get({
+                        owner,
+                        repo,
+                        pull_number: parseInt(pr_number),
+                    });
+                    base = data.base.sha;
+                    head = data.head.sha;
+                }
+                catch (error) {
+                    // prettier-ignore
+                    core.warning(`Failed to fetch PR #${pr_number} for '${eventName}' event: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                    return null;
+                }
+                break;
+            }
             default:
-                core.warning(`"report-only-changed-files: true" supported only on 'pull_request' and 'push', '${eventName}' events are not supported.`);
+                // prettier-ignore
+                core.warning(`"report-only-changed-files: true" supported only on 'pull_request', 'push', 'workflow_dispatch' and 'workflow_run', '${eventName}' events are not supported.`);
                 return null;
         }
         core.startGroup('Changed files');
@@ -380,7 +404,11 @@ async function createComment(options, body) {
         const { eventName, payload } = github_1.context;
         const { repo, owner } = github_1.context.repo;
         const octokit = (0, github_1.getOctokit)(options.token);
-        const issue_number = payload.pull_request ? payload.pull_request.number : 0;
+        const issue_number = payload.pull_request
+            ? payload.pull_request.number
+            : options.issueNumber
+                ? Number(options.issueNumber)
+                : 0;
         if (body.length > MAX_COMMENT_LENGTH) {
             const warningsArr = [
                 `Your comment is too long (maximum is ${MAX_COMMENT_LENGTH} characters), coverage report will not be added.`,
@@ -447,9 +475,55 @@ async function createComment(options, body) {
                 }
             }
         }
+        else if (eventName === 'workflow_dispatch' ||
+            eventName === 'workflow_run') {
+            if (!options.issueNumber) {
+                // prettier-ignore
+                core.warning(`To use this action on a \`${eventName}\` event, you need to pass a pull request number using the 'issue-number' input.`);
+            }
+            else {
+                if (options.createNewComment) {
+                    core.info('Creating a new comment');
+                    await octokit.rest.issues.createComment({
+                        repo,
+                        owner,
+                        issue_number,
+                        body,
+                    });
+                }
+                else {
+                    // Now decide if we should issue a new comment or edit an old one
+                    const { data: comments } = await octokit.rest.issues.listComments({
+                        repo,
+                        owner,
+                        issue_number,
+                    });
+                    const comment = comments.find((c) => c.body?.startsWith(options.watermark));
+                    if (comment) {
+                        core.info('Found previous comment, updating');
+                        await octokit.rest.issues.updateComment({
+                            repo,
+                            owner,
+                            comment_id: comment.id,
+                            body,
+                        });
+                    }
+                    else {
+                        core.info('No previous comment found, creating a new one');
+                        await octokit.rest.issues.createComment({
+                            repo,
+                            owner,
+                            issue_number,
+                            body,
+                        });
+                    }
+                }
+            }
+        }
         else {
             if (!options.hideComment) {
-                core.warning(`This action supports comments only on 'pull_request', 'pull_request_target' and 'push' events. '${eventName}' events are not supported.\nYou can use the output of the action.`);
+                // prettier-ignore
+                core.warning(`This action supports comments only on 'pull_request', 'pull_request_target', 'push', 'workflow_dispatch' and 'workflow_run' events. '${eventName}' events are not supported.\nYou can use the output of the action.`);
             }
         }
     }
@@ -545,6 +619,7 @@ async function main() {
         const uniqueIdForComment = core.getInput('unique-id-for-comment', {
             required: false,
         });
+        const issueNumber = core.getInput('issue-number', { required: false });
         const serverUrl = github_1.context.serverUrl || 'https://github.com';
         core.info(`Uses Github URL: ${serverUrl}`);
         const { repo, owner } = github_1.context.repo;
@@ -565,6 +640,7 @@ async function main() {
             badgeTitle,
             summaryFile,
             summaryTitle,
+            issueNumber,
             junitTitle,
             junitFile,
             coverageTitle,
@@ -588,10 +664,18 @@ async function main() {
             options.commit = payload.after;
             options.head = github_1.context.ref;
         }
+        else if (eventName === 'workflow_dispatch') {
+            options.commit = github_1.context.sha;
+            options.head = github_1.context.ref;
+        }
+        else if (eventName === 'workflow_run') {
+            options.commit = payload.workflow_run?.head_sha;
+            options.head = payload.workflow_run?.head_branch;
+        }
         if (options.reportOnlyChangedFiles) {
-            const changedFiles = await (0, changed_files_1.getChangedFiles)(options);
+            const changedFiles = await (0, changed_files_1.getChangedFiles)(options, issueNumber);
             options.changedFiles = changedFiles;
-            // When GitHub event is different to 'pull_request' or 'push'
+            // When GitHub event is different to supported events
             if (!changedFiles) {
                 options.reportOnlyChangedFiles = false;
             }

@@ -13,7 +13,11 @@ export async function createComment(
     const { repo, owner } = context.repo
 
     const octokit = getOctokit(options.token)
-    const issue_number = payload.pull_request ? payload.pull_request.number : 0
+    const issue_number = payload.pull_request
+      ? payload.pull_request.number
+      : options.issueNumber
+      ? Number(options.issueNumber)
+      : 0
 
     if (body.length > MAX_COMMENT_LENGTH) {
       const warningsArr = [
@@ -96,11 +100,57 @@ export async function createComment(
           })
         }
       }
+    } else if (
+      eventName === 'workflow_dispatch' ||
+      eventName === 'workflow_run'
+    ) {
+      if (!options.issueNumber) {
+        // prettier-ignore
+        core.warning(`To use this action on a \`${eventName}\` event, you need to pass a pull request number using the 'issue-number' input.`)
+      } else {
+        if (options.createNewComment) {
+          core.info('Creating a new comment')
+          await octokit.rest.issues.createComment({
+            repo,
+            owner,
+            issue_number,
+            body,
+          })
+        } else {
+          // Now decide if we should issue a new comment or edit an old one
+          const { data: comments } = await octokit.rest.issues.listComments({
+            repo,
+            owner,
+            issue_number,
+          })
+
+          const comment = comments.find((c) =>
+            c.body?.startsWith(options.watermark)
+          )
+
+          if (comment) {
+            core.info('Found previous comment, updating')
+            await octokit.rest.issues.updateComment({
+              repo,
+              owner,
+              comment_id: comment.id,
+              body,
+            })
+          } else {
+            core.info('No previous comment found, creating a new one')
+            await octokit.rest.issues.createComment({
+              repo,
+              owner,
+              issue_number,
+              body,
+            })
+          }
+        }
+      }
     } else {
       if (!options.hideComment) {
-        core.warning(
-          `This action supports comments only on 'pull_request', 'pull_request_target' and 'push' events. '${eventName}' events are not supported.\nYou can use the output of the action.`
-        )
+        // prettier-ignore
+        core.warning(`This action supports comments only on 'pull_request', 'pull_request_target', 'push', 'workflow_dispatch' and 'workflow_run' events. '${eventName}' events are not supported.\nYou can use the output of the action.`)
       }
     }
   } catch (error) {

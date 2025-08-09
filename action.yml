@@ -11,6 +11,11 @@ inputs:
     default: ${{ github.token }}
     required: true
 
+  issue-number:
+    description: 'Pull request number to comment on (required for workflow_dispatch/workflow_run events)'
+    default: ''
+    required: false
+
   title:
     description: 'Main title for the comment'
     required: false

@@ -11,6 +11,7 @@ export interface Options {
   head?: string
   base?: string
   title?: string
+  issueNumber?: string
   junitFile?: string
   junitTitle?: string
   coverageFile?: string

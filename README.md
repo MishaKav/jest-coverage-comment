@@ -38,6 +38,7 @@ A GitHub Action that adds Jest test coverage reports as comments to your pull re
     - [JUnit Test Report](#junit-test-report)
     - [Multiple Files (Monorepo)](#multiple-files-monorepo)
     - [Matrix Strategy](#matrix-strategy)
+    - [Workflow Dispatch Support](#workflow-dispatch-support)
     - [Changed Files Only](#changed-files-only)
     - [Auto-Update README Badge](#auto-update-readme-badge)
   - [🔬 Advanced Features](#-advanced-features)
@@ -54,6 +55,7 @@ A GitHub Action that adds Jest test coverage reports as comments to your pull re
     - [Coverage Shows 0%](#coverage-shows-0)
     - [Files Not Found](#files-not-found)
     - [Wrong File Links](#wrong-file-links)
+    - [Workflow Dispatch Events](#workflow-dispatch-events)
   - [🤝 Contributing](#-contributing)
     - [Development Setup](#development-setup)
   - [👥 Contributors](#-contributors)
@@ -116,12 +118,13 @@ jobs:
 <details>
 <summary>📝 Core Inputs</summary>
 
-| Name                    | Required | Default                            | Description                                                                      |
-| ----------------------- | -------- | ---------------------------------- | -------------------------------------------------------------------------------- |
-| `github-token`          | ✓        | `${{github.token}}`                | GitHub API Access Token                                                          |
-| `coverage-summary-path` |          | `./coverage/coverage-summary.json` | The location of the coverage-summary of Jest                                     |
-| `junitxml-path`         |          |                                    | The location of the junitxml path (npm package `jest-junit` should be installed) |
-| `coverage-path`         |          |                                    | The location of the coverage.txt (Jest console output)                           |
+| Name                    | Required | Default                            | Description                                                                            |
+| ----------------------- | -------- | ---------------------------------- | -------------------------------------------------------------------------------------- |
+| `github-token`          | ✓        | `${{github.token}}`                | GitHub API Access Token                                                                |
+| `issue-number`          |          |                                    | Pull request number to comment on (required for workflow_dispatch/workflow_run events) |
+| `coverage-summary-path` |          | `./coverage/coverage-summary.json` | The location of the coverage-summary of Jest                                           |
+| `junitxml-path`         |          |                                    | The location of the junitxml path (npm package `jest-junit` should be installed)       |
+| `coverage-path`         |          |                                    | The location of the coverage.txt (Jest console output)                                 |
 
 </details>
 
@@ -396,6 +399,42 @@ steps:
 
 </details>
 
+### Workflow Dispatch Support
+
+<details>
+<summary>Manual coverage reporting with issue number</summary>
+
+```yaml
+name: Manual Coverage Report
+on:
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'Pull Request number'
+        required: true
+        type: string
+
+jobs:
+  coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: npm ci
+      - name: Run tests with coverage
+        run: npx jest --coverage --coverageReporters json-summary
+      - name: Jest Coverage Comment
+        uses: MishaKav/jest-coverage-comment@main
+        with:
+          issue-number: ${{ github.event.inputs.pr_number }}
+```
+
+**Usage**: Manually trigger this workflow and provide a PR number to get coverage comments on that specific pull request.
+
+**Output**: Coverage comment will be posted to the specified pull request, even when not triggered by the PR itself.
+
+</details>
+
 ### Changed Files Only
 
 <details>
@@ -585,7 +624,8 @@ Coverage badges automatically change color based on the percentage:
     pull-requests: write
   ```
 - Check if `hide-comment` is set to `false`
-- Verify the action is running on `pull_request` events
+- Verify the action is running on supported events (`pull_request`, `push`, `workflow_dispatch`, `workflow_run`)
+- For `workflow_dispatch` or `workflow_run` events, ensure `issue-number` input is provided
 
 ### Coverage Report Too Large
 
@@ -628,6 +668,29 @@ collectCoverageFrom: ['src/**/*.{js,ts}', '!src/**/*.test.{js,ts}']
 
 - Use `coverage-path-prefix` if your test paths differ from repository structure
 - Ensure the action runs on the correct commit SHA
+
+### Workflow Dispatch Events
+
+**Problem**: Need to trigger coverage reporting on specific PRs manually
+
+**Solutions**:
+
+- Use `issue-number` input to specify the target PR:
+  ```yaml
+  - name: Jest Coverage Comment
+    uses: MishaKav/jest-coverage-comment@main
+    with:
+      issue-number: 123 # Replace with actual PR number
+  ```
+- For `workflow_dispatch`, add input parameter:
+  ```yaml
+  on:
+    workflow_dispatch:
+      inputs:
+        pr_number:
+          description: 'Pull Request number'
+          required: true
+  ```
 
 </details>
 
