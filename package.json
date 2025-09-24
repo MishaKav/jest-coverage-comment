@@ -38,7 +38,7 @@
     "xml2js": "^0.6.2"
   },
   "devDependencies": {
-    "@types/jest": "^29.5.14",
+    "@types/jest": "^30.0.0",
     "@types/node": "^20.19.10",
     "@types/xml2js": "^0.4.14",
     "@typescript-eslint/parser": "^5.62.0",
