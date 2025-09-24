@@ -581,6 +581,9 @@ async function main() {
         const token = core.getInput('github-token', { required: true });
         const title = core.getInput('title', { required: false });
         const badgeTitle = core.getInput('badge-title', { required: false });
+        const textInsteadBadge = core.getBooleanInput('text-instead-badge', {
+            required: false,
+        });
         const hideSummary = core.getBooleanInput('hide-summary', {
             required: false,
         });
@@ -639,6 +642,7 @@ async function main() {
             watermark,
             title,
             badgeTitle,
+            textInsteadBadge,
             summaryFile,
             summaryTitle,
             issueNumber,
@@ -1221,14 +1225,17 @@ function lineSummaryToTd(line) {
 }
 /** Convert summary to md. */
 function summaryToMarkdown(summary, options, withoutHeader = false) {
-    const { repository, commit, badgeTitle, serverUrl = 'https://github.com', summaryTitle, } = options;
-    const { statements, functions, branches } = summary;
+    const { repository, commit, badgeTitle, serverUrl = 'https://github.com', summaryTitle, textInsteadBadge = false, } = options;
+    const { statements, functions, branches, lines } = summary;
     const { color, coverage } = getCoverage(summary);
     const readmeHref = `${serverUrl}/${repository}/blob/${commit}/README.md`;
-    const badge = `<a href="${readmeHref}"><img alt="${badgeTitle}: ${coverage}%" src="https://img.shields.io/badge/${badgeTitle}-${coverage}%25-${color}.svg" /></a><br/>`;
+    // Use text or badge based on option
+    const linesContent = textInsteadBadge
+        ? lineSummaryToTd(lines)
+        : `<a href="${readmeHref}"><img alt="${badgeTitle}: ${coverage}%" src="https://img.shields.io/badge/${badgeTitle}-${coverage}%25-${color}.svg" /></a><br/>`;
     const tableHeader = '| Lines | Statements | Branches | Functions |\n' +
         '| --- | --- | --- | --- |';
-    const tableBody = `| ${badge} |` +
+    const tableBody = `| ${linesContent} |` +
         ` ${lineSummaryToTd(statements)} |` +
         ` ${lineSummaryToTd(branches)} |` +
         ` ${lineSummaryToTd(functions)} |`;

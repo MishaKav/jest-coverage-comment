@@ -1,6 +1,6 @@
 {
   "name": "jest-coverage-comment",
-  "version": "1.0.28",
+  "version": "1.0.29",
   "description": "Comments a pull request or commit with the jest code coverage badge, full report and tests summary",
   "author": "Misha Kav <misha.kav@gmail.com>",
   "license": "MIT",
@@ -24,6 +24,7 @@
     "format-check": "prettier --check **/*.ts",
     "lint": "eslint **/*.ts",
     "bump-version": "npm version patch",
+    "update-v1-tag": "git tag v1 -f && git push origin v1 -f",
     "package": "ncc build --source-map --license licenses.txt",
     "test": "jest",
     "test:coverage": "npm test -- --coverage",

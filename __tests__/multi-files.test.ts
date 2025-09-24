@@ -69,4 +69,22 @@ describe('multi report', () => {
       "
     `)
   })
+
+  test('should return multiple files report with text instead of badges', () => {
+    const result = getMultipleReport({
+      multipleFiles: [
+        `title1, ${__dirname}/../data/coverage_1/coverage-summary.json`,
+        `title2, ${__dirname}/../data/coverage_1/coverage-summary_2.json`,
+      ],
+      textInsteadBadge: true,
+    } as never)
+
+    expect(result).toMatchInlineSnapshot(`
+      "| Title | Lines | Statements | Branches | Functions |
+      | --- | --- | --- | --- | --- |
+      | title1 | 78.57% (33/42) | 76.74% (33/43) | 100% (0/0) | 33.33% (2/6) |
+      | title2 | 79.06% (34/43) | 77.27% (34/44) | 100% (0/0) | 33.33% (2/6) |
+      "
+    `)
+  })
 })
