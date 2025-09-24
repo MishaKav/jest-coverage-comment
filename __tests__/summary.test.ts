@@ -146,6 +146,25 @@ describe('summary to markdown', () => {
       `"| <a href="https://github.com/MishaKav/jest-coverage-comment/blob/05953710b21d222efa4f4535424a7af367be5a57/README.md"><img alt="Coverage: 78%" src="https://img.shields.io/badge/Coverage-78%25-yellow.svg" /></a><br/> | 76.74% (33/43) | 100% (0/0) | 33.33% (2/6) |"`
     )
   })
+
+  test('should convert summary to markdown with text instead of badge', () => {
+    const optionsWithText = { ...options, textInsteadBadge: true }
+    const parsedSummary = summaryToMarkdown(summary, optionsWithText, false)
+    expect(parsedSummary).toMatchInlineSnapshot(`
+      "| Lines | Statements | Branches | Functions |
+      | --- | --- | --- | --- |
+      | 78.57% (33/42) | 76.74% (33/43) | 100% (0/0) | 33.33% (2/6) |
+      "
+    `)
+  })
+
+  test('should convert summary to markdown with text instead of badge without header', () => {
+    const optionsWithText = { ...options, textInsteadBadge: true }
+    const parsedSummary = summaryToMarkdown(summary, optionsWithText, true)
+    expect(parsedSummary).toMatchInlineSnapshot(
+      `"| 78.57% (33/42) | 76.74% (33/43) | 100% (0/0) | 33.33% (2/6) |"`
+    )
+  })
 })
 
 describe('coverage when have default values', () => {

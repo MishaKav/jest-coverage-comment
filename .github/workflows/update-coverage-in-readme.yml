@@ -13,11 +13,11 @@ jobs:
     name: Update Coverage in README
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v5
 
       - name: NPM Cache
         id: npm-cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: '**/node_modules'
           key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
@@ -73,7 +73,7 @@ jobs:
 
       - name: Create the badge
         if: github.ref == 'refs/heads/main'
-        uses: schneegans/dynamic-badges-action@v1.6.0
+        uses: schneegans/dynamic-badges-action@v1.7.0
         with:
           auth: ${{ secrets.JEST_COVERAGE_COMMENT }}
           gistID: 5e90d640f8c212ab7bbac38f72323f80

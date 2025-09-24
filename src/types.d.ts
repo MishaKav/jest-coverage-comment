@@ -5,6 +5,7 @@ export interface Options {
   summaryFile: string
   summaryTitle?: string
   badgeTitle: string
+  textInsteadBadge?: boolean
   prefix: string
   watermark: string
   commit: string

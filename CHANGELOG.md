@@ -1,5 +1,16 @@
 # Changelog of the Jest Coverage Comment
 
+## [Jest Coverage Comment 1.0.29](https://github.com/MishaKav/jest-coverage-comment/tree/v1.0.29)
+
+**Release Date:** 2025-09-24
+
+#### Changes
+
+- Add `text-instead-badge` option to display simple text instead of badge images for coverage display
+- Text mode shows coverage in the same format as other columns: "XX.XX% (covered/total)"
+- Applies to all coverage reports: main summary and multiple-files tables
+- Maintains backward compatibility - badge mode remains the default
+
 ## [Jest Coverage Comment 1.0.28](https://github.com/MishaKav/jest-coverage-comment/tree/v1.0.28)
 
 **Release Date:** 2025-08-09

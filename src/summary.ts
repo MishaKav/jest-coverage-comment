@@ -46,17 +46,22 @@ export function summaryToMarkdown(
     badgeTitle,
     serverUrl = 'https://github.com',
     summaryTitle,
+    textInsteadBadge = false,
   } = options
-  const { statements, functions, branches } = summary
+  const { statements, functions, branches, lines } = summary
   const { color, coverage } = getCoverage(summary)
   const readmeHref = `${serverUrl}/${repository}/blob/${commit}/README.md`
-  const badge = `<a href="${readmeHref}"><img alt="${badgeTitle}: ${coverage}%" src="https://img.shields.io/badge/${badgeTitle}-${coverage}%25-${color}.svg" /></a><br/>`
+
+  // Use text or badge based on option
+  const linesContent = textInsteadBadge
+    ? lineSummaryToTd(lines)
+    : `<a href="${readmeHref}"><img alt="${badgeTitle}: ${coverage}%" src="https://img.shields.io/badge/${badgeTitle}-${coverage}%25-${color}.svg" /></a><br/>`
 
   const tableHeader =
     '| Lines | Statements | Branches | Functions |\n' +
     '| --- | --- | --- | --- |'
   const tableBody =
-    `| ${badge} |` +
+    `| ${linesContent} |` +
     ` ${lineSummaryToTd(statements)} |` +
     ` ${lineSummaryToTd(branches)} |` +
     ` ${lineSummaryToTd(functions)} |`

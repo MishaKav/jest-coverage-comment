@@ -45,6 +45,7 @@ A GitHub Action that adds Jest test coverage reports as comments to your pull re
   - [🎨 Badge Colors](#-badge-colors)
   - [📸 Result Examples](#-result-examples)
     - [Complete Comment Example](#complete-comment-example)
+    - [Text Mode Example](#text-mode-example)
     - [Coverage Summary Report](#coverage-summary-report-1)
     - [Coverage Console Report](#coverage-console-report-1)
     - [JUnit Test Report](#junit-test-report-1)
@@ -136,6 +137,7 @@ jobs:
 | `title`                 |                   | Main title for the comment                                    |
 | `summary-title`         |                   | Title for the coverage summary                                |
 | `badge-title`           | `Coverage`        | Title for the badge icon                                      |
+| `text-instead-badge`    | `false`           | Use simple text instead of badge images for coverage display  |
 | `junitxml-title`        |                   | Title for summary for junitxml                                |
 | `coverage-title`        | `Coverage Report` | Title for the coverage report                                 |
 | `hide-summary`          | `false`           | Hide coverage summary report                                  |
@@ -223,6 +225,7 @@ This will create a comment showing coverage percentage with a badge and summary 
     title: My Jest Coverage Comment
     summary-title: My Summary Title
     badge-title: Coverage
+    text-instead-badge: false
     hide-comment: false
     create-new-comment: false
     hide-summary: false
@@ -585,6 +588,14 @@ Coverage badges automatically change color based on the percentage:
 > | 6     | 0 :zzz: | 0 :x:    | 0 :fire: | 1.032s :stopwatch: |
 >
 > <details><summary>My Coverage Title (<b>78%</b>)</summary><table><tr><th>File</th><th>% Stmts</th><th>% Branch</th><th>% Funcs</th><th>% Lines</th><th>Uncovered Line #s</th></tr><tbody><tr><td><b>All files</b></td><td><b>76.74</b></td><td><b>100</b></td><td><b>33.33</b></td><td><b>78.57</b></td><td>&nbsp;</td></tr><tr><td>src</td><td>75.67</td><td>100</td><td>40</td><td>75.67</td><td>&nbsp;</td></tr><tr><td>&nbsp; &nbsp;<a href="https://github.com/MishaKav/api-testing-example/blob/725508e4be6d3bc9d49fa611bd9fba96d5374a13/src/controller.js">controller.js</a></td><td>63.63</td><td>100</td><td>50</td><td>63.63</td><td><a href="https://github.com/MishaKav/api-testing-example/blob/725508e4be6d3bc9d49fa611bd9fba96d5374a13/src/controller.js#L14-L18">14&ndash;18</a></td></tr><tr><td>&nbsp; &nbsp;<a href="https://github.com/MishaKav/api-testing-example/blob/725508e4be6d3bc9d49fa611bd9fba96d5374a13/src/index.js">index.js</a></td><td>85.71</td><td>100</td><td>0</td><td>85.71</td><td><a href="https://github.com/MishaKav/api-testing-example/blob/725508e4be6d3bc9d49fa611bd9fba96d5374a13/src/index.js#L9">9</a></td></tr><tr><td>&nbsp; &nbsp;<a href="https://github.com/MishaKav/api-testing-example/blob/725508e4be6d3bc9d49fa611bd9fba96d5374a13/src/router.js">router.js</a></td><td>100</td><td>100</td><td>100</td><td>100</td><td>&nbsp;</td></tr><tr><td>&nbsp; &nbsp;<a href="https://github.com/MishaKav/api-testing-example/blob/725508e4be6d3bc9d49fa611bd9fba96d5374a13/src/service.js">service.js</a></td><td>69.23</td><td>100</td><td>50</td><td>69.23</td><td><a href="https://github.com/MishaKav/api-testing-example/blob/725508e4be6d3bc9d49fa611bd9fba96d5374a13/src/service.js#L16-L20">16&ndash;20</a></td></tr><tr><td>src/utils</td><td>83.33</td><td>100</td><td>0</td><td>100</td><td>&nbsp;</td></tr><tr><td>&nbsp; &nbsp;<a href="https://github.com/MishaKav/api-testing-example/blob/725508e4be6d3bc9d49fa611bd9fba96d5374a13/src/utils/config.js">config.js</a></td><td>100</td><td>100</td><td>100</td><td>100</td><td>&nbsp;</td></tr><tr><td>&nbsp; &nbsp;<a href="https://github.com/MishaKav/api-testing-example/blob/725508e4be6d3bc9d49fa611bd9fba96d5374a13/src/utils/utils.js">utils.js</a></td><td>75</td><td>100</td><td>0</td><td>100</td><td>&nbsp;</td></tr></tbody></table></details>
+
+### Text Mode Example
+
+With `text-instead-badge: true`:
+
+> | Lines          | Statements     | Branches     | Functions  |
+> | -------------- | -------------- | ------------ | ---------- |
+> | 78.57% (33/42) | 76.74% (33/43) | 33.33% (2/6) | 100% (0/0) |
 
 ### Coverage Summary Report
 

@@ -15,6 +15,9 @@ async function main(): Promise<void> {
 
     const title = core.getInput('title', { required: false })
     const badgeTitle = core.getInput('badge-title', { required: false })
+    const textInsteadBadge = core.getBooleanInput('text-instead-badge', {
+      required: false,
+    })
     const hideSummary = core.getBooleanInput('hide-summary', {
       required: false,
     })
@@ -82,6 +85,7 @@ async function main(): Promise<void> {
       watermark,
       title,
       badgeTitle,
+      textInsteadBadge,
       summaryFile,
       summaryTitle,
       issueNumber,

@@ -61,6 +61,7 @@ async function main(): Promise<void> {
       title: 'Jest Coverage Comment',
       prefix,
       badgeTitle: 'Coverage',
+      textInsteadBadge: false,
       summaryFile: getPathToFile(summaryFile),
       summaryTitle: '',
       junitFile: getPathToFile(junitFile),
