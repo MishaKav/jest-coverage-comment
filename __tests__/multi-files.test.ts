@@ -19,7 +19,7 @@ describe('multi report', () => {
     expect(result).toBeNull()
     expect(spyCore.error).toHaveBeenCalledTimes(1)
     expect(spyCore.error).toHaveBeenCalledWith(
-      'Generating summary report for multiple files. No files are provided',
+      'Generating summary report for multiple files. No files are provided'
     )
   })
 
@@ -31,10 +31,10 @@ describe('multi report', () => {
     expect(result).toBeNull()
     expect(spyCore.warning).toHaveBeenCalledTimes(2)
     expect(spyCore.warning).toHaveBeenCalledWith(
-      'File "./path/to/file.json" doesn\'t exist',
+      'File "./path/to/file.json" doesn\'t exist'
     )
     expect(spyCore.warning).toHaveBeenCalledWith(
-      'Summary JSON was not provided',
+      'Summary JSON was not provided'
     )
   })
 

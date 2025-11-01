@@ -15,7 +15,7 @@ const DEFAULT_COVERAGE: Omit<CoverageReport, 'coverageHtml'> = {
 /** Convert coverage to md. */
 function coverageToMarkdown(
   coverageArr: CoverageLine[],
-  options: Options,
+  options: Options
 ): string {
   const { reportOnlyChangedFiles, coverageTitle } = options
   const { coverage } = getCoverage(coverageArr)
@@ -29,7 +29,7 @@ function coverageToMarkdown(
 
 /** Get coverage and color from CoverageLine[]. */
 function getCoverage(
-  coverageArr: CoverageLine[],
+  coverageArr: CoverageLine[]
 ): Omit<CoverageReport, 'coverageHtml'> {
   const allFilesLine = getTotalLine(coverageArr)
 
@@ -127,7 +127,7 @@ function toTotalRow(line: CoverageLine | undefined): string {
 function toFileNameTd(
   line: CoverageLine,
   indent = false,
-  options: Options,
+  options: Options
 ): string {
   const {
     serverUrl = 'https://github.com',
@@ -177,7 +177,7 @@ function toMissingTd(line: CoverageLine, options: Options): string {
 /** Collapse all lines to folders structure. */
 function makeFolders(
   coverageArr: CoverageLine[],
-  options: Options,
+  options: Options
 ): { [key: string]: CoverageLine[] } {
   const folders: { [key: string]: CoverageLine[] } = {}
 

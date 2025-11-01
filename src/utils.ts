@@ -66,7 +66,7 @@ export function getCoverageColor(percentage: number): CoverageColor {
 
   const { color } =
     rangeColors.find(
-      ({ range: [min, max] }) => percentage >= min && percentage < max,
+      ({ range: [min, max] }) => percentage >= min && percentage < max
     ) || rangeColors[0]
 
   return color

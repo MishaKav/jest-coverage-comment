@@ -15,7 +15,7 @@ export function getMultipleReport(options: Options): string | null {
     const lineReports = multipleFiles.map(parseLine).filter(notNull)
     if (!lineReports.length) {
       core.error(
-        'Generating summary report for multiple files. No files are provided',
+        'Generating summary report for multiple files. No files are provided'
       )
       return null
     }
@@ -49,7 +49,7 @@ export function getMultipleReport(options: Options): string | null {
   } catch (error) {
     if (error instanceof Error) {
       core.error(
-        `Generating summary report for multiple files. ${error.message}`,
+        `Generating summary report for multiple files. ${error.message}`
       )
     }
   }

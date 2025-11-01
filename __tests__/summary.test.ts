@@ -107,7 +107,7 @@ describe('should parse summary', () => {
     expect(parsedSummary).toBeNull()
     expect(spyCore.error).toHaveBeenCalledTimes(1)
     expect(spyCore.error).toHaveBeenCalledWith(
-      'Parse summary report. Unexpected token \'b\', "bad content" is not valid JSON',
+      'Parse summary report. Unexpected token \'b\', "bad content" is not valid JSON'
     )
   })
 })
@@ -143,7 +143,7 @@ describe('summary to markdown', () => {
   test('should convert summary to markdown without title', () => {
     const parsedSummary = summaryToMarkdown(summary, options, true)
     expect(parsedSummary).toMatchInlineSnapshot(
-      `"| <a href="https://github.com/MishaKav/jest-coverage-comment/blob/05953710b21d222efa4f4535424a7af367be5a57/README.md"><img alt="Coverage: 78%" src="https://img.shields.io/badge/Coverage-78%25-yellow.svg" /></a><br/> | 76.74% (33/43) | 100% (0/0) | 33.33% (2/6) |"`,
+      `"| <a href="https://github.com/MishaKav/jest-coverage-comment/blob/05953710b21d222efa4f4535424a7af367be5a57/README.md"><img alt="Coverage: 78%" src="https://img.shields.io/badge/Coverage-78%25-yellow.svg" /></a><br/> | 76.74% (33/43) | 100% (0/0) | 33.33% (2/6) |"`
     )
   })
 
@@ -162,7 +162,7 @@ describe('summary to markdown', () => {
     const optionsWithText = { ...options, textInsteadBadge: true }
     const parsedSummary = summaryToMarkdown(summary, optionsWithText, true)
     expect(parsedSummary).toMatchInlineSnapshot(
-      `"| 78.57% (33/42) | 76.74% (33/43) | 100% (0/0) | 33.33% (2/6) |"`,
+      `"| 78.57% (33/42) | 76.74% (33/43) | 100% (0/0) | 33.33% (2/6) |"`
     )
   })
 })

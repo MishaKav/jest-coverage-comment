@@ -6,7 +6,7 @@ const MAX_COMMENT_LENGTH = 65536
 
 export async function createComment(
   options: Options,
-  body: string,
+  body: string
 ): Promise<void> {
   try {
     const { eventName, payload } = context
@@ -29,19 +29,19 @@ export async function createComment(
 
       if (!options.reportOnlyChangedFiles) {
         warningsArr.push(
-          '- Add "report-only-changed-files: true" - to report only changed files and not all files',
+          '- Add "report-only-changed-files: true" - to report only changed files and not all files'
         )
       }
 
       if (!options.removeLinksToFiles) {
         warningsArr.push(
-          '- Add "remove-links-to-files: true" - to remove links to files',
+          '- Add "remove-links-to-files: true" - to remove links to files'
         )
       }
 
       if (!options.removeLinksToLines) {
         warningsArr.push(
-          '- Add "remove-links-to-lines: true" - to remove links to lines',
+          '- Add "remove-links-to-lines: true" - to remove links to lines'
         )
       }
 
@@ -79,7 +79,7 @@ export async function createComment(
         })
 
         const comment = comments.find((c) =>
-          c.body?.startsWith(options.watermark),
+          c.body?.startsWith(options.watermark)
         )
 
         if (comment) {
@@ -125,7 +125,7 @@ export async function createComment(
           })
 
           const comment = comments.find((c) =>
-            c.body?.startsWith(options.watermark),
+            c.body?.startsWith(options.watermark)
           )
 
           if (comment) {

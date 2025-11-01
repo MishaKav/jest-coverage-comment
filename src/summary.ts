@@ -38,7 +38,7 @@ function lineSummaryToTd(line: LineSummary): string {
 export function summaryToMarkdown(
   summary: Summary,
   options: Options,
-  withoutHeader = false,
+  withoutHeader = false
 ): string {
   const {
     repository,
@@ -80,7 +80,7 @@ export function summaryToMarkdown(
 
 /** Get coverage and color from summary. */
 export function getCoverage(
-  summary: Summary,
+  summary: Summary
 ): Omit<SummaryReport, 'summaryHtml'> {
   if (!summary?.lines) {
     return { coverage: 0, color: 'red' }

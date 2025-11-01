@@ -41,7 +41,7 @@ async function main(): Promise<void> {
     const multipleFiles = [
       `Title1, ${getPathToFile('./../data/coverage_1/coverage-summary.json')}`,
       `Title2, ${getPathToFile(
-        './../data/coverage_1/coverage-summary_2.json',
+        './../data/coverage_1/coverage-summary_2.json'
       )}`,
     ]
     const multipleJunitFiles = [

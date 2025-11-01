@@ -5,7 +5,7 @@ import { ChangedFiles, Options } from './types.d'
 /** Generate object of all files that changed based on commit through GitHub API. */
 export async function getChangedFiles(
   options: Options,
-  pr_number?: string,
+  pr_number?: string
 ): Promise<ChangedFiles | null> {
   const all: string[] = []
   const added: string[] = []
@@ -89,7 +89,7 @@ export async function getChangedFiles(
     if (response.status !== 200) {
       core.setFailed(
         `The GitHub API request for comparing the base and head commits for this '${eventName}' event returned ${response.status}, expected 200. ` +
-          "Please submit an issue on this action's GitHub repo.",
+          "Please submit an issue on this action's GitHub repo."
       )
     }
 
@@ -101,7 +101,7 @@ export async function getChangedFiles(
         const { filename: filenameOriginal, status } = file
         const filename = filenameOriginal.replace(
           options.coveragePathPrefix || '',
-          '',
+          ''
         )
 
         all.push(filename)
@@ -123,7 +123,7 @@ export async function getChangedFiles(
             break
           default:
             core.setFailed(
-              `One of your files includes an unsupported file status '${status}', expected added, modified, removed, renamed`,
+              `One of your files includes an unsupported file status '${status}', expected added, modified, removed, renamed`
             )
         }
       }

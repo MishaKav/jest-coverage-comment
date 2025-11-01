@@ -38,7 +38,7 @@ describe('parsing junit', () => {
     expect(junit).toBeNull()
     expect(spyCore.warning).toHaveBeenCalledTimes(1)
     expect(spyCore.warning).toHaveBeenCalledWith(
-      'JUnit XML file is not XML or not well formed',
+      'JUnit XML file is not XML or not well formed'
     )
   })
 
@@ -48,7 +48,7 @@ describe('parsing junit', () => {
     expect(junit).toBeNull()
     expect(spyCore.error).toHaveBeenCalledTimes(1)
     expect(spyCore.error).toHaveBeenCalledWith(
-      'Parse JUnit report. Non-whitespace before first tag.\nLine: 0\nColumn: 1\nChar: b',
+      'Parse JUnit report. Non-whitespace before first tag.\nLine: 0\nColumn: 1\nChar: b'
     )
   })
 

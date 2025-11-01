@@ -50,14 +50,14 @@ async function main(): Promise<void> {
     })
     const reportOnlyChangedFiles = core.getBooleanInput(
       'report-only-changed-files',
-      { required: false },
+      { required: false }
     )
     const multipleFiles = core.getMultilineInput('multiple-files', {
       required: false,
     })
     const multipleJunitFiles = core.getMultilineInput(
       'multiple-junitxml-files',
-      { required: false },
+      { required: false }
     )
     const uniqueIdForComment = core.getInput('unique-id-for-comment', {
       required: false,

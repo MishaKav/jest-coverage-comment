@@ -23,7 +23,7 @@ describe('multi junit report', () => {
     expect(result).toBeNull()
     expect(spyCore.error).toHaveBeenCalledTimes(1)
     expect(spyCore.error).toHaveBeenCalledWith(
-      'Generating report for multiple JUnit files. No files are provided',
+      'Generating report for multiple JUnit files. No files are provided'
     )
   })
 
@@ -35,7 +35,7 @@ describe('multi junit report', () => {
     expect(result).toBeNull()
     expect(spyCore.warning).toHaveBeenCalledTimes(2)
     expect(spyCore.warning).toHaveBeenCalledWith(
-      `File "./path/to/junit.xml" doesn't exist`,
+      `File "./path/to/junit.xml" doesn't exist`
     )
     expect(spyCore.warning).toHaveBeenCalledWith('JUnit XML was not provided')
   })
