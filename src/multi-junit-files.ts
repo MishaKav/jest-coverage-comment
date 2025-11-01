@@ -5,7 +5,7 @@ import { getContentFile, notNull, parseLine } from './utils'
 
 /** Return multiple report in markdown format. */
 export async function getMultipleJunitReport(
-  options: Options
+  options: Options,
 ): Promise<string | null> {
   const { multipleJunitFiles } = options
 
@@ -17,7 +17,7 @@ export async function getMultipleJunitReport(
     const lineReports = multipleJunitFiles.map(parseLine).filter(notNull)
     if (!lineReports.length) {
       core.error(
-        'Generating report for multiple JUnit files. No files are provided'
+        'Generating report for multiple JUnit files. No files are provided',
       )
       return null
     }
@@ -45,7 +45,7 @@ export async function getMultipleJunitReport(
   } catch (error) {
     if (error instanceof Error) {
       core.error(
-        `Generating summary report for multiple JUnit files. ${error.message}`
+        `Generating summary report for multiple JUnit files. ${error.message}`,
       )
     }
   }

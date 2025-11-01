@@ -44,7 +44,7 @@ describe('should check all utils functions', () => {
       expect(content).toEqual('')
       expect(spyCore.warning).toHaveBeenCalledTimes(1)
       expect(spyCore.warning).toHaveBeenCalledWith(
-        'Path to file was not provided'
+        'Path to file was not provided',
       )
     })
 
@@ -54,7 +54,7 @@ describe('should check all utils functions', () => {
       expect(content).toEqual('')
       expect(spyCore.warning).toHaveBeenCalledTimes(1)
       expect(spyCore.warning).toHaveBeenCalledWith(
-        `File "non-exist-file.json" doesn't exist`
+        `File "non-exist-file.json" doesn't exist`,
       )
     })
 
@@ -65,7 +65,7 @@ describe('should check all utils functions', () => {
       expect(spyCore.warning).toHaveBeenCalledTimes(1)
       expect(content).toEqual('')
       expect(spyCore.warning).toHaveBeenCalledWith(
-        `No content found in file "${pathToFile}"`
+        `No content found in file "${pathToFile}"`,
       )
     })
 
@@ -76,7 +76,7 @@ describe('should check all utils functions', () => {
       expect(spyCore.warning).toHaveBeenCalledTimes(1)
       expect(content).toEqual('')
       expect(spyCore.warning).toHaveBeenCalledWith(
-        `No content found in file "${pathToFile}"`
+        `No content found in file "${pathToFile}"`,
       )
     })
 
@@ -84,14 +84,14 @@ describe('should check all utils functions', () => {
       const pathToFile = '__mocks__/coverage.txt'
       const originalContent = readFileSync(
         `${GITHUB_WORKSPACE}/${pathToFile}`,
-        'utf8'
+        'utf8',
       )
       const content = getContentFile(pathToFile)
 
       expect(spyCore.info).toHaveBeenCalledTimes(1)
       expect(content).toEqual(originalContent)
       expect(spyCore.info).toHaveBeenCalledWith(
-        `File read successfully "${pathToFile}"`
+        `File read successfully "${pathToFile}"`,
       )
     })
   })

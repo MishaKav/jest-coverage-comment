@@ -62,7 +62,7 @@ export async function parseJunit(xmlContent: string): Promise<Junit | null> {
 export function junitToMarkdown(
   junit: Junit,
   options: Options,
-  withoutHeader = false
+  withoutHeader = false,
 ): string {
   const { skipped, errors, failures, tests, time } = junit
   const displayTime =

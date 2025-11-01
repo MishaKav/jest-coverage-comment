@@ -34,7 +34,7 @@ function isFolderLine(arr: string[]): boolean {
 }
 
 export function getTotalLine(
-  coverageArr: CoverageLine[]
+  coverageArr: CoverageLine[],
 ): CoverageLine | undefined {
   return coverageArr.find((c) => c.file === 'All files')
 }
