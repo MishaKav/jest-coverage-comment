@@ -47,7 +47,7 @@
     "babel-plugin-rewire": "^1.2.0",
     "eslint": "^8.36.0",
     "eslint-import-resolver-typescript": "^3.5.3",
-    "eslint-plugin-github": "^4.6.1",
+    "eslint-plugin-github": "^6.0.0",
     "eslint-plugin-jest": "^28.14.0",
     "jest-junit": "^16.0.0",
     "prettier": "^2.8.8",
