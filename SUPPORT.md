@@ -5,8 +5,8 @@ Need help with jest-coverage-comment? Here's how to get assistance:
 ## Documentation
 
 - **README**: [Quick start, configuration, and examples](README.md)
-- **Troubleshooting**: See the [Troubleshooting section](README.md#troubleshooting) in the README
-- **Examples**: See [Usage Examples](README.md#-usage-examples) in the README for sample workflows
+- **Troubleshooting**: See the [Troubleshooting section](README.md#-troubleshooting) in the README
+- **Examples**: See [Usage Examples](README.md#usage-examples) in the README for sample workflows
 
 ## Getting Help
 
