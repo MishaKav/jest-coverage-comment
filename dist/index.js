@@ -601,6 +601,9 @@ async function main() {
         const junitFile = core.getInput('junitxml-path', {
             required: false,
         });
+        const showFailedTests = core.getBooleanInput('show-failed-tests', {
+            required: false,
+        });
         const coverageTitle = core.getInput('coverage-title', { required: false });
         const coverageFile = core.getInput('coverage-path', {
             required: false,
@@ -648,6 +651,7 @@ async function main() {
             issueNumber,
             junitTitle,
             junitFile,
+            showFailedTests,
             coverageTitle,
             coverageFile,
             coveragePathPrefix,
@@ -836,12 +840,35 @@ async function parseJunit(xmlContent) {
         const skipped = testsuites
             ?.map((t) => Number(t['$'].skipped))
             .reduce((sum, a) => sum + a, 0) || 0;
+        // Extract failed test details
+        const failedTests = [];
+        if (testsuites) {
+            for (const testsuite of testsuites) {
+                const testcases = testsuite.testcase;
+                if (testcases) {
+                    for (const testcase of testcases) {
+                        const failure = testcase.failure?.[0];
+                        const error = testcase.error?.[0];
+                        if (failure || error) {
+                            const failureInfo = failure || error;
+                            failedTests.push({
+                                name: testcase['$']?.name || 'Unknown test',
+                                classname: testcase['$']?.classname,
+                                message: failureInfo['$']?.message || failureInfo._ || undefined,
+                                type: failureInfo['$']?.type || (failure ? 'failure' : 'error'),
+                            });
+                        }
+                    }
+                }
+            }
+        }
         return {
             skipped,
             errors: Number(main.errors || errors),
             failures: Number(main.failures),
             tests: Number(main.tests),
             time: Number(main.time),
+            failedTests: failedTests.length > 0 ? failedTests : undefined,
         };
     }
     catch (error) {
@@ -854,14 +881,31 @@ async function parseJunit(xmlContent) {
 exports.parseJunit = parseJunit;
 /** Convert JUnit from JUnit XML to md. */
 function junitToMarkdown(junit, options, withoutHeader = false) {
-    const { skipped, errors, failures, tests, time } = junit;
+    const { skipped, errors, failures, tests, time, failedTests } = junit;
     const displayTime = time > 60 ? `${(time / 60) | 0}m ${time % 60 | 0}s` : `${time}s`;
     const tableHeader = `| Tests | Skipped | Failures | Errors | Time |
 | ----- | ------- | -------- | -------- | ------------------ |`;
     const content = `| ${tests} | ${skipped} :zzz: | ${failures} :x: | ${errors} :fire: | ${displayTime} :stopwatch: |`;
-    const table = `${tableHeader}
+    let table = `${tableHeader}
 ${content}
 `;
+    // Add failed tests table if enabled and there are failed tests
+    if (options.showFailedTests &&
+        failedTests &&
+        failedTests.length > 0 &&
+        !withoutHeader) {
+        const failedTestsHeader = `\n### Failed Tests\n\n| Test Name | Message |\n| --------- | ------- |`;
+        const failedTestsRows = failedTests
+            .map(test => {
+            // Truncate message to keep table readable, remove newlines
+            const message = test.message
+                ? test.message.split('\n')[0].substring(0, 100)
+                : test.type || '';
+            return `| ${test.name} | ${message} |`;
+        })
+            .join('\n');
+        table += `${failedTestsHeader}\n${failedTestsRows}\n`;
+    }
     if (withoutHeader) {
         return content;
     }

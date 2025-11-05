@@ -12,6 +12,7 @@ A GitHub Action that adds Jest test coverage reports as comments to your pull re
 - 📊 **Visual Coverage Reports** - Automatically comments on PRs with detailed coverage tables
 - 🏷️ **Coverage Badges** - Dynamic badges showing coverage percentage with color coding
 - 📈 **Test Statistics** - Shows passed, failed, skipped tests with execution time via JUnit XML
+- ❌ **Failed Tests Table** - Optionally displays which tests failed with error messages for quick debugging
 - 🔗 **Direct File Links** - Click to view uncovered lines directly in your repository
 - 📁 **Multiple Reports** - Support for monorepo with multiple coverage reports
 - 🎨 **Customizable** - Flexible titles, badges, and display options
@@ -139,6 +140,7 @@ jobs:
 | `badge-title`           | `Coverage`        | Title for the badge icon                                      |
 | `text-instead-badge`    | `false`           | Use simple text instead of badge images for coverage display  |
 | `junitxml-title`        |                   | Title for summary for junitxml                                |
+| `show-failed-tests`     | `false`           | Show a table with the names of failed tests (requires junitxml-path) |
 | `coverage-title`        | `Coverage Report` | Title for the coverage report                                 |
 | `hide-summary`          | `false`           | Hide coverage summary report                                  |
 | `hide-comment`          | `false`           | Hide the whole comment (use when you need only the `output`)  |
@@ -338,6 +340,31 @@ Workflow:
 **Output**: Table showing tests count, skipped, failures, errors, and execution time.
 
 <img alt="JUnit Report (Single File)" width="400px" src="https://user-images.githubusercontent.com/289035/161068120-303b47a9-c8e2-4fa6-80db-21aefbf9033b.png">
+
+</details>
+
+<details>
+<summary>Show Failed Tests Table (New in v1.0.30)</summary>
+
+To display a detailed table of failed tests, enable the `show-failed-tests` option:
+
+```yaml
+- name: Run tests
+  run: npx jest --coverage
+
+- name: Jest Coverage Comment
+  uses: MishaKav/jest-coverage-comment@main
+  with:
+    junitxml-path: ./coverage/junit.xml
+    junitxml-title: Test Results
+    show-failed-tests: true
+```
+
+**Output**: In addition to the standard test statistics, a "Failed Tests" table will be shown with:
+- Test name
+- Error message (first line, truncated to 100 characters)
+
+This provides quick visibility into which tests failed without having to dig through logs, making it easier to identify and address test failures directly from the pull request comment.
 
 </details>
 

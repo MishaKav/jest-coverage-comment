@@ -35,6 +35,9 @@ async function main(): Promise<void> {
     const junitFile = core.getInput('junitxml-path', {
       required: false,
     })
+    const showFailedTests = core.getBooleanInput('show-failed-tests', {
+      required: false,
+    })
     const coverageTitle = core.getInput('coverage-title', { required: false })
     const coverageFile = core.getInput('coverage-path', {
       required: false,
@@ -91,6 +94,7 @@ async function main(): Promise<void> {
       issueNumber,
       junitTitle,
       junitFile,
+      showFailedTests,
       coverageTitle,
       coverageFile,
       coveragePathPrefix,

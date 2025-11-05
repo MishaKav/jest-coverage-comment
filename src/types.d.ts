@@ -27,6 +27,7 @@ export interface Options {
   changedFiles?: ChangedFiles | null
   multipleFiles?: string[]
   multipleJunitFiles?: string[]
+  showFailedTests?: boolean
 }
 
 export interface ChangedFiles {
@@ -66,12 +67,20 @@ export interface SummaryReport {
   color: CoverageColor
 }
 
+export interface FailedTest {
+  name: string
+  classname?: string
+  message?: string
+  type?: string
+}
+
 export interface Junit {
   skipped: number // calculated field
   tests: number
   failures: number
   errors: number
   time: number
+  failedTests?: FailedTest[]
 }
 
 export interface JunitReport extends Junit {

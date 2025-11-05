@@ -63,6 +63,43 @@ describe('parsing junit', () => {
     expect(junit?.tests).toBe(2)
     expect(junit?.time).toBe(0.981)
   })
+
+  test('should extract failed test details', async () => {
+    const xml =
+      '<?xml version="1.0" encoding="UTF-8"?><testsuites tests="3" failures="2" errors="0" time="0.5"><testsuite name="test suite" errors="0" failures="2" skipped="0" time="0.5" tests="3"><testcase classname="MyClass" name="test that passes" time="0.1"></testcase><testcase classname="MyClass" name="test that fails" time="0.2"><failure message="Expected true to be false" type="AssertionError">Error message here</failure></testcase><testcase classname="MyClass" name="another failed test" time="0.2"><failure message="Expected 1 to be 2">Full error stack trace</failure></testcase></testsuite></testsuites>'
+    const junit = await parseJunit(xml)
+
+    expect(junit?.failures).toBe(2)
+    expect(junit?.failedTests).toHaveLength(2)
+    expect(junit?.failedTests?.[0].name).toBe('test that fails')
+    expect(junit?.failedTests?.[0].classname).toBe('MyClass')
+    expect(junit?.failedTests?.[0].message).toBe('Expected true to be false')
+    expect(junit?.failedTests?.[0].type).toBe('AssertionError')
+    expect(junit?.failedTests?.[1].name).toBe('another failed test')
+    expect(junit?.failedTests?.[1].message).toBe('Expected 1 to be 2')
+  })
+
+  test('should extract error test details', async () => {
+    const xml =
+      '<?xml version="1.0" encoding="UTF-8"?><testsuites tests="2" failures="0" errors="1" time="0.3"><testsuite name="test suite" errors="1" failures="0" skipped="0" time="0.3" tests="2"><testcase classname="MyClass" name="test that passes" time="0.1"></testcase><testcase classname="MyClass" name="test with error" time="0.2"><error message="Unexpected error occurred" type="RuntimeError">Error stack trace</error></testcase></testsuite></testsuites>'
+    const junit = await parseJunit(xml)
+
+    expect(junit?.errors).toBe(1)
+    expect(junit?.failedTests).toHaveLength(1)
+    expect(junit?.failedTests?.[0].name).toBe('test with error')
+    expect(junit?.failedTests?.[0].message).toBe('Unexpected error occurred')
+    expect(junit?.failedTests?.[0].type).toBe('RuntimeError')
+  })
+
+  test('should not include failedTests when no failures', async () => {
+    const xml =
+      '<?xml version="1.0" encoding="UTF-8"?><testsuites tests="2" failures="0" errors="0" time="0.2"><testsuite name="test suite" errors="0" failures="0" skipped="0" time="0.2" tests="2"><testcase classname="MyClass" name="test 1" time="0.1"></testcase><testcase classname="MyClass" name="test 2" time="0.1"></testcase></testsuite></testsuites>'
+    const junit = await parseJunit(xml)
+
+    expect(junit?.failures).toBe(0)
+    expect(junit?.errors).toBe(0)
+    expect(junit?.failedTests).toBeUndefined()
+  })
 })
 
 describe('parse junit and check report output', () => {
@@ -125,5 +162,125 @@ describe('parse junit and check report output', () => {
     junit.time = 555.0532
     const markdown = junitToMarkdown(junit, options)
     expect(markdown).toEqual(html)
+  })
+
+  test('should show failed tests table when enabled', async () => {
+    const optionsWithFailedTests = { ...options, showFailedTests: true }
+    const junit = {
+      tests: 3,
+      skipped: 0,
+      failures: 2,
+      errors: 0,
+      time: 0.5,
+      failedTests: [
+        {
+          name: 'test that fails',
+          classname: 'MyClass',
+          message: 'Expected true to be false',
+          type: 'AssertionError',
+        },
+        {
+          name: 'another failed test',
+          classname: 'MyClass',
+          message: 'Expected 1 to be 2',
+          type: 'failure',
+        },
+      ],
+    }
+
+    const markdown = junitToMarkdown(junit, optionsWithFailedTests)
+    expect(markdown).toContain('### Failed Tests')
+    expect(markdown).toContain('| Test Name | Message |')
+    expect(markdown).toContain(
+      '| test that fails | Expected true to be false |'
+    )
+    expect(markdown).toContain('| another failed test | Expected 1 to be 2 |')
+  })
+
+  test('should not show failed tests table when disabled', async () => {
+    const optionsWithoutFailedTests = { ...options, showFailedTests: false }
+    const junit = {
+      tests: 3,
+      skipped: 0,
+      failures: 2,
+      errors: 0,
+      time: 0.5,
+      failedTests: [
+        {
+          name: 'test that fails',
+          classname: 'MyClass',
+          message: 'Expected true to be false',
+          type: 'AssertionError',
+        },
+      ],
+    }
+
+    const markdown = junitToMarkdown(junit, optionsWithoutFailedTests)
+    expect(markdown).not.toContain('### Failed Tests')
+    expect(markdown).not.toContain('test that fails')
+  })
+
+  test('should not show failed tests table when no failures', async () => {
+    const optionsWithFailedTests = { ...options, showFailedTests: true }
+    const junit = {
+      tests: 2,
+      skipped: 0,
+      failures: 0,
+      errors: 0,
+      time: 0.2,
+    }
+
+    const markdown = junitToMarkdown(junit, optionsWithFailedTests)
+    expect(markdown).not.toContain('### Failed Tests')
+  })
+
+  test('should truncate long error messages', async () => {
+    const optionsWithFailedTests = { ...options, showFailedTests: true }
+    const longMessage =
+      'This is a very long error message that should be truncated to keep the table readable and not overflow the width of the comment'
+    const junit = {
+      tests: 1,
+      skipped: 0,
+      failures: 1,
+      errors: 0,
+      time: 0.1,
+      failedTests: [
+        {
+          name: 'test with long message',
+          classname: 'MyClass',
+          message: longMessage,
+          type: 'AssertionError',
+        },
+      ],
+    }
+
+    const markdown = junitToMarkdown(junit, optionsWithFailedTests)
+    expect(markdown).toContain('### Failed Tests')
+    expect(markdown).not.toContain(longMessage) // Full message should not appear
+    expect(markdown).toContain(longMessage.substring(0, 100)) // Truncated version should appear
+  })
+
+  test('should handle multiline error messages', async () => {
+    const optionsWithFailedTests = { ...options, showFailedTests: true }
+    const multilineMessage = 'First line of error\nSecond line\nThird line'
+    const junit = {
+      tests: 1,
+      skipped: 0,
+      failures: 1,
+      errors: 0,
+      time: 0.1,
+      failedTests: [
+        {
+          name: 'test with multiline message',
+          classname: 'MyClass',
+          message: multilineMessage,
+          type: 'AssertionError',
+        },
+      ],
+    }
+
+    const markdown = junitToMarkdown(junit, optionsWithFailedTests)
+    expect(markdown).toContain('First line of error')
+    expect(markdown).not.toContain('Second line') // Only first line should appear
   })
 })

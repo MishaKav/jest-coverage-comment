@@ -75,6 +75,11 @@ inputs:
     default: ''
     required: false
 
+  show-failed-tests:
+    description: 'Show a table with the names of failed tests (requires junitxml-path)'
+    default: 'false'
+    required: false
+
   coverage-path:
     description: 'The location of the coverage.txt (Jest console output)'
     default: ''

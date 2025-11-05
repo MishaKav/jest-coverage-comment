@@ -1,7 +1,7 @@
 /* eslint-disable  @typescript-eslint/no-explicit-any */
 import * as core from '@actions/core'
 import * as xml2js from 'xml2js'
-import { Junit, JunitReport, Options } from './types.d'
+import { Junit, JunitReport, Options, FailedTest } from './types.d'
 import { getContentFile } from './utils'
 
 /** Parse junit.xml to Junit object */
@@ -42,12 +42,38 @@ export async function parseJunit(xmlContent: string): Promise<Junit | null> {
         ?.map((t: any) => Number(t['$'].skipped))
         .reduce((sum: number, a: number) => sum + a, 0) || 0
 
+    // Extract failed test details
+    const failedTests: FailedTest[] = []
+    if (testsuites) {
+      for (const testsuite of testsuites) {
+        const testcases = testsuite.testcase
+        if (testcases) {
+          for (const testcase of testcases) {
+            const failure = testcase.failure?.[0]
+            const error = testcase.error?.[0]
+
+            if (failure || error) {
+              const failureInfo = failure || error
+              failedTests.push({
+                name: testcase['$']?.name || 'Unknown test',
+                classname: testcase['$']?.classname,
+                message:
+                  failureInfo['$']?.message || failureInfo._ || undefined,
+                type: failureInfo['$']?.type || (failure ? 'failure' : 'error'),
+              })
+            }
+          }
+        }
+      }
+    }
+
     return {
       skipped,
       errors: Number(main.errors || errors),
       failures: Number(main.failures),
       tests: Number(main.tests),
       time: Number(main.time),
+      failedTests: failedTests.length > 0 ? failedTests : undefined,
     } as Junit
   } catch (error) {
     if (error instanceof Error) {
@@ -64,16 +90,36 @@ export function junitToMarkdown(
   options: Options,
   withoutHeader = false
 ): string {
-  const { skipped, errors, failures, tests, time } = junit
+  const { skipped, errors, failures, tests, time, failedTests } = junit
   const displayTime =
     time > 60 ? `${(time / 60) | 0}m ${time % 60 | 0}s` : `${time}s`
 
   const tableHeader = `| Tests | Skipped | Failures | Errors | Time |
 | ----- | ------- | -------- | -------- | ------------------ |`
   const content = `| ${tests} | ${skipped} :zzz: | ${failures} :x: | ${errors} :fire: | ${displayTime} :stopwatch: |`
-  const table = `${tableHeader}
+  let table = `${tableHeader}
 ${content}
 `
+
+  // Add failed tests table if enabled and there are failed tests
+  if (
+    options.showFailedTests &&
+    failedTests &&
+    failedTests.length > 0 &&
+    !withoutHeader
+  ) {
+    const failedTestsHeader = `\n### Failed Tests\n\n| Test Name | Message |\n| --------- | ------- |`
+    const failedTestsRows = failedTests
+      .map((test) => {
+        // Truncate message to keep table readable, remove newlines
+        const message = test.message
+          ? test.message.split('\n')[0].substring(0, 100)
+          : test.type || ''
+        return `| ${test.name} | ${message} |`
+      })
+      .join('\n')
+    table += `${failedTestsHeader}\n${failedTestsRows}\n`
+  }
 
   if (withoutHeader) {
     return content
