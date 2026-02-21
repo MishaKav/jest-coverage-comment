@@ -16,8 +16,8 @@ export async function createComment(
     const issue_number = payload.pull_request
       ? payload.pull_request.number
       : options.issueNumber
-      ? Number(options.issueNumber)
-      : 0
+        ? Number(options.issueNumber)
+        : 0
 
     if (body.length > MAX_COMMENT_LENGTH) {
       const warningsArr = [
@@ -78,7 +78,7 @@ export async function createComment(
           issue_number,
         })
 
-        const comment = comments.find((c) =>
+        const comment = comments.find((c: { body?: string | null }) =>
           c.body?.startsWith(options.watermark)
         )
 
@@ -124,7 +124,7 @@ export async function createComment(
             issue_number,
           })
 
-          const comment = comments.find((c) =>
+          const comment = comments.find((c: { body?: string | null }) =>
             c.body?.startsWith(options.watermark)
           )
 

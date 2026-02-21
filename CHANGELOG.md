@@ -1,5 +1,14 @@
 # Changelog of the Jest Coverage Comment
 
+## [Jest Coverage Comment 1.0.30](https://github.com/MishaKav/jest-coverage-comment/tree/v1.0.30)
+
+**Release Date:** 2026-02-21
+
+#### Changes
+
+- Bump Node runtime from `node20` to `node24`
+- Bump dependencies to latest compatible versions
+
 ## [Jest Coverage Comment 1.0.29](https://github.com/MishaKav/jest-coverage-comment/tree/v1.0.29)
 
 **Release Date:** 2025-09-24

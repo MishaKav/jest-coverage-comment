@@ -16,7 +16,7 @@ export default [
     languageOptions: {
       parser: tseslint.parser,
       parserOptions: {
-        ecmaVersion: 2020,
+        ecmaVersion: 2022,
         sourceType: 'module',
         project: './tsconfig.eslint.json',
       },
@@ -42,7 +42,7 @@ export default [
         { allowExpressions: true },
       ],
       '@typescript-eslint/no-array-constructor': 'error',
-      '@typescript-eslint/no-empty-interface': 'error',
+      '@typescript-eslint/no-empty-object-type': 'error',
       '@typescript-eslint/no-explicit-any': 'error',
       '@typescript-eslint/no-extraneous-class': 'error',
       '@typescript-eslint/no-for-in-array': 'error',
@@ -53,7 +53,6 @@ export default [
       '@typescript-eslint/no-unnecessary-qualifier': 'error',
       '@typescript-eslint/no-unnecessary-type-assertion': 'error',
       '@typescript-eslint/no-useless-constructor': 'error',
-      '@typescript-eslint/no-var-requires': 'error',
       '@typescript-eslint/prefer-for-of': 'warn',
       '@typescript-eslint/prefer-function-type': 'warn',
       '@typescript-eslint/prefer-includes': 'error',
