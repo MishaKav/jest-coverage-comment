@@ -29,8 +29,8 @@ export async function parseJunit(xmlContent: string): Promise<Junit | null> {
     const testsuites = parsedJunit.testsuites?.testsuite
       ? parsedJunit.testsuites?.testsuite
       : parsedJunit.testsuite
-      ? [parsedJunit.testsuite]
-      : null
+        ? [parsedJunit.testsuite]
+        : null
 
     const errors =
       testsuites
@@ -66,7 +66,7 @@ export function junitToMarkdown(
 ): string {
   const { skipped, errors, failures, tests, time } = junit
   const displayTime =
-    time > 60 ? `${(time / 60) | 0}m ${time % 60 | 0}s` : `${time}s`
+    time > 60 ? `${(time / 60) | 0}m ${(time % 60) | 0}s` : `${time}s`
 
   const tableHeader = `| Tests | Skipped | Failures | Errors | Time |
 | ----- | ------- | -------- | -------- | ------------------ |`
