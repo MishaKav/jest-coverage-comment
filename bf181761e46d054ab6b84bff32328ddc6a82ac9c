@@ -1,0 +1,39 @@
+.prettierrc.json
+  2e2fab1ac0566dae 3-4
+CHANGELOG.md
+  2e2fab1ac0566dae 3-11
+src/create-comment.ts
+  2e2fab1ac0566dae 81,127
+action.yml
+  2e2fab1ac0566dae 144
+tsconfig.json
+  2e2fab1ac0566dae 3-9
+eslint.config.mjs
+  2e2fab1ac0566dae 19,45
+package.json
+  2e2fab1ac0566dae 3,35-37,42,44-45,48-49,51,53-54,56
+.github/workflows/update-coverage-in-readme.yml
+  2e2fab1ac0566dae 20
+.nvmrc
+  2e2fab1ac0566dae 1
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.4",
+  "base_commit_sha": "bf181761e46d054ab6b84bff32328ddc6a82ac9c",
+  "prompts": {
+    "2e2fab1ac0566dae": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "fec1ac23-cdb7-4dfc-9a43-bf9e09672280",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Misha Kav <misha.kav@gmail.com>",
+      "messages": [],
+      "total_additions": 64,
+      "total_deletions": 53,
+      "accepted_lines": 38,
+      "overriden_lines": 0
+    }
+  }
+}
