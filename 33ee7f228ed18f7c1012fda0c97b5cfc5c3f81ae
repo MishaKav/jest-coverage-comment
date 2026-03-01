@@ -1,0 +1,23 @@
+.github/workflows/update-coverage-in-readme.yml
+  4cb14993f2256187 16-24
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.6",
+  "base_commit_sha": "33ee7f228ed18f7c1012fda0c97b5cfc5c3f81ae",
+  "prompts": {
+    "4cb14993f2256187": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b225e9d2-3056-4547-a89c-d879960f3f81",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Misha Kav <misha.kav@gmail.com>",
+      "messages": [],
+      "total_additions": 11,
+      "total_deletions": 3,
+      "accepted_lines": 10,
+      "overriden_lines": 0
+    }
+  }
+}
