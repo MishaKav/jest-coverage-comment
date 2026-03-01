@@ -33,7 +33,7 @@
   },
   "dependencies": {
     "@actions/core": "^2.0.3",
-    "@actions/github": "^8.0.1",
+    "@actions/github": "^9.0.0",
     "strip-ansi": "^6.0.1",
     "xml2js": "^0.6.2"
   },
