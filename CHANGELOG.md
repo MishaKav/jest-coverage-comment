@@ -1,5 +1,15 @@
 # Changelog of the Jest Coverage Comment
 
+## [Jest Coverage Comment 1.0.31](https://github.com/MishaKav/jest-coverage-comment/tree/v1.0.31)
+
+**Release Date:** 2026-03-13
+
+#### Changes
+
+- enable immutable releases for supply chain security
+
+**Note:** No changes to action inputs, outputs, or behavior. This improves release security following [GitHub's immutable releases](https://docs.github.com/en/code-security/concepts/supply-chain-security/immutable-releases) feature.
+
 ## [Jest Coverage Comment 1.0.30](https://github.com/MishaKav/jest-coverage-comment/tree/v1.0.30)
 
 **Release Date:** 2026-02-21
