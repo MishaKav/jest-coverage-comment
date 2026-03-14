@@ -4,7 +4,7 @@ updates:
   - package-ecosystem: github-actions
     directory: /
     schedule:
-      interval: weekly
+      interval: monthly
 
   - package-ecosystem: npm
     directory: /
@@ -21,3 +21,16 @@ updates:
         update-types:
           - minor
           - patch
+    ignore:
+      # @actions/core v3, @actions/github v9, and strip-ansi v7+ are ESM-only
+      # ("type": "module"), which breaks our CommonJS build pipeline (tsc + ncc).
+      # Keep these pinned to their current major versions until the project migrates to ESM.
+      - dependency-name: '@actions/core'
+        update-types: ['version-update:semver-major']
+      - dependency-name: '@actions/github'
+        update-types: ['version-update:semver-major']
+      - dependency-name: 'strip-ansi'
+        update-types: ['version-update:semver-major']
+      # eslint v10 is blocked by eslint-plugin-github which only supports ^8 || ^9
+      - dependency-name: 'eslint'
+        update-types: ['version-update:semver-major']
