@@ -1,0 +1,27 @@
+.github/dependabot.yml
+  d827c52aefcc4d47 24-36
+package.json
+  d827c52aefcc4d47 3,41,43-44,47
+CHANGELOG.md
+  d827c52aefcc4d47 3-8,10
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.11",
+  "base_commit_sha": "1fab99f66d9138e999da516ffbde3909d2f66dd9",
+  "prompts": {
+    "d827c52aefcc4d47": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4c9222c0-7134-424d-9550-05b758ee9d26",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Misha Kav <misha.kav@gmail.com>",
+      "messages": [],
+      "total_additions": 33,
+      "total_deletions": 11,
+      "accepted_lines": 25,
+      "overriden_lines": 1
+    }
+  }
+}
