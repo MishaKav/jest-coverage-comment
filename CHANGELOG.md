@@ -1,5 +1,13 @@
 # Changelog of the Jest Coverage Comment
 
+## [Jest Coverage Comment 1.0.33](https://github.com/MishaKav/jest-coverage-comment/tree/v1.0.33)
+
+**Release Date:** 2026-04-18
+
+#### Changes
+
+- Bump dev dependencies
+
 ## [Jest Coverage Comment 1.0.32](https://github.com/MishaKav/jest-coverage-comment/tree/v1.0.32)
 
 **Release Date:** 2026-03-14
