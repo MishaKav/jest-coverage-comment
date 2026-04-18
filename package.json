@@ -28,6 +28,7 @@
     "test": "jest",
     "test:coverage": "npm test -- --coverage",
     "test:coverage:tee": "npm run test:coverage | tee ./coverage/covergate.txt",
+    "update-v1-tag": "git tag v1 -f && git push origin v1 -f",
     "all": "npm run build && npm run format && npm run lint && npm run package && npm test"
   },
   "dependencies": {
