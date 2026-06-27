@@ -1,5 +1,13 @@
 # Changelog of the Jest Coverage Comment
 
+## [Jest Coverage Comment 1.0.34](https://github.com/MishaKav/jest-coverage-comment/tree/v1.0.34)
+
+**Release Date:** 2026-06-27
+
+#### Changes
+
+- Bump dev dependencies to latest (`@vercel/ncc` v0.44, `jest-junit` v17, `@types/node` v26, `prettier`, `ts-jest`, and others)
+
 ## [Jest Coverage Comment 1.0.33](https://github.com/MishaKav/jest-coverage-comment/tree/v1.0.33)
 
 **Release Date:** 2026-04-18
