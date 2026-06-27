@@ -54,11 +54,7 @@ export interface Summary {
 }
 
 export type CoverageColor =
-  | 'red'
-  | 'orange'
-  | 'yellow'
-  | 'green'
-  | 'brightgreen'
+  'red' | 'orange' | 'yellow' | 'green' | 'brightgreen'
 
 export interface SummaryReport {
   summaryHtml: string
