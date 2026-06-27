@@ -1,0 +1,29 @@
+src/types.d.ts
+  s_fff2fc046ff460::t_af234325587fc9 57
+package.json
+  s_fff2fc046ff460::t_2e86315b9f1788 42,46,49,51-54
+  s_fff2fc046ff460::t_a1cda7096a1eaa 3
+CHANGELOG.md
+  s_fff2fc046ff460::t_7fc0d9c2f2b7bc 3-10
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.3",
+  "base_commit_sha": "3c41ba9998ac3be6f14545e61528c7398c792fb7",
+  "prompts": {},
+  "humans": {
+    "h_ea310c8a42b3f0": {
+      "author": "Misha Kav <misha.kav@gmail.com>"
+    }
+  },
+  "sessions": {
+    "s_fff2fc046ff460": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "055b346c-4508-49bf-87f7-ddc69bea5ca9",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Misha Kav <misha.kav@gmail.com>"
+    }
+  }
+}
