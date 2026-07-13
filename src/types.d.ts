@@ -26,6 +26,8 @@ export interface Options {
   changedFiles?: ChangedFiles | null
   multipleFiles?: string[]
   multipleJunitFiles?: string[]
+  coverageFinalFile?: string
+  coverageLcovFile?: string
 }
 
 export interface ChangedFiles {
@@ -35,6 +37,25 @@ export interface ChangedFiles {
   removed?: string[]
   renamed?: string[]
   addedOrModified?: string[]
+  // Map of repo-relative file path -> set of line numbers added/modified on the head side.
+  changedLines?: Record<string, number[]>
+}
+
+export interface PatchCoverage {
+  // Percentage (0-100) of changed executable lines that are covered.
+  coverage: number
+  color: CoverageColor
+  coveredLines: number
+  totalLines: number
+  files: PatchCoverageFile[]
+}
+
+export interface PatchCoverageFile {
+  file: string
+  coveredLines: number
+  totalLines: number
+  coverage: number
+  uncoveredLines: number[]
 }
 
 export interface LineSummary {

@@ -109,6 +109,16 @@ inputs:
     default: '0'
     required: false
 
+  coverage-final-path:
+    description: 'Location of Istanbul coverage-final.json, used to compute incremental (patch) coverage on changed lines'
+    default: ''
+    required: false
+
+  coverage-lcov-path:
+    description: 'Location of lcov.info, used as a fallback line-level source for incremental (patch) coverage when coverage-final.json is unavailable'
+    default: ''
+    required: false
+
 outputs:
   coverage:
     description: 'Value indicating the coverage percentage of your report based on Jest, example 78'
@@ -134,6 +144,12 @@ outputs:
     description: 'Functions covered, get from Jest text report'
   statements:
     description: 'Statements covered, get from Jest text report'
+  patch-coverage:
+    description: 'Incremental (patch) coverage: percentage of changed executable lines covered by tests'
+  patch-covered-lines:
+    description: 'Number of changed executable lines that are covered'
+  patch-total-lines:
+    description: 'Total number of changed executable lines considered for patch coverage'
 
 runs:
   using: 'node20'

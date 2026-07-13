@@ -12,6 +12,7 @@ export async function getChangedFiles(
   const removed: string[] = []
   const renamed: string[] = []
   const addedOrModified: string[] = []
+  const changedLines: Record<string, number[]> = {}
 
   try {
     const { eventName, payload } = context
@@ -82,6 +83,12 @@ export async function getChangedFiles(
 
         all.push(filename)
 
+        // Capture the head-side line numbers touched by this file's patch so we can
+        // compute patch (incremental) coverage against only the changed lines.
+        if (file.patch) {
+          changedLines[filename] = parsePatchAddedLines(file.patch)
+        }
+
         switch (status) {
           case 'added':
             added.push(filename)
@@ -119,5 +126,45 @@ export async function getChangedFiles(
     }
   }
 
-  return { all, added, modified, removed, renamed, addedOrModified }
+  return {
+    all,
+    added,
+    modified,
+    removed,
+    renamed,
+    addedOrModified,
+    changedLines,
+  }
+}
+
+/**
+ * Parse a unified-diff patch string and return the head-side (new file) line
+ * numbers that were added or modified. Only `+` lines are considered "changed".
+ */
+export function parsePatchAddedLines(patch: string): number[] {
+  const lines: number[] = []
+  // Hunk header: @@ -oldStart,oldLen +newStart,newLen @@
+  const hunkHeader = /^@@ -\d+(?:,\d+)? \+(\d+)(?:,\d+)? @@/
+  let newLineNo = 0
+
+  for (const raw of patch.split('\n')) {
+    const header = raw.match(hunkHeader)
+    if (header) {
+      newLineNo = parseInt(header[1], 10)
+      continue
+    }
+
+    if (raw.startsWith('+')) {
+      // Added/modified line present in the head revision.
+      lines.push(newLineNo)
+      newLineNo++
+    } else if (raw.startsWith('-')) {
+      // Deleted line - does not exist on the head side, do not advance.
+    } else {
+      // Context line - advances the head cursor.
+      newLineNo++
+    }
+  }
+
+  return lines
 }

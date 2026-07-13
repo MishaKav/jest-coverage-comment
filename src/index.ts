@@ -8,6 +8,7 @@ import { getSummaryReport } from './summary'
 import { getChangedFiles } from './changed-files'
 import { getMultipleReport } from './multi-files'
 import { getMultipleJunitReport } from './multi-junit-files'
+import { getPatchCoverage, patchCoverageToMarkdown } from './patch-coverage'
 
 async function main(): Promise<void> {
   try {
@@ -64,6 +65,14 @@ async function main(): Promise<void> {
       required: false,
     })
 
+    const coverageFinalFile = core.getInput('coverage-final-path', {
+      required: false,
+    })
+
+    const coverageLcovFile = core.getInput('coverage-lcov-path', {
+      required: false,
+    })
+
     const serverUrl = context.serverUrl || 'https://github.com'
     core.info(`Uses Github URL: ${serverUrl}`)
 
@@ -100,6 +109,8 @@ async function main(): Promise<void> {
       multipleFiles,
       multipleJunitFiles,
       netCoverageMain,
+      coverageFinalFile,
+      coverageLcovFile,
     }
 
     if (eventName === 'pull_request' && payload) {
@@ -111,7 +122,11 @@ async function main(): Promise<void> {
       options.head = context.ref
     }
 
-    if (options.reportOnlyChangedFiles) {
+    if (
+      options.reportOnlyChangedFiles ||
+      options.coverageFinalFile ||
+      options.coverageLcovFile
+    ) {
       const changedFiles = await getChangedFiles(options)
       options.changedFiles = changedFiles
 
@@ -174,6 +189,24 @@ async function main(): Promise<void> {
       const badge = `![${altText}](${badgeUrl})`
 
       finalHtml += `\n- Diff against \`develop\`: ${badge}`
+    }
+
+    if (options.coverageFinalFile || options.coverageLcovFile) {
+      const patch = getPatchCoverage(options)
+
+      if (patch) {
+        core.startGroup('Incremental (patch) coverage')
+        core.info(`patch-coverage: ${patch.coverage}`)
+        core.info(
+          `changed lines covered: ${patch.coveredLines}/${patch.totalLines}`
+        )
+        core.setOutput('patch-coverage', patch.coverage)
+        core.setOutput('patch-covered-lines', patch.coveredLines)
+        core.setOutput('patch-total-lines', patch.totalLines)
+        core.endGroup()
+
+        finalHtml += `\n${patchCoverageToMarkdown(patch, options)}`
+      }
     }
 
     if (!options.hideSummary) {
