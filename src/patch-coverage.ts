@@ -139,7 +139,10 @@ function loadLineHits(options: Options): LineHitsByFile | null {
   }
 
   core.warning(
-    'Patch coverage: no line-level coverage source found (coverage-final.json or lcov.info); skipping incremental coverage.'
+    'Patch coverage: no line-level coverage source found (coverage-final.json or lcov.info); ' +
+      'skipping incremental coverage (net coverage comment is still posted). ' +
+      'To enable the incremental gate, upload lcov.info or coverage-final.json in your coverage artifact: ' +
+      'https://postmanlabs.atlassian.net/wiki/spaces/QUAL/pages/8279130113'
   )
   return null
 }
@@ -274,7 +277,7 @@ export function getPatchCoverage(options: Options): PatchCoverage | null {
       file,
       coveredLines: fileCovered,
       totalLines: fileTotal,
-      coverage: Math.round((fileCovered / fileTotal) * 100),
+      coverage: Math.round((fileCovered / fileTotal) * 10000) / 100,
       uncoveredLines,
       instrumented: true,
     })
