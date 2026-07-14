@@ -66,31 +66,15 @@ async function getChangedFiles(options) {
         // Log the base and head commits
         core.info(`Base commit: ${base}`);
         core.info(`Head commit: ${head}`);
-        let response = null;
-        // For the first commit in repository we cannot get a diff
-        if (base === '0000000000000000000000000000000000000000') {
-            response = await octokit.rest.repos.getCommit({
-                owner,
-                repo,
-                ref: head,
-            });
-        }
-        else {
-            // https://developer.github.com/v3/repos/commits/#compare-two-commits
-            response = await octokit.rest.repos.compareCommits({
-                base,
-                head,
-                owner,
-                repo,
-            });
-        }
-        // Ensure that the request was successful
-        if (response.status !== 200) {
-            core.setFailed(`The GitHub API request for comparing the base and head commits for this '${eventName}' event returned ${response.status}, expected 200. ` +
-                "Please submit an issue on this action's GitHub repo.");
-        }
-        // Get the changed files from the response payload
-        const files = response.data.files;
+        // Get the changed files. Paginate the compare endpoint so large PRs
+        // (>300 files) don't silently lose changed-line data and let the gate
+        // pass on partially-analyzed diffs.
+        const files = base === '0000000000000000000000000000000000000000'
+            ? // For the first commit in a repository we cannot get a diff.
+                (await octokit.rest.repos.getCommit({ owner, repo, ref: head })).data
+                    .files
+            : // https://developer.github.com/v3/repos/commits/#compare-two-commits
+                await octokit.paginate(octokit.rest.repos.compareCommits, { base, head, owner, repo, per_page: 100 }, (response) => response.data.files ?? []);
         if (files?.length) {
             for (const file of files) {
                 const { filename: filenameOriginal, status } = file;
@@ -158,6 +142,10 @@ function parsePatchAddedLines(patch) {
         const header = raw.match(hunkHeader);
         if (header) {
             newLineNo = parseInt(header[1], 10);
+            continue;
+        }
+        if (raw.startsWith('\\')) {
+            // "\ No newline at end of file" marker - metadata, never a real line.
             continue;
         }
         if (raw.startsWith('+')) {
@@ -594,6 +582,15 @@ async function main() {
         const coverageLcovFile = core.getInput('coverage-lcov-path', {
             required: false,
         });
+        const patchThreshold = core.getInput('patch-coverage-threshold', {
+            required: false,
+        });
+        const patchSourceExtensions = core.getInput('patch-source-extensions', {
+            required: false,
+        });
+        const patchExcludePattern = core.getInput('patch-exclude-pattern', {
+            required: false,
+        });
         const serverUrl = github_1.context.serverUrl || 'https://github.com';
         core.info(`Uses Github URL: ${serverUrl}`);
         const { repo, owner } = github_1.context.repo;
@@ -630,6 +627,9 @@ async function main() {
             netCoverageMain,
             coverageFinalFile,
             coverageLcovFile,
+            patchThreshold,
+            patchSourceExtensions,
+            patchExcludePattern,
         };
         if (eventName === 'pull_request' && payload) {
             options.commit = payload.pull_request?.head.sha;
@@ -682,19 +682,40 @@ async function main() {
             const altText = `Coverage change: ${coverageChange}`;
             const badgeUrl = `https://img.shields.io/badge/${coverageChangeText}%25-${coverageChangeColor}.svg`;
             const badge = `![${altText}](${badgeUrl})`;
-            finalHtml += `\n- Diff against \`develop\`: ${badge}`;
+            const baseLabel = options.base ? `\`${options.base}\`` : 'base branch';
+            finalHtml += `\n- Diff against ${baseLabel}: ${badge}`;
         }
         if (options.coverageFinalFile || options.coverageLcovFile) {
             const patch = (0, patch_coverage_1.getPatchCoverage)(options);
             if (patch) {
+                const status = patch.meetsThreshold === null
+                    ? 'advisory'
+                    : patch.meetsThreshold
+                        ? 'pass'
+                        : 'fail';
                 core.startGroup('Incremental (patch) coverage');
                 core.info(`patch-coverage: ${patch.coverage}`);
                 core.info(`changed lines covered: ${patch.coveredLines}/${patch.totalLines}`);
+                core.info(`threshold: ${patch.threshold ?? 'none'} | status: ${status}`);
                 core.setOutput('patch-coverage', patch.coverage);
                 core.setOutput('patch-covered-lines', patch.coveredLines);
                 core.setOutput('patch-total-lines', patch.totalLines);
+                core.setOutput('patch-coverage-status', status);
                 core.endGroup();
-                finalHtml += `\n${(0, patch_coverage_1.patchCoverageToMarkdown)(patch, options)}`;
+                const patchMarkdown = (0, patch_coverage_1.patchCoverageToMarkdown)(patch, options);
+                finalHtml += `\n${patchMarkdown}`;
+                // Surface the result on the Actions run page too, so it is visible even
+                // when the comment lands as a commit comment (push-triggered workflows).
+                try {
+                    await core.summary
+                        .addRaw(`### ${title || 'Incremental coverage'}\n\n${patchMarkdown}`)
+                        .write();
+                }
+                catch (error) {
+                    if (error instanceof Error) {
+                        core.warning(`Failed to write job summary: ${error.message}`);
+                    }
+                }
             }
         }
         if (!options.hideSummary) {
@@ -1187,10 +1208,10 @@ const utils_1 = __nccwpck_require__(918);
  * Build line-hit data from an Istanbul coverage-final.json. A line is coverable
  * when a statement starts on it and covered when any such statement executed.
  */
-function lineHitsFromIstanbul(coverage, prefix) {
+function lineHitsFromIstanbul(coverage, prefix, pathPrefix) {
     const byFile = new Map();
     for (const [absPath, fileCoverage] of Object.entries(coverage)) {
-        const relative = absPath.replace(prefix, '');
+        const relative = normalizePath(absPath, prefix, pathPrefix);
         const lineHits = new Map();
         for (const [id, statement] of Object.entries(fileCoverage.statementMap)) {
             const line = statement.start?.line;
@@ -1204,15 +1225,26 @@ function lineHitsFromIstanbul(coverage, prefix) {
     }
     return byFile;
 }
+/**
+ * Normalize a coverage file path to the same repo-relative form used for
+ * changed files: strip the workspace prefix, then the coverage path prefix.
+ */
+function normalizePath(filePath, prefix, pathPrefix) {
+    let relative = filePath.replace(prefix, '');
+    if (pathPrefix) {
+        relative = relative.replace(pathPrefix, '');
+    }
+    return relative;
+}
 /** Build line-hit data from an lcov.info report (DA:<line>,<hits> records). */
-function lineHitsFromLcov(content, prefix) {
+function lineHitsFromLcov(content, prefix, pathPrefix) {
     const byFile = new Map();
     let currentFile = null;
     let lineHits = new Map();
     for (const raw of content.split('\n')) {
         const line = raw.trim();
         if (line.startsWith('SF:')) {
-            currentFile = line.slice(3).replace(prefix, '');
+            currentFile = normalizePath(line.slice(3), prefix, pathPrefix);
             lineHits = new Map();
         }
         else if (line.startsWith('DA:') && currentFile) {
@@ -1234,11 +1266,12 @@ function lineHitsFromLcov(content, prefix) {
 /** Load line-hit data from whichever source is configured (Istanbul preferred). */
 function loadLineHits(options) {
     const { coverageFinalFile, coverageLcovFile, prefix } = options;
+    const pathPrefix = options.coveragePathPrefix || '';
     if (coverageFinalFile) {
         const resolved = (0, utils_1.getPathToFile)(coverageFinalFile);
         if ((0, fs_1.existsSync)(resolved)) {
             try {
-                return lineHitsFromIstanbul(JSON.parse((0, utils_1.getContentFile)(coverageFinalFile)), prefix);
+                return lineHitsFromIstanbul(JSON.parse((0, utils_1.getContentFile)(coverageFinalFile)), prefix, pathPrefix);
             }
             catch (error) {
                 if (error instanceof Error) {
@@ -1250,11 +1283,54 @@ function loadLineHits(options) {
     if (coverageLcovFile) {
         const resolved = (0, utils_1.getPathToFile)(coverageLcovFile);
         if ((0, fs_1.existsSync)(resolved)) {
-            return lineHitsFromLcov((0, utils_1.getContentFile)(coverageLcovFile), prefix);
+            return lineHitsFromLcov((0, utils_1.getContentFile)(coverageLcovFile), prefix, pathPrefix);
         }
     }
     core.warning('Patch coverage: no line-level coverage source found (coverage-final.json or lcov.info); skipping incremental coverage.');
     return null;
+}
+const DEFAULT_SOURCE_EXTENSIONS = ['.js', '.jsx', '.mjs', '.cjs', '.ts', '.tsx'];
+// Files that are source-like by extension but should never count as coverable.
+const NON_COVERABLE = /(\.test\.|\.spec\.|\.d\.ts$|__tests__\/|__mocks__\/)/;
+/**
+ * Decide whether a changed file without coverage data should still be counted
+ * (as fully uncovered). This closes the gap where a brand-new, untested source
+ * file is absent from the coverage report and would otherwise be skipped,
+ * letting the gate pass at a misleading 100%.
+ */
+function isCoverableSource(file, options) {
+    const extensions = (options.patchSourceExtensions || '')
+        .split(',')
+        .map((ext) => ext.trim())
+        .filter(Boolean);
+    const allowed = extensions.length ? extensions : DEFAULT_SOURCE_EXTENSIONS;
+    if (!allowed.some((ext) => file.endsWith(ext))) {
+        return false;
+    }
+    if (NON_COVERABLE.test(file)) {
+        return false;
+    }
+    if (options.patchExcludePattern) {
+        try {
+            if (new RegExp(options.patchExcludePattern).test(file)) {
+                return false;
+            }
+        }
+        catch (error) {
+            if (error instanceof Error) {
+                core.warning(`Patch coverage: invalid patch-exclude-pattern ignored. ${error.message}`);
+            }
+        }
+    }
+    return true;
+}
+/** Parse the configured threshold; returns null when unset/invalid (advisory). */
+function parseThreshold(raw) {
+    if (raw === undefined || raw === null || raw.trim() === '') {
+        return null;
+    }
+    const value = Number(raw);
+    return Number.isFinite(value) ? value : null;
 }
 /**
  * Compute incremental (patch) coverage: the percentage of changed executable
@@ -1278,9 +1354,26 @@ function getPatchCoverage(options) {
     let totalChanged = 0;
     let coveredChanged = 0;
     for (const [file, lines] of Object.entries(changedFiles.changedLines)) {
+        if (!lines.length) {
+            continue;
+        }
         const lineHits = lineHitsByFile.get(file);
         if (!lineHits) {
-            // File has no coverage data (non-source or untested new file).
+            // No coverage data for this file. Skip non-source files (docs, config,
+            // fixtures); treat coverable source files as fully uncovered so a new,
+            // untested file cannot slip past the gate.
+            if (!isCoverableSource(file, options)) {
+                continue;
+            }
+            totalChanged += lines.length;
+            files.push({
+                file,
+                coveredLines: 0,
+                totalLines: lines.length,
+                coverage: 0,
+                uncoveredLines: [...lines],
+                instrumented: false,
+            });
             continue;
         }
         let fileTotal = 0;
@@ -1310,50 +1403,85 @@ function getPatchCoverage(options) {
             totalLines: fileTotal,
             coverage: Math.round((fileCovered / fileTotal) * 100),
             uncoveredLines,
+            instrumented: true,
         });
     }
     // No changed executable lines => nothing to gate on; treat as fully covered.
     const pct = totalChanged === 0 ? 100 : (coveredChanged / totalChanged) * 100;
     const rounded = Math.round(pct * 100) / 100;
     const color = (0, utils_1.getCoverageColor)(rounded);
+    const threshold = parseThreshold(options.patchThreshold);
+    const meetsThreshold = threshold === null ? null : rounded >= threshold;
     return {
         coverage: rounded,
         color,
         coveredLines: coveredChanged,
         totalLines: totalChanged,
         files,
+        threshold,
+        meetsThreshold,
     };
 }
 exports.getPatchCoverage = getPatchCoverage;
+// Cap how many uncovered lines we render per file to keep the comment readable.
+const MAX_UNCOVERED_LINKS = 25;
 /** Render the patch coverage section as markdown for the PR comment. */
 function patchCoverageToMarkdown(patch, options) {
     const badgeUrl = `https://img.shields.io/badge/Incremental_Coverage-${patch.coverage}%25-${patch.color}.svg`;
     const badge = `![Incremental Coverage: ${patch.coverage}%](${badgeUrl})`;
-    const summaryLine = patch.totalLines === 0
-        ? '- Incremental coverage: no changed executable lines in this PR.'
-        : `- Incremental (changed-line) coverage: ${badge} (${patch.coveredLines}/${patch.totalLines} changed lines covered)`;
-    if (!patch.files.length) {
-        return summaryLine;
+    // Nothing testable changed => explicitly say so; the gate treats this as a pass.
+    if (patch.totalLines === 0) {
+        return '- Incremental (changed-line) coverage: no changed executable lines in this PR.';
     }
+    const requirement = patch.threshold !== null ? ` (required \u2265 ${patch.threshold}%)` : '';
+    const statusIcon = patch.meetsThreshold === null
+        ? ''
+        : patch.meetsThreshold
+            ? '\u2705 '
+            : '\u274c ';
+    const summaryLine = `- ${statusIcon}Incremental (changed-line) coverage: ${badge} ` +
+        `(${patch.coveredLines}/${patch.totalLines} changed lines covered)${requirement}`;
+    const sections = [summaryLine];
+    // When the gate is failing, tell the author exactly how to unblock.
+    if (patch.meetsThreshold === false) {
+        sections.push(`> \u274c **Merge blocked by incremental coverage.** Add tests that cover the changed lines below to reach \u2265 ${patch.threshold}%. ` +
+            `Lines that are genuinely untestable can be excluded from your coverage config (e.g. \`collectCoverageFrom\` / nyc \`all\`) or via the action's exclude pattern.`);
+    }
+    if (patch.files.length) {
+        sections.push(renderFileTable(patch, options));
+    }
+    return sections.join('\n\n');
+}
+exports.patchCoverageToMarkdown = patchCoverageToMarkdown;
+function renderFileTable(patch, options) {
     const { serverUrl = 'https://github.com', repository, commit, coveragePathPrefix = '', } = options;
     const header = '<tr><th>Changed File</th><th>% Covered</th><th>Covered / Total</th><th>Uncovered changed lines</th></tr>';
     const rows = patch.files
         .map((f) => {
-        const uncovered = f.uncoveredLines.length
-            ? f.uncoveredLines
+        let uncovered;
+        if (!f.instrumented) {
+            uncovered =
+                '<em>no coverage data \u2014 new/untested file (counted as uncovered)</em>';
+        }
+        else if (f.uncoveredLines.length) {
+            const shown = f.uncoveredLines.slice(0, MAX_UNCOVERED_LINKS);
+            const links = shown
                 .map((line) => {
                 const href = `${serverUrl}/${repository}/blob/${commit}/${coveragePathPrefix}${f.file}#L${line}`;
                 return `<a href="${href}">${line}</a>`;
             })
-                .join(', ')
-            : '&nbsp;';
+                .join(', ');
+            const extra = f.uncoveredLines.length - shown.length;
+            uncovered = extra > 0 ? `${links}, \u2026 (+${extra} more)` : links;
+        }
+        else {
+            uncovered = '&nbsp;';
+        }
         return `<tr><td>${f.file}</td><td>${f.coverage}%</td><td>${f.coveredLines}/${f.totalLines}</td><td>${uncovered}</td></tr>`;
     })
         .join('');
-    const table = `<details><summary>Incremental coverage by file</summary><table>${header}<tbody>${rows}</tbody></table></details>`;
-    return `${summaryLine}\n\n${table}`;
+    return `<details><summary>Incremental coverage by file</summary><table>${header}<tbody>${rows}</tbody></table></details>`;
 }
-exports.patchCoverageToMarkdown = patchCoverageToMarkdown;
 
 
 /***/ }),
