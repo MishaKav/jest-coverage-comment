@@ -10,6 +10,14 @@ import { getMultipleReport } from './multi-files'
 import { getMultipleJunitReport } from './multi-junit-files'
 import { getPatchCoverage, patchCoverageToMarkdown } from './patch-coverage'
 
+/**
+ * Wrap non-blocking report content in a collapsed <details> block. The blank
+ * lines are required for GitHub to render markdown (tables) inside the HTML.
+ */
+function wrapInDetails(summary: string, body: string): string {
+  return `<details><summary>${summary}</summary>\n\n${body}\n\n</details>`
+}
+
 async function main(): Promise<void> {
   try {
     const token = core.getInput('github-token', { required: true })
@@ -166,6 +174,10 @@ async function main(): Promise<void> {
       core.endGroup()
     }
 
+    // Comment fragments are collected here and assembled at the very end so the
+    // blocking incremental (patch) coverage leads and every non-blocking report
+    // is demoted into a collapsed <details> section, ordered by criticality.
+    let titleMd = ''
     if (title) {
       const titleCase = title
         .split(' ')
@@ -173,40 +185,11 @@ async function main(): Promise<void> {
           (word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
         )
         .join(' ')
-
-      const altText = `Net Coverage: ${coverage}`
-      const badgeUrl = `https://img.shields.io/badge/${badgeTitle
-        .split(' ')
-        .join('_')}-${coverage}%25-${color}.svg`
-
-      const badge = `![${altText}](${badgeUrl})`
-
-      finalHtml += `# ${titleCase}\n- ${badge}`
+      titleMd = `# ${titleCase}`
     }
 
-    if (options.netCoverageMain) {
-      const netCoverageMainBranch = parseInt(
-        options.netCoverageMain ? options.netCoverageMain : '0'
-      )
-
-      const coverageChange = coverage - netCoverageMainBranch
-
-      const coverageChangeText = `${
-        coverageChange === 0 ? '■' : coverageChange > 0 ? '▲' : '▼'
-      }_${Math.abs(coverageChange)}`
-
-      const coverageChangeColor =
-        coverageChange === 0 ? 'grey' : coverageChange > 0 ? 'green' : 'red'
-
-      const altText = `Coverage change: ${coverageChange}`
-      const badgeUrl = `https://img.shields.io/badge/${coverageChangeText}%25-${coverageChangeColor}.svg`
-
-      const badge = `![${altText}](${badgeUrl})`
-
-      const baseLabel = options.base ? `\`${options.base}\`` : 'base branch'
-      finalHtml += `\n- Diff against ${baseLabel}: ${badge}`
-    }
-
+    // --- Incremental (patch) coverage: the blocking metric, shown at the top ---
+    let incrementalMd = ''
     if (options.coverageFinalFile || options.coverageLcovFile) {
       const patch = getPatchCoverage(options)
 
@@ -230,15 +213,14 @@ async function main(): Promise<void> {
         core.setOutput('patch-coverage-status', status)
         core.endGroup()
 
-        const patchMarkdown = patchCoverageToMarkdown(patch, options)
-        finalHtml += `\n${patchMarkdown}`
+        incrementalMd = patchCoverageToMarkdown(patch, options)
 
         // Surface the result on the Actions run page too, so it is visible even
         // when the comment lands as a commit comment (push-triggered workflows).
         try {
           await core.summary
             .addRaw(
-              `### ${title || 'Incremental coverage'}\n\n${patchMarkdown}`
+              `### ${title || 'Incremental coverage'}\n\n${incrementalMd}`
             )
             .write()
         } catch (error) {
@@ -249,14 +231,47 @@ async function main(): Promise<void> {
       }
     }
 
-    if (!options.hideSummary) {
-      finalHtml += `\n\n${summaryHtml}`
+    // --- Net (whole-repo) coverage: badge + diff against base + summary table ---
+    const netLines: string[] = []
+    {
+      const altText = `Net Coverage: ${coverage}`
+      const badgeUrl = `https://img.shields.io/badge/${badgeTitle
+        .split(' ')
+        .join('_')}-${coverage}%25-${color}.svg`
+      netLines.push(`- ![${altText}](${badgeUrl})`)
     }
 
+    if (options.netCoverageMain) {
+      const netCoverageMainBranch = parseInt(
+        options.netCoverageMain ? options.netCoverageMain : '0'
+      )
+      const coverageChange = coverage - netCoverageMainBranch
+      const coverageChangeText = `${
+        coverageChange === 0 ? '■' : coverageChange > 0 ? '▲' : '▼'
+      }_${Math.abs(coverageChange)}`
+      const coverageChangeColor =
+        coverageChange === 0 ? 'grey' : coverageChange > 0 ? 'green' : 'red'
+      const altText = `Coverage change: ${coverageChange}`
+      const badgeUrl = `https://img.shields.io/badge/${coverageChangeText}%25-${coverageChangeColor}.svg`
+      const baseLabel = options.base ? `\`${options.base}\`` : 'base branch'
+      netLines.push(`- Diff against ${baseLabel}: ![${altText}](${badgeUrl})`)
+    }
+
+    const netBody = [
+      netLines.join('\n'),
+      options.hideSummary ? '' : summaryHtml,
+    ]
+      .filter(Boolean)
+      .join('\n\n')
+    const netMd = netBody
+      ? wrapInDetails('📊 Overall coverage (net · non-blocking)', netBody)
+      : ''
+
+    // --- Test results (junit) ---
+    let junitMd = ''
     if (options.junitFile) {
       const junit = await getJunitReport(options)
       const { junitHtml, tests, skipped, failures, errors, time } = junit
-      finalHtml += junitHtml ? `\n\n${junitHtml}` : ''
 
       if (junitHtml) {
         core.startGroup(options.junitTitle || 'Junit')
@@ -274,9 +289,17 @@ async function main(): Promise<void> {
         core.setOutput('time', time)
         core.setOutput('junitHtml', junitHtml)
         core.endGroup()
+
+        const hasFailures = Number(failures) > 0 || Number(errors) > 0
+        junitMd = wrapInDetails(
+          `🧪 Test results${hasFailures ? ' · ❌ failures' : ''}`,
+          junitHtml
+        )
       }
     }
 
+    // --- Per-file breakdown (from the Jest text report) ---
+    let coverageMd = ''
     if (options.coverageFile) {
       const coverageReport = getCoverageReport(options)
       const {
@@ -288,7 +311,6 @@ async function main(): Promise<void> {
         lines,
         statements,
       } = coverageReport
-      finalHtml += coverageHtml ? `\n\n${coverageHtml}` : ''
 
       if (lines || coverageHtml) {
         core.startGroup(options.coverageTitle || 'Coverage')
@@ -309,16 +331,34 @@ async function main(): Promise<void> {
         core.setOutput('coverageHtml', coverageHtml)
         core.endGroup()
       }
+
+      // getCoverageReport already wraps its output in a <details> block.
+      coverageMd = coverageHtml || ''
     }
 
+    let multiMd = ''
     if (multipleFiles?.length) {
-      finalHtml += `\n\n${getMultipleReport(options)}`
+      multiMd = getMultipleReport(options) || ''
     }
 
+    let multiJunitMd = ''
     if (multipleJunitFiles?.length) {
-      const markdown = await getMultipleJunitReport(options)
-      finalHtml += markdown ? `\n\n${markdown}` : ''
+      multiJunitMd = (await getMultipleJunitReport(options)) || ''
     }
+
+    // Assemble: title, blocking incremental coverage, then collapsed sections
+    // ordered by criticality (test failures > net coverage > file breakdown).
+    finalHtml = [
+      titleMd,
+      incrementalMd,
+      junitMd,
+      netMd,
+      coverageMd,
+      multiMd,
+      multiJunitMd,
+    ]
+      .filter(Boolean)
+      .join('\n\n')
 
     if (!finalHtml || options.hideComment) {
       core.info('Nothing to report')
