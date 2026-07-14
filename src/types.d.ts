@@ -34,6 +34,8 @@ export interface Options {
   patchSourceExtensions?: string
   // Regex (as string) of changed files to exclude from patch coverage entirely.
   patchExcludePattern?: string
+  // Optional link to a "how to write high-value tests" guide, shown when the gate fails.
+  helpDocUrl?: string
 }
 
 export interface ChangedFiles {

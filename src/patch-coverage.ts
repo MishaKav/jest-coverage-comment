@@ -308,10 +308,11 @@ export function patchCoverageToMarkdown(
 ): string {
   // Nothing testable changed => explicitly say so; the gate treats this as a pass.
   if (patch.totalLines === 0) {
-    return '## \u2705 Incremental coverage\nNo changed executable lines in this PR \u2014 nothing to cover.'
+    return '### \u2705 Incremental line coverage\nNo changed executable lines in this PR \u2014 nothing to cover.'
   }
 
-  const pct = `${patch.coverage}%`
+  // The one number to follow: line coverage of the changed lines.
+  const pct = `**${patch.coverage}%**`
   const ratio = `**${patch.coveredLines}/${patch.totalLines}** changed lines covered`
   const required =
     patch.threshold !== null ? ` (required \u2265 ${patch.threshold}%)` : ''
@@ -320,15 +321,13 @@ export function patchCoverageToMarkdown(
   let lead: string
 
   if (patch.meetsThreshold === false) {
-    heading = `## \u274c Incremental coverage: ${pct}${required}`
-    lead =
-      `This PR is **blocked**: ${ratio}. Cover the lines below to reach \u2265 ${patch.threshold}%. ` +
-      `Genuinely untestable lines can be excluded via your coverage config (\`collectCoverageFrom\` / nyc \`all\`) or the action's \`patch-exclude-pattern\`.`
+    heading = `### \u274c Incremental line coverage: ${pct}${required}`
+    lead = `This PR is **blocked**: ${ratio}. Cover the lines below to reach \u2265 ${patch.threshold}%.`
   } else if (patch.meetsThreshold === true) {
-    heading = `## \u2705 Incremental coverage: ${pct}${required}`
+    heading = `### \u2705 Incremental line coverage: ${pct}${required}`
     lead = `${ratio}.`
   } else {
-    heading = `## Incremental coverage: ${pct}`
+    heading = `### Incremental line coverage: ${pct}`
     lead = `${ratio} _(advisory \u2014 not blocking)_.`
   }
 
@@ -344,7 +343,49 @@ export function patchCoverageToMarkdown(
     )
   }
 
+  // Actionable help only when the author needs to raise the number.
+  if (patch.meetsThreshold === false) {
+    sections.push(renderHowToImprove(patch, options))
+  }
+
   return sections.join('\n\n')
+}
+
+/**
+ * A collapsed, actionable guide shown when the gate fails: what "high value"
+ * tests look like plus a ready-to-paste Cursor prompt scoped to the changed
+ * files, and an optional link to a fuller guide.
+ */
+function renderHowToImprove(patch: PatchCoverage, options: Options): string {
+  const fileList = patch.files.length
+    ? patch.files.map((f) => f.file).join(', ')
+    : 'the changed files'
+
+  const prompt = [
+    '```',
+    `Write unit tests for the uncovered changed lines in: ${fileList}.`,
+    'Cover every branch and edge case I introduced (if/else, ternaries, && / ||,',
+    'early returns, thrown errors) plus boundary, null and empty inputs.',
+    'Assert observable behavior and return values, not implementation details.',
+    'Mock only external I/O (network, DB, filesystem). Match this repo\u2019s existing',
+    'test framework, folder layout and style.',
+    '```',
+  ].join('\n')
+
+  const docLine = options.helpDocUrl
+    ? `\n\n\uD83D\uDCD8 Deeper guide: [Writing reliable, high-value tests](${options.helpDocUrl})`
+    : ''
+
+  const body =
+    `You\u2019re graded on the **diff**, not the whole file \u2014 only the uncovered changed lines above need tests.\n\n` +
+    `**High-value tests here:**\n` +
+    `- assert behavior & outputs, not internals;\n` +
+    `- hit both sides of every branch you added;\n` +
+    `- cover edge cases (null/empty, boundaries, error paths);\n` +
+    `- mock only external I/O so the test stays meaningful.\n\n` +
+    `**Generate a first pass in Cursor** \u2014 paste this prompt, then review & harden:\n\n${prompt}${docLine}`
+
+  return `<details><summary>\uD83D\uDCA1 How to raise this number</summary>\n\n${body}\n\n</details>`
 }
 
 function renderFileTable(patch: PatchCoverage, options: Options): string {
