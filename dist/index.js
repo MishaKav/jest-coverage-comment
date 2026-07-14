@@ -687,8 +687,6 @@ async function main() {
                 core.info(`changed lines covered: ${patch.coveredLines}/${patch.totalLines}`);
                 core.info(`threshold: ${patch.threshold ?? 'none'} | status: ${status}`);
                 core.setOutput('patch-coverage', patch.coverage);
-                core.setOutput('patch-covered-lines', patch.coveredLines);
-                core.setOutput('patch-total-lines', patch.totalLines);
                 core.setOutput('patch-coverage-status', status);
                 core.endGroup();
                 incrementalMd = (0, patch_coverage_1.patchCoverageToMarkdown)(patch, options);

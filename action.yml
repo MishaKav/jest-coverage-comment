@@ -151,10 +151,6 @@ outputs:
     description: 'Statements covered, get from Jest text report'
   patch-coverage:
     description: 'Incremental (patch) coverage: percentage of changed executable lines covered by tests'
-  patch-covered-lines:
-    description: 'Number of changed executable lines that are covered'
-  patch-total-lines:
-    description: 'Total number of changed executable lines considered for patch coverage'
   patch-coverage-status:
     description: 'Incremental coverage gate status: pass, fail, or advisory (when no threshold is configured)'
 
