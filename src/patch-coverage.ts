@@ -306,39 +306,42 @@ export function patchCoverageToMarkdown(
   patch: PatchCoverage,
   options: Options
 ): string {
-  const badgeUrl = `https://img.shields.io/badge/Incremental_Coverage-${patch.coverage}%25-${patch.color}.svg`
-  const badge = `![Incremental Coverage: ${patch.coverage}%](${badgeUrl})`
-
   // Nothing testable changed => explicitly say so; the gate treats this as a pass.
   if (patch.totalLines === 0) {
-    return '- Incremental (changed-line) coverage: no changed executable lines in this PR.'
+    return '## \u2705 Incremental coverage\nNo changed executable lines in this PR \u2014 nothing to cover.'
   }
 
-  const requirement =
+  const pct = `${patch.coverage}%`
+  const ratio = `**${patch.coveredLines}/${patch.totalLines}** changed lines covered`
+  const required =
     patch.threshold !== null ? ` (required \u2265 ${patch.threshold}%)` : ''
-  const statusIcon =
-    patch.meetsThreshold === null
-      ? ''
-      : patch.meetsThreshold
-      ? '\u2705 '
-      : '\u274c '
 
-  const summaryLine =
-    `- ${statusIcon}Incremental (changed-line) coverage: ${badge} ` +
-    `(${patch.coveredLines}/${patch.totalLines} changed lines covered)${requirement}`
+  let heading: string
+  let lead: string
 
-  const sections = [summaryLine]
-
-  // When the gate is failing, tell the author exactly how to unblock.
   if (patch.meetsThreshold === false) {
-    sections.push(
-      `> \u274c **Merge blocked by incremental coverage.** Add tests that cover the changed lines below to reach \u2265 ${patch.threshold}%. ` +
-        `Lines that are genuinely untestable can be excluded from your coverage config (e.g. \`collectCoverageFrom\` / nyc \`all\`) or via the action's exclude pattern.`
-    )
+    heading = `## \u274c Incremental coverage: ${pct}${required}`
+    lead =
+      `This PR is **blocked**: ${ratio}. Cover the lines below to reach \u2265 ${patch.threshold}%. ` +
+      `Genuinely untestable lines can be excluded via your coverage config (\`collectCoverageFrom\` / nyc \`all\`) or the action's \`patch-exclude-pattern\`.`
+  } else if (patch.meetsThreshold === true) {
+    heading = `## \u2705 Incremental coverage: ${pct}${required}`
+    lead = `${ratio}.`
+  } else {
+    heading = `## Incremental coverage: ${pct}`
+    lead = `${ratio} _(advisory \u2014 not blocking)_.`
   }
+
+  const sections = [heading, lead]
 
   if (patch.files.length) {
-    sections.push(renderFileTable(patch, options))
+    const table = renderFileTable(patch, options)
+    // Show the actionable table up-front when blocked; collapse it otherwise.
+    sections.push(
+      patch.meetsThreshold === false
+        ? table
+        : `<details><summary>Coverage of changed files</summary>\n\n${table}\n\n</details>`
+    )
   }
 
   return sections.join('\n\n')
@@ -352,31 +355,39 @@ function renderFileTable(patch: PatchCoverage, options: Options): string {
     coveragePathPrefix = '',
   } = options
 
-  const header =
-    '<tr><th>Changed File</th><th>% Covered</th><th>Covered / Total</th><th>Uncovered changed lines</th></tr>'
-
   const rows = patch.files
     .map((f) => {
+      const ratio = `${f.coveredLines}/${f.totalLines}`
+
+      let coverageCell: string
       let uncovered: string
+
       if (!f.instrumented) {
-        uncovered =
-          '<em>no coverage data \u2014 new/untested file (counted as uncovered)</em>'
+        coverageCell = `\u26a0\ufe0f new file (${ratio})`
+        uncovered = '_no test coverage_'
       } else if (f.uncoveredLines.length) {
+        coverageCell = `${f.coverage}% (${ratio})`
         const shown = f.uncoveredLines.slice(0, MAX_UNCOVERED_LINKS)
         const links = shown
           .map((line) => {
             const href = `${serverUrl}/${repository}/blob/${commit}/${coveragePathPrefix}${f.file}#L${line}`
-            return `<a href="${href}">${line}</a>`
+            return `[${line}](${href})`
           })
           .join(', ')
         const extra = f.uncoveredLines.length - shown.length
         uncovered = extra > 0 ? `${links}, \u2026 (+${extra} more)` : links
       } else {
-        uncovered = '&nbsp;'
+        coverageCell = `\u2705 100% (${ratio})`
+        uncovered = '\u2014'
       }
-      return `<tr><td>${f.file}</td><td>${f.coverage}%</td><td>${f.coveredLines}/${f.totalLines}</td><td>${uncovered}</td></tr>`
-    })
-    .join('')
 
-  return `<details><summary>Incremental coverage by file</summary><table>${header}<tbody>${rows}</tbody></table></details>`
+      return `| \`${f.file}\` | ${coverageCell} | ${uncovered} |`
+    })
+    .join('\n')
+
+  return [
+    '| Changed file | Coverage | Uncovered lines |',
+    '| :--- | :--- | :--- |',
+    rows,
+  ].join('\n')
 }
