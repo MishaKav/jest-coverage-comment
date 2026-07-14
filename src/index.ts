@@ -73,6 +73,18 @@ async function main(): Promise<void> {
       required: false,
     })
 
+    const patchThreshold = core.getInput('patch-coverage-threshold', {
+      required: false,
+    })
+
+    const patchSourceExtensions = core.getInput('patch-source-extensions', {
+      required: false,
+    })
+
+    const patchExcludePattern = core.getInput('patch-exclude-pattern', {
+      required: false,
+    })
+
     const serverUrl = context.serverUrl || 'https://github.com'
     core.info(`Uses Github URL: ${serverUrl}`)
 
@@ -111,6 +123,9 @@ async function main(): Promise<void> {
       netCoverageMain,
       coverageFinalFile,
       coverageLcovFile,
+      patchThreshold,
+      patchSourceExtensions,
+      patchExcludePattern,
     }
 
     if (eventName === 'pull_request' && payload) {
@@ -188,24 +203,49 @@ async function main(): Promise<void> {
 
       const badge = `![${altText}](${badgeUrl})`
 
-      finalHtml += `\n- Diff against \`develop\`: ${badge}`
+      const baseLabel = options.base ? `\`${options.base}\`` : 'base branch'
+      finalHtml += `\n- Diff against ${baseLabel}: ${badge}`
     }
 
     if (options.coverageFinalFile || options.coverageLcovFile) {
       const patch = getPatchCoverage(options)
 
       if (patch) {
+        const status =
+          patch.meetsThreshold === null
+            ? 'advisory'
+            : patch.meetsThreshold
+            ? 'pass'
+            : 'fail'
+
         core.startGroup('Incremental (patch) coverage')
         core.info(`patch-coverage: ${patch.coverage}`)
         core.info(
           `changed lines covered: ${patch.coveredLines}/${patch.totalLines}`
         )
+        core.info(`threshold: ${patch.threshold ?? 'none'} | status: ${status}`)
         core.setOutput('patch-coverage', patch.coverage)
         core.setOutput('patch-covered-lines', patch.coveredLines)
         core.setOutput('patch-total-lines', patch.totalLines)
+        core.setOutput('patch-coverage-status', status)
         core.endGroup()
 
-        finalHtml += `\n${patchCoverageToMarkdown(patch, options)}`
+        const patchMarkdown = patchCoverageToMarkdown(patch, options)
+        finalHtml += `\n${patchMarkdown}`
+
+        // Surface the result on the Actions run page too, so it is visible even
+        // when the comment lands as a commit comment (push-triggered workflows).
+        try {
+          await core.summary
+            .addRaw(
+              `### ${title || 'Incremental coverage'}\n\n${patchMarkdown}`
+            )
+            .write()
+        } catch (error) {
+          if (error instanceof Error) {
+            core.warning(`Failed to write job summary: ${error.message}`)
+          }
+        }
       }
     }
 

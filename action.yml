@@ -119,6 +119,21 @@ inputs:
     default: ''
     required: false
 
+  patch-coverage-threshold:
+    description: 'Incremental (patch) coverage threshold as a percentage. When set, the comment shows pass/fail against it; empty means advisory only.'
+    default: ''
+    required: false
+
+  patch-source-extensions:
+    description: 'Comma-separated file extensions treated as coverable source. A changed source file with no coverage data is counted as fully uncovered.'
+    default: '.js,.jsx,.mjs,.cjs,.ts,.tsx'
+    required: false
+
+  patch-exclude-pattern:
+    description: 'Regular expression of changed file paths to exclude entirely from incremental (patch) coverage.'
+    default: ''
+    required: false
+
 outputs:
   coverage:
     description: 'Value indicating the coverage percentage of your report based on Jest, example 78'
@@ -150,6 +165,8 @@ outputs:
     description: 'Number of changed executable lines that are covered'
   patch-total-lines:
     description: 'Total number of changed executable lines considered for patch coverage'
+  patch-coverage-status:
+    description: 'Incremental coverage gate status: pass, fail, or advisory (when no threshold is configured)'
 
 runs:
   using: 'node20'

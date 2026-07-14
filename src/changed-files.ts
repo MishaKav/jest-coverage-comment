@@ -44,34 +44,20 @@ export async function getChangedFiles(
     core.info(`Base commit: ${base}`)
     core.info(`Head commit: ${head}`)
 
-    let response = null
-    // For the first commit in repository we cannot get a diff
-    if (base === '0000000000000000000000000000000000000000') {
-      response = await octokit.rest.repos.getCommit({
-        owner,
-        repo,
-        ref: head,
-      })
-    } else {
-      // https://developer.github.com/v3/repos/commits/#compare-two-commits
-      response = await octokit.rest.repos.compareCommits({
-        base,
-        head,
-        owner,
-        repo,
-      })
-    }
-
-    // Ensure that the request was successful
-    if (response.status !== 200) {
-      core.setFailed(
-        `The GitHub API request for comparing the base and head commits for this '${eventName}' event returned ${response.status}, expected 200. ` +
-          "Please submit an issue on this action's GitHub repo."
-      )
-    }
-
-    // Get the changed files from the response payload
-    const files = response.data.files
+    // Get the changed files. Paginate the compare endpoint so large PRs
+    // (>300 files) don't silently lose changed-line data and let the gate
+    // pass on partially-analyzed diffs.
+    const files =
+      base === '0000000000000000000000000000000000000000'
+        ? // For the first commit in a repository we cannot get a diff.
+          (await octokit.rest.repos.getCommit({ owner, repo, ref: head })).data
+            .files
+        : // https://developer.github.com/v3/repos/commits/#compare-two-commits
+          await octokit.paginate(
+            octokit.rest.repos.compareCommits,
+            { base, head, owner, repo, per_page: 100 },
+            (response) => response.data.files ?? []
+          )
 
     if (files?.length) {
       for (const file of files) {
@@ -151,6 +137,11 @@ export function parsePatchAddedLines(patch: string): number[] {
     const header = raw.match(hunkHeader)
     if (header) {
       newLineNo = parseInt(header[1], 10)
+      continue
+    }
+
+    if (raw.startsWith('\\')) {
+      // "\ No newline at end of file" marker - metadata, never a real line.
       continue
     }
 

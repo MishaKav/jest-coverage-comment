@@ -28,6 +28,12 @@ export interface Options {
   multipleJunitFiles?: string[]
   coverageFinalFile?: string
   coverageLcovFile?: string
+  // Incremental (patch) coverage gate threshold as a percentage string, '' when unset.
+  patchThreshold?: string
+  // Comma-separated list of extensions treated as coverable source (e.g. '.ts,.js').
+  patchSourceExtensions?: string
+  // Regex (as string) of changed files to exclude from patch coverage entirely.
+  patchExcludePattern?: string
 }
 
 export interface ChangedFiles {
@@ -48,6 +54,10 @@ export interface PatchCoverage {
   coveredLines: number
   totalLines: number
   files: PatchCoverageFile[]
+  // Gate threshold (percentage) when configured, otherwise null (advisory).
+  threshold: number | null
+  // Whether coverage meets the threshold; null when advisory.
+  meetsThreshold: boolean | null
 }
 
 export interface PatchCoverageFile {
@@ -56,6 +66,8 @@ export interface PatchCoverageFile {
   totalLines: number
   coverage: number
   uncoveredLines: number[]
+  // False when the file has no coverage data (e.g. a new, untested source file).
+  instrumented: boolean
 }
 
 export interface LineSummary {
