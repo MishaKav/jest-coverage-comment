@@ -43,20 +43,28 @@ export function summaryToMarkdown(
   const { summaryTitle } = options
   const { lines, statements, functions, branches } = summary
 
-  const tableHeader =
-    '| Lines | Statements | Branches | Functions |\n' +
-    '| --- | --- | --- | --- |'
-
   const tableBody =
     ` | ${lineSummaryToTd(lines)} |` +
     ` ${lineSummaryToTd(statements)} |` +
     ` ${lineSummaryToTd(branches)} |` +
     ` ${lineSummaryToTd(functions)} |`
-  const table = `${tableHeader}\n${tableBody}\n`
 
   if (withoutHeader) {
     return tableBody
   }
+
+  // Bold "Lines" - the dimension the incremental gate tracks - so the reader
+  // knows which of the four numbers is the one being followed.
+  const tableHeader =
+    '| **Lines** _(tracked)_ | Statements | Branches | Functions |\n' +
+    '| --- | --- | --- | --- |'
+
+  const boldBody =
+    ` | **${lineSummaryToTd(lines)}** |` +
+    ` ${lineSummaryToTd(statements)} |` +
+    ` ${lineSummaryToTd(branches)} |` +
+    ` ${lineSummaryToTd(functions)} |`
+  const table = `${tableHeader}\n${boldBody}\n`
 
   if (summaryTitle) {
     return `## ${summaryTitle}\n\n${table}`

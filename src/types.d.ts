@@ -26,6 +26,10 @@ export interface Options {
   changedFiles?: ChangedFiles | null
   multipleFiles?: string[]
   multipleJunitFiles?: string[]
+  coverageFinalFile?: string
+  coverageLcovFile?: string
+  // Incremental (patch) coverage gate threshold as a percentage string, '' when unset.
+  patchThreshold?: string
 }
 
 export interface ChangedFiles {
@@ -35,6 +39,31 @@ export interface ChangedFiles {
   removed?: string[]
   renamed?: string[]
   addedOrModified?: string[]
+  // Map of repo-relative file path -> set of line numbers added/modified on the head side.
+  changedLines?: Record<string, number[]>
+}
+
+export interface PatchCoverage {
+  // Percentage (0-100) of changed executable lines that are covered.
+  coverage: number
+  color: CoverageColor
+  coveredLines: number
+  totalLines: number
+  files: PatchCoverageFile[]
+  // Gate threshold (percentage) when configured, otherwise null (advisory).
+  threshold: number | null
+  // Whether coverage meets the threshold; null when advisory.
+  meetsThreshold: boolean | null
+}
+
+export interface PatchCoverageFile {
+  file: string
+  coveredLines: number
+  totalLines: number
+  coverage: number
+  uncoveredLines: number[]
+  // False when the file has no coverage data (e.g. a new, untested source file).
+  instrumented: boolean
 }
 
 export interface LineSummary {
