@@ -93,10 +93,6 @@ async function main(): Promise<void> {
       required: false,
     })
 
-    const helpDocUrl = core.getInput('help-doc-url', {
-      required: false,
-    })
-
     const serverUrl = context.serverUrl || 'https://github.com'
     core.info(`Uses Github URL: ${serverUrl}`)
 
@@ -138,7 +134,6 @@ async function main(): Promise<void> {
       patchThreshold,
       patchSourceExtensions,
       patchExcludePattern,
-      helpDocUrl,
     }
 
     if (eventName === 'pull_request' && payload) {

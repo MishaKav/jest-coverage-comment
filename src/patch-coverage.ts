@@ -345,7 +345,7 @@ export function patchCoverageToMarkdown(
 
   // Actionable help only when the author needs to raise the number.
   if (patch.meetsThreshold === false) {
-    sections.push(renderHowToImprove(patch, options))
+    sections.push(renderHowToImprove(patch))
   }
 
   return sections.join('\n\n')
@@ -353,10 +353,9 @@ export function patchCoverageToMarkdown(
 
 /**
  * A collapsed, actionable guide shown when the gate fails: what "high value"
- * tests look like plus a ready-to-paste Cursor prompt scoped to the changed
- * files, and an optional link to a fuller guide.
+ * tests look like plus a ready-to-paste Cursor prompt scoped to the changed files.
  */
-function renderHowToImprove(patch: PatchCoverage, options: Options): string {
+function renderHowToImprove(patch: PatchCoverage): string {
   const fileList = patch.files.length
     ? patch.files.map((f) => f.file).join(', ')
     : 'the changed files'
@@ -372,10 +371,6 @@ function renderHowToImprove(patch: PatchCoverage, options: Options): string {
     '```',
   ].join('\n')
 
-  const docLine = options.helpDocUrl
-    ? `\n\n\uD83D\uDCD8 Deeper guide: [Writing reliable, high-value tests](${options.helpDocUrl})`
-    : ''
-
   const body =
     `You\u2019re graded on the **diff**, not the whole file \u2014 only the uncovered changed lines above need tests.\n\n` +
     `**High-value tests here:**\n` +
@@ -383,7 +378,7 @@ function renderHowToImprove(patch: PatchCoverage, options: Options): string {
     `- hit both sides of every branch you added;\n` +
     `- cover edge cases (null/empty, boundaries, error paths);\n` +
     `- mock only external I/O so the test stays meaningful.\n\n` +
-    `**Generate a first pass in Cursor** \u2014 paste this prompt, then review & harden:\n\n${prompt}${docLine}`
+    `**Generate a first pass in Cursor** \u2014 paste this prompt, then review & harden:\n\n${prompt}`
 
   return `<details><summary>\uD83D\uDCA1 How to raise this number</summary>\n\n${body}\n\n</details>`
 }

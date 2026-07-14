@@ -134,11 +134,6 @@ inputs:
     default: ''
     required: false
 
-  help-doc-url:
-    description: 'Optional link to a "how to write high-value tests" guide, shown in the comment when the incremental coverage gate fails.'
-    default: ''
-    required: false
-
 outputs:
   coverage:
     description: 'Value indicating the coverage percentage of your report based on Jest, example 78'

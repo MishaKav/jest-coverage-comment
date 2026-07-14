@@ -598,9 +598,6 @@ async function main() {
         const patchExcludePattern = core.getInput('patch-exclude-pattern', {
             required: false,
         });
-        const helpDocUrl = core.getInput('help-doc-url', {
-            required: false,
-        });
         const serverUrl = github_1.context.serverUrl || 'https://github.com';
         core.info(`Uses Github URL: ${serverUrl}`);
         const { repo, owner } = github_1.context.repo;
@@ -640,7 +637,6 @@ async function main() {
             patchThreshold,
             patchSourceExtensions,
             patchExcludePattern,
-            helpDocUrl,
         };
         if (eventName === 'pull_request' && payload) {
             options.commit = payload.pull_request?.head.sha;
@@ -1502,17 +1498,16 @@ function patchCoverageToMarkdown(patch, options) {
     }
     // Actionable help only when the author needs to raise the number.
     if (patch.meetsThreshold === false) {
-        sections.push(renderHowToImprove(patch, options));
+        sections.push(renderHowToImprove(patch));
     }
     return sections.join('\n\n');
 }
 exports.patchCoverageToMarkdown = patchCoverageToMarkdown;
 /**
  * A collapsed, actionable guide shown when the gate fails: what "high value"
- * tests look like plus a ready-to-paste Cursor prompt scoped to the changed
- * files, and an optional link to a fuller guide.
+ * tests look like plus a ready-to-paste Cursor prompt scoped to the changed files.
  */
-function renderHowToImprove(patch, options) {
+function renderHowToImprove(patch) {
     const fileList = patch.files.length
         ? patch.files.map((f) => f.file).join(', ')
         : 'the changed files';
@@ -1526,16 +1521,13 @@ function renderHowToImprove(patch, options) {
         'test framework, folder layout and style.',
         '```',
     ].join('\n');
-    const docLine = options.helpDocUrl
-        ? `\n\n\uD83D\uDCD8 Deeper guide: [Writing reliable, high-value tests](${options.helpDocUrl})`
-        : '';
     const body = `You\u2019re graded on the **diff**, not the whole file \u2014 only the uncovered changed lines above need tests.\n\n` +
         `**High-value tests here:**\n` +
         `- assert behavior & outputs, not internals;\n` +
         `- hit both sides of every branch you added;\n` +
         `- cover edge cases (null/empty, boundaries, error paths);\n` +
         `- mock only external I/O so the test stays meaningful.\n\n` +
-        `**Generate a first pass in Cursor** \u2014 paste this prompt, then review & harden:\n\n${prompt}${docLine}`;
+        `**Generate a first pass in Cursor** \u2014 paste this prompt, then review & harden:\n\n${prompt}`;
     return `<details><summary>\uD83D\uDCA1 How to raise this number</summary>\n\n${body}\n\n</details>`;
 }
 function renderFileTable(patch, options) {
