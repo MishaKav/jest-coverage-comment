@@ -85,14 +85,6 @@ async function main(): Promise<void> {
       required: false,
     })
 
-    const patchSourceExtensions = core.getInput('patch-source-extensions', {
-      required: false,
-    })
-
-    const patchExcludePattern = core.getInput('patch-exclude-pattern', {
-      required: false,
-    })
-
     const serverUrl = context.serverUrl || 'https://github.com'
     core.info(`Uses Github URL: ${serverUrl}`)
 
@@ -132,8 +124,6 @@ async function main(): Promise<void> {
       coverageFinalFile,
       coverageLcovFile,
       patchThreshold,
-      patchSourceExtensions,
-      patchExcludePattern,
     }
 
     if (eventName === 'pull_request' && payload) {

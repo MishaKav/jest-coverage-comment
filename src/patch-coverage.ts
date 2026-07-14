@@ -158,33 +158,11 @@ const NON_COVERABLE = /(\.test\.|\.spec\.|\.d\.ts$|__tests__\/|__mocks__\/)/
  * file is absent from the coverage report and would otherwise be skipped,
  * letting the gate pass at a misleading 100%.
  */
-function isCoverableSource(file: string, options: Options): boolean {
-  const extensions = (options.patchSourceExtensions || '')
-    .split(',')
-    .map((ext) => ext.trim())
-    .filter(Boolean)
-  const allowed = extensions.length ? extensions : DEFAULT_SOURCE_EXTENSIONS
-
-  if (!allowed.some((ext) => file.endsWith(ext))) {
+function isCoverableSource(file: string): boolean {
+  if (!DEFAULT_SOURCE_EXTENSIONS.some((ext) => file.endsWith(ext))) {
     return false
   }
-  if (NON_COVERABLE.test(file)) {
-    return false
-  }
-  if (options.patchExcludePattern) {
-    try {
-      if (new RegExp(options.patchExcludePattern).test(file)) {
-        return false
-      }
-    } catch (error) {
-      if (error instanceof Error) {
-        core.warning(
-          `Patch coverage: invalid patch-exclude-pattern ignored. ${error.message}`
-        )
-      }
-    }
-  }
-  return true
+  return !NON_COVERABLE.test(file)
 }
 
 /** Parse the configured threshold; returns null when unset/invalid (advisory). */
@@ -235,7 +213,7 @@ export function getPatchCoverage(options: Options): PatchCoverage | null {
       // No coverage data for this file. Skip non-source files (docs, config,
       // fixtures); treat coverable source files as fully uncovered so a new,
       // untested file cannot slip past the gate.
-      if (!isCoverableSource(file, options)) {
+      if (!isCoverableSource(file)) {
         continue
       }
       totalChanged += lines.length

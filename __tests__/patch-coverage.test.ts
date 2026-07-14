@@ -113,19 +113,6 @@ describe('getPatchCoverage', () => {
     expect(patch?.files).toHaveLength(0)
   })
 
-  test('respects the patch-exclude-pattern', () => {
-    const options = baseOptions({
-      patchExcludePattern: 'src/generated/',
-      changedFiles: {
-        all: ['src/generated/schema.ts'],
-        changedLines: { 'src/generated/schema.ts': [1, 2, 3] },
-      },
-    })
-
-    const patch = getPatchCoverage(options)
-    expect(patch?.totalLines).toBe(0)
-  })
-
   test('resolves pass/fail against the configured threshold', () => {
     const failing = getPatchCoverage(
       baseOptions({

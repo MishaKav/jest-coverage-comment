@@ -124,16 +124,6 @@ inputs:
     default: ''
     required: false
 
-  patch-source-extensions:
-    description: 'Comma-separated file extensions treated as coverable source. A changed source file with no coverage data is counted as fully uncovered.'
-    default: '.js,.jsx,.mjs,.cjs,.ts,.tsx'
-    required: false
-
-  patch-exclude-pattern:
-    description: 'Regular expression of changed file paths to exclude entirely from incremental (patch) coverage.'
-    default: ''
-    required: false
-
 outputs:
   coverage:
     description: 'Value indicating the coverage percentage of your report based on Jest, example 78'

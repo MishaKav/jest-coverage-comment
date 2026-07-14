@@ -30,10 +30,6 @@ export interface Options {
   coverageLcovFile?: string
   // Incremental (patch) coverage gate threshold as a percentage string, '' when unset.
   patchThreshold?: string
-  // Comma-separated list of extensions treated as coverable source (e.g. '.ts,.js').
-  patchSourceExtensions?: string
-  // Regex (as string) of changed files to exclude from patch coverage entirely.
-  patchExcludePattern?: string
 }
 
 export interface ChangedFiles {
