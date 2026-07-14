@@ -1499,40 +1499,9 @@ function patchCoverageToMarkdown(patch, options) {
             ? table
             : `<details><summary>Coverage of changed files</summary>\n\n${table}\n\n</details>`);
     }
-    // Actionable help only when the author needs to raise the number.
-    if (patch.meetsThreshold === false) {
-        sections.push(renderHowToImprove(patch));
-    }
     return sections.join('\n\n');
 }
 exports.patchCoverageToMarkdown = patchCoverageToMarkdown;
-/**
- * A collapsed, actionable guide shown when the gate fails: what "high value"
- * tests look like plus a ready-to-paste Cursor prompt scoped to the changed files.
- */
-function renderHowToImprove(patch) {
-    const fileList = patch.files.length
-        ? patch.files.map((f) => f.file).join(', ')
-        : 'the changed files';
-    const prompt = [
-        '```',
-        `Write unit tests for the uncovered changed lines in: ${fileList}.`,
-        'Cover every branch and edge case I introduced (if/else, ternaries, && / ||,',
-        'early returns, thrown errors) plus boundary, null and empty inputs.',
-        'Assert observable behavior and return values, not implementation details.',
-        'Mock only external I/O (network, DB, filesystem). Match this repo\u2019s existing',
-        'test framework, folder layout and style.',
-        '```',
-    ].join('\n');
-    const body = `You\u2019re graded on the **diff**, not the whole file \u2014 only the uncovered changed lines above need tests.\n\n` +
-        `**High-value tests here:**\n` +
-        `- assert behavior & outputs, not internals;\n` +
-        `- hit both sides of every branch you added;\n` +
-        `- cover edge cases (null/empty, boundaries, error paths);\n` +
-        `- mock only external I/O so the test stays meaningful.\n\n` +
-        `**Generate a first pass in Cursor** \u2014 paste this prompt, then review & harden:\n\n${prompt}`;
-    return `<details><summary>\uD83D\uDCA1 How to raise this number</summary>\n\n${body}\n\n</details>`;
-}
 function renderFileTable(patch, options) {
     const { serverUrl = 'https://github.com', repository, commit, coveragePathPrefix = '', } = options;
     const rows = patch.files
