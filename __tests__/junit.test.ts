@@ -385,6 +385,33 @@ describe('failed tests to markdown', () => {
     expect(htmlWithMax).toContain('...and 25 more failed tests')
   })
 
+  test('should not link test name when absolute path does not match prefix', () => {
+    const html = failedTestsToMarkdown(
+      [{ ...failedTest, file: '/other/place/service.test.js', line: 25 }],
+      optionsWithRepo
+    )
+
+    expect(html).toContain('<b>test one</b>')
+    expect(html).not.toContain('<a href')
+  })
+
+  test('should not prepend coverage-path-prefix to absolute stack-trace paths', () => {
+    const html = failedTestsToMarkdown(
+      [
+        {
+          ...failedTest,
+          file: '/home/runner/work/repo/repo/__tests__/failing/service.test.js',
+          line: 25,
+        },
+      ],
+      { ...(optionsWithRepo as object), coveragePathPrefix: 'src/' } as never
+    )
+
+    expect(html).toContain(
+      '<a href="https://github.com/MishaKav/jest-coverage-comment/blob/05953710b21d222efa4f4535424a7af367be5a57/__tests__/failing/service.test.js#L25">test one</a>'
+    )
+  })
+
   test('should not link test name when remove-links-to-files is enabled', () => {
     const html = failedTestsToMarkdown(
       [{ ...failedTest, file: '__tests__/failing/service.test.js', line: 25 }],
@@ -477,13 +504,13 @@ describe('parse junit and check report output', () => {
       '<details><summary>:x: Failed Tests (<b>3</b>)</summary>'
     )
     expect(failedTestsHtml).toContain(
-      'should test controller</a> › when #getPost method method fails'
+      '<b>should test controller</b> › when #getPost method method fails'
     )
     expect(failedTestsHtml).toContain(
       '<b>should test Service</b> › when #list method fails'
     )
     expect(failedTestsHtml).toContain(
-      'should test router</a> › should test get posts'
+      '<b>should test router</b> › should test get posts'
     )
     expect(failedTestsHtml).toContain(
       '— <code>Expected: "Hello" · Received: "Hi" &amp;'

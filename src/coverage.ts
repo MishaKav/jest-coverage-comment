@@ -150,10 +150,11 @@ function toMissingTd(line: CoverageLine, options: Options): string {
 
   return line.uncoveredLines
     .map((range) => {
-      const { removeLinksToLines } = options
+      const { prefix, removeLinksToLines } = options
       const [start, end = start] = range.split('-')
       const fragment = start === end ? `L${start}` : `L${start}-L${end}`
-      const href = getFileUrl(options, line.file, `#${fragment}`)
+      const relative = line.file.replace(prefix, '')
+      const href = getFileUrl(options, relative, `#${fragment}`)
       const text = start === end ? start : `${start}&ndash;${end}`
 
       return removeLinksToLines ? text : `<a href="${href}">${text}</a>`

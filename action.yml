@@ -81,7 +81,7 @@ inputs:
     required: false
 
   max-failed-tests:
-    description: 'Maximum number of failed tests to show in the comment, useful on big repos (requires `show-failed-tests`)'
+    description: 'Maximum number of failed tests to show in the comment, in total across all junit files, useful on big repos (requires `show-failed-tests`)'
     default: '30'
     required: false
 

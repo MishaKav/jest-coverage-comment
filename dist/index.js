@@ -335,10 +335,11 @@ function toMissingTd(line, options) {
     }
     return line.uncoveredLines
         .map((range) => {
-        const { removeLinksToLines } = options;
+        const { prefix, removeLinksToLines } = options;
         const [start, end = start] = range.split('-');
         const fragment = start === end ? `L${start}` : `L${start}-L${end}`;
-        const href = (0, utils_1.getFileUrl)(options, line.file, `#${fragment}`);
+        const relative = line.file.replace(prefix, '');
+        const href = (0, utils_1.getFileUrl)(options, relative, `#${fragment}`);
         const text = start === end ? start : `${start}&ndash;${end}`;
         return removeLinksToLines ? text : `<a href="${href}">${text}</a>`;
     })
@@ -1020,6 +1021,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.MAX_FAILED_TESTS = void 0;
 exports.parseJunit = parseJunit;
 exports.junitToMarkdown = junitToMarkdown;
 exports.failedTestsToMarkdown = failedTestsToMarkdown;
@@ -1031,7 +1033,8 @@ const utils_1 = __nccwpck_require__(9277);
 const MAX_FAILURE_MESSAGE_LENGTH = 500;
 const MAX_FAILURE_MESSAGE_LINES = 15;
 const MAX_REASON_LENGTH = 120;
-const MAX_FAILED_TESTS = 30;
+exports.MAX_FAILED_TESTS = 30;
+const ABSOLUTE_PATH_REGEX = /^(\/|[A-Za-z]:\/)/;
 // guard memory on huge failure outputs, rendering truncates far below this
 const MAX_STORED_MESSAGE_LENGTH = 10000;
 const STACK_FRAME_REGEX = /^\s+at\s/;
@@ -1232,12 +1235,22 @@ function toTestName(test, options) {
     const restText = hasSuitePrefix
         ? ` › ${escapeHtml(testName.slice(suiteName.length).trim())}`
         : '';
-    if (!test.file || !repository || !commit || removeLinksToFiles) {
+    const testFile = test.file?.replace(/\\/g, '/');
+    const isAbsolutePath = Boolean(testFile && ABSOLUTE_PATH_REGEX.test(testFile));
+    // absolute stack-trace paths are repo-relative after removing the
+    // workspace prefix, `coverage-path-prefix` applies only to relative ones
+    const relative = testFile && isAbsolutePath && prefix
+        ? testFile.replace(prefix.replace(/\\/g, '/'), '')
+        : testFile;
+    const cannotResolvePath = !relative || (isAbsolutePath && ABSOLUTE_PATH_REGEX.test(relative));
+    if (!repository || !commit || removeLinksToFiles || cannotResolvePath) {
         return `<b>${escapeHtml(mainText)}</b>${restText}`;
     }
-    const relative = prefix ? test.file.replace(prefix, '') : test.file;
+    const urlOptions = isAbsolutePath
+        ? { ...options, coveragePathPrefix: '' }
+        : options;
     const anchor = test.line ? `#L${test.line}` : '';
-    const href = (0, utils_1.getFileUrl)(options, relative, anchor);
+    const href = escapeHtml((0, utils_1.getFileUrl)(urlOptions, relative, anchor)).replace(/"/g, '&quot;');
     return `<a href="${href}">${escapeHtml(mainText)}</a>${restText}`;
 }
 /** Convert failed tests to collapsed html table. */
@@ -1245,7 +1258,7 @@ function failedTestsToMarkdown(failedTests, options, title) {
     if (!options.showFailedTests || !failedTests.length) {
         return '';
     }
-    const maxFailedTests = options.maxFailedTests || MAX_FAILED_TESTS;
+    const maxFailedTests = options.maxFailedTests || exports.MAX_FAILED_TESTS;
     const summaryTitle = title ? `Failed Tests — ${title}` : 'Failed Tests';
     const entries = failedTests.slice(0, maxFailedTests).map((test) => {
         const message = formatFailureMessage(test.message);
@@ -1446,6 +1459,8 @@ async function getMultipleJunitReport(options) {
         let table = '| Title | Tests | Skipped | Failures | Errors | Time |\n' +
             '| --- | --- | --- | --- | --- | --- |\n';
         let failedBlocks = '';
+        // `max-failed-tests` is a total budget across all files
+        let remainingFailedTests = options.maxFailedTests || junit_1.MAX_FAILED_TESTS;
         for (const titleFileLine of lineReports) {
             const { title, file } = titleFileLine;
             const xmlContent = (0, utils_1.getContentFile)(file);
@@ -1454,8 +1469,11 @@ async function getMultipleJunitReport(options) {
                 const junitHtml = (0, junit_1.junitToMarkdown)(parsedXml, options, true);
                 table += `| ${title} ${junitHtml}\n`;
                 atLeastOneFileExists = true;
-                const failedTestsHtml = (0, junit_1.failedTestsToMarkdown)(parsedXml.failedTests ?? [], options, title);
-                failedBlocks += failedTestsHtml ? `\n\n${failedTestsHtml}` : '';
+                if (remainingFailedTests > 0) {
+                    const failedTestsHtml = (0, junit_1.failedTestsToMarkdown)(parsedXml.failedTests ?? [], { ...options, maxFailedTests: remainingFailedTests }, title);
+                    failedBlocks += failedTestsHtml ? `\n\n${failedTestsHtml}` : '';
+                    remainingFailedTests -= parsedXml.failedTests?.length ?? 0;
+                }
             }
         }
         if (atLeastOneFileExists) {

@@ -7,7 +7,8 @@ import { getContentFile, getFileUrl } from './utils'
 const MAX_FAILURE_MESSAGE_LENGTH = 500
 const MAX_FAILURE_MESSAGE_LINES = 15
 const MAX_REASON_LENGTH = 120
-const MAX_FAILED_TESTS = 30
+export const MAX_FAILED_TESTS = 30
+const ABSOLUTE_PATH_REGEX = /^(\/|[A-Za-z]:\/)/
 // guard memory on huge failure outputs, rendering truncates far below this
 const MAX_STORED_MESSAGE_LENGTH = 10000
 const STACK_FRAME_REGEX = /^\s+at\s/
@@ -262,13 +263,29 @@ function toTestName(test: FailedTest, options: Options): string {
     ? ` › ${escapeHtml(testName.slice(suiteName.length).trim())}`
     : ''
 
-  if (!test.file || !repository || !commit || removeLinksToFiles) {
+  const testFile = test.file?.replace(/\\/g, '/')
+  const isAbsolutePath = Boolean(testFile && ABSOLUTE_PATH_REGEX.test(testFile))
+  // absolute stack-trace paths are repo-relative after removing the
+  // workspace prefix, `coverage-path-prefix` applies only to relative ones
+  const relative =
+    testFile && isAbsolutePath && prefix
+      ? testFile.replace(prefix.replace(/\\/g, '/'), '')
+      : testFile
+  const cannotResolvePath =
+    !relative || (isAbsolutePath && ABSOLUTE_PATH_REGEX.test(relative))
+
+  if (!repository || !commit || removeLinksToFiles || cannotResolvePath) {
     return `<b>${escapeHtml(mainText)}</b>${restText}`
   }
 
-  const relative = prefix ? test.file.replace(prefix, '') : test.file
+  const urlOptions = isAbsolutePath
+    ? { ...options, coveragePathPrefix: '' }
+    : options
   const anchor = test.line ? `#L${test.line}` : ''
-  const href = getFileUrl(options, relative, anchor)
+  const href = escapeHtml(getFileUrl(urlOptions, relative, anchor)).replace(
+    /"/g,
+    '&quot;'
+  )
 
   return `<a href="${href}">${escapeHtml(mainText)}</a>${restText}`
 }

@@ -1,5 +1,10 @@
 import * as core from '@actions/core'
-import { failedTestsToMarkdown, junitToMarkdown, parseJunit } from './junit'
+import {
+  MAX_FAILED_TESTS,
+  failedTestsToMarkdown,
+  junitToMarkdown,
+  parseJunit,
+} from './junit'
 import { Options } from './types'
 import { getContentFile, notNull, parseLine } from './utils'
 
@@ -27,6 +32,8 @@ export async function getMultipleJunitReport(
       '| Title | Tests | Skipped | Failures | Errors | Time |\n' +
       '| --- | --- | --- | --- | --- | --- |\n'
     let failedBlocks = ''
+    // `max-failed-tests` is a total budget across all files
+    let remainingFailedTests = options.maxFailedTests || MAX_FAILED_TESTS
 
     for (const titleFileLine of lineReports) {
       const { title, file } = titleFileLine
@@ -38,12 +45,15 @@ export async function getMultipleJunitReport(
         table += `| ${title} ${junitHtml}\n`
         atLeastOneFileExists = true
 
-        const failedTestsHtml = failedTestsToMarkdown(
-          parsedXml.failedTests ?? [],
-          options,
-          title
-        )
-        failedBlocks += failedTestsHtml ? `\n\n${failedTestsHtml}` : ''
+        if (remainingFailedTests > 0) {
+          const failedTestsHtml = failedTestsToMarkdown(
+            parsedXml.failedTests ?? [],
+            { ...options, maxFailedTests: remainingFailedTests },
+            title
+          )
+          failedBlocks += failedTestsHtml ? `\n\n${failedTestsHtml}` : ''
+          remainingFailedTests -= parsedXml.failedTests?.length ?? 0
+        }
       }
     }
 

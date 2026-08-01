@@ -94,6 +94,21 @@ describe('multi junit report', () => {
     )
   })
 
+  test('should apply max-failed-tests as total budget across files', async () => {
+    const result = await getMultipleJunitReport({
+      showFailedTests: true,
+      maxFailedTests: 2,
+      multipleJunitFiles: [
+        `title1, ${__dirname}/../data/coverage_1/junit_with_failures.xml`,
+        `title2, ${__dirname}/../data/coverage_1/junit_with_failures.xml`,
+      ],
+    } as never)
+
+    expect(result).toContain('Failed Tests — title1 (<b>3</b>)')
+    expect(result).toContain('...and 1 more failed tests')
+    expect(result).not.toContain('Failed Tests — title2')
+  })
+
   test('should not show failed tests when option disabled', async () => {
     const result = await getMultipleJunitReport({
       multipleJunitFiles: [

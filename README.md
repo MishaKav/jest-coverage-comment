@@ -141,7 +141,7 @@ jobs:
 | `text-instead-badge`    | `false`           | Use simple text instead of badge images for coverage display  |
 | `junitxml-title`        |                   | Title for summary for junitxml                                |
 | `show-failed-tests`     | `false`           | Show names of failed tests in the comment (requires `junitxml-path` or `multiple-junitxml-files`) |
-| `max-failed-tests`      | `30`              | Maximum number of failed tests to show in the comment, useful on big repos (requires `show-failed-tests`) |
+| `max-failed-tests`      | `30`              | Maximum number of failed tests to show in the comment, in total across all junit files (requires `show-failed-tests`) |
 | `coverage-title`        | `Coverage Report` | Title for the coverage report                                 |
 | `hide-summary`          | `false`           | Hide coverage summary report                                  |
 | `hide-comment`          | `false`           | Hide the whole comment (use when you need only the `output`)  |
