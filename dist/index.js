@@ -1014,7 +1014,8 @@ exports.getJunitReport = getJunitReport;
 const core = __importStar(__nccwpck_require__(7484));
 const xml2js = __importStar(__nccwpck_require__(758));
 const utils_1 = __nccwpck_require__(9277);
-const MAX_FAILURE_MESSAGE_LENGTH = 300;
+const MAX_FAILURE_MESSAGE_LENGTH = 500;
+const MAX_FAILURE_MESSAGE_LINES = 15;
 const MAX_FAILED_TESTS = 30;
 /** Escape characters that are unsafe inside generated html. */
 function escapeHtml(text) {
@@ -1031,16 +1032,51 @@ function getFailureMessage(node) {
     }
     return node?.$?.message ?? node?._?.trim() ?? '';
 }
-/** Collapse failure message to a truncated single line, without stack-trace frames. */
+/** Strip stack-trace frames from failure message, cap length and number of lines. */
 function formatFailureMessage(message) {
     const withoutStack = message
         .split(/\r?\n/)
         .filter((line) => !/^\s+at\s/.test(line))
+        .map((line) => line.trimEnd())
         .join('\n');
-    const singleLine = withoutStack.trim().replace(/\s*\r?\n\s*/g, ' · ');
-    return singleLine.length > MAX_FAILURE_MESSAGE_LENGTH
-        ? `${singleLine.slice(0, MAX_FAILURE_MESSAGE_LENGTH)}…`
-        : singleLine;
+    let text = withoutStack.trim();
+    if (text.length > MAX_FAILURE_MESSAGE_LENGTH) {
+        text = `${text.slice(0, MAX_FAILURE_MESSAGE_LENGTH)}…`;
+    }
+    const lines = text.split('\n');
+    if (lines.length > MAX_FAILURE_MESSAGE_LINES) {
+        text = `${lines.slice(0, MAX_FAILURE_MESSAGE_LINES).join('\n')}\n…`;
+    }
+    return text;
+}
+/** Convert multiline failure message to html for a table cell. */
+function messageToHtml(message) {
+    return escapeHtml(message)
+        .split('\n')
+        .map((line) => line.replace(/^ +| {2,}/g, (m) => '&nbsp;'.repeat(m.length)))
+        .join('<br/>');
+}
+/**
+ * Extract test file location from the first own stack-trace frame
+ * in the failure text (has the line number), falling back to the
+ * `file` attribute of jest-junit `addFileAttribute` option.
+ */
+function getTestLocation(tc, rawTexts) {
+    for (const rawText of rawTexts) {
+        for (const textLine of rawText.split(/\r?\n/)) {
+            if (!/^\s+at\s/.test(textLine) || textLine.includes('node_modules')) {
+                continue;
+            }
+            const match = textLine.match(/\(?([^()\s]+):(\d+):(\d+)\)?$/);
+            if (match) {
+                return { file: match[1], line: Number(match[2]) };
+            }
+        }
+    }
+    if (tc.$?.file) {
+        return { file: tc.$.file };
+    }
+    return {};
 }
 /** Parse junit.xml to Junit object */
 async function parseJunit(xmlContent) {
@@ -1074,15 +1110,19 @@ async function parseJunit(xmlContent) {
             .reduce((sum, a) => sum + a, 0) || 0;
         const failedTests = testsuites?.flatMap((t) => (t.testcase ?? [])
             .filter((tc) => tc.failure || tc.error)
-            .map((tc) => ({
-            suiteName: t.$?.name ?? '',
-            classname: tc.$?.classname ?? '',
-            testName: tc.$?.name ?? '',
-            message: [...(tc.failure ?? []), ...(tc.error ?? [])]
-                .map(getFailureMessage)
-                .filter(Boolean)
-                .join('\n'),
-        }))) ?? [];
+            .map((tc) => {
+            const nodes = [...(tc.failure ?? []), ...(tc.error ?? [])];
+            const rawTexts = nodes
+                .flatMap((node) => typeof node === 'string' ? [node] : [node?.$?.message, node?._])
+                .filter(Boolean);
+            return {
+                suiteName: t.$?.name ?? '',
+                classname: tc.$?.classname ?? '',
+                testName: tc.$?.name ?? '',
+                message: nodes.map(getFailureMessage).filter(Boolean).join('\n'),
+                ...getTestLocation(tc, rawTexts),
+            };
+        })) ?? [];
         return {
             skipped,
             errors: Number(main.errors || errors),
@@ -1119,15 +1159,27 @@ ${table}`;
     }
     return table;
 }
+/** Make test name cell - td, with link to the test file when known. */
+function toTestNameTd(test, options) {
+    const { serverUrl = 'https://github.com', repository, commit, prefix = '', coveragePathPrefix = '', } = options;
+    const name = `<code>${escapeHtml(test.testName)}</code>`;
+    if (!test.file || !repository || !commit) {
+        return `<td>${name}</td>`;
+    }
+    const relative = prefix ? test.file.replace(prefix, '') : test.file;
+    const anchor = test.line ? `#L${test.line}` : '';
+    const href = `${serverUrl}/${repository}/blob/${commit}/${coveragePathPrefix}${relative}${anchor}`;
+    return `<td><a href="${href}">${name}</a></td>`;
+}
 /** Convert failed tests to collapsed html table. */
-function failedTestsToMarkdown(failedTests, title) {
+function failedTestsToMarkdown(failedTests, options, title) {
     if (!failedTests.length) {
         return '';
     }
     const summaryTitle = title ? `Failed Tests — ${title}` : 'Failed Tests';
     const rows = failedTests
         .slice(0, MAX_FAILED_TESTS)
-        .map((test) => `<tr><td>${escapeHtml(test.testName)}</td><td>${escapeHtml(formatFailureMessage(test.message))}</td></tr>`);
+        .map((test) => `<tr>${toTestNameTd(test, options)}<td><code>${messageToHtml(formatFailureMessage(test.message))}</code></td></tr>`);
     if (failedTests.length > MAX_FAILED_TESTS) {
         rows.push(`<tr><td colspan="2">...and ${failedTests.length - MAX_FAILED_TESTS} more failed tests</td></tr>`);
     }
@@ -1144,7 +1196,7 @@ async function getJunitReport(options) {
                 const junitHtml = junitToMarkdown(parsedXml, options);
                 const { skipped, errors, failures, tests, time, failedTests } = parsedXml;
                 const failedTestsHtml = options.showFailedTests && failedTests?.length
-                    ? failedTestsToMarkdown(failedTests)
+                    ? failedTestsToMarkdown(failedTests, options)
                     : '';
                 return {
                     junitHtml,
@@ -1333,7 +1385,7 @@ async function getMultipleJunitReport(options) {
                 table += `| ${title} ${junitHtml}\n`;
                 atLeastOneFileExists = true;
                 if (options.showFailedTests && parsedXml.failedTests?.length) {
-                    failedBlocks += `\n\n${(0, junit_1.failedTestsToMarkdown)(parsedXml.failedTests, title)}`;
+                    failedBlocks += `\n\n${(0, junit_1.failedTestsToMarkdown)(parsedXml.failedTests, options, title)}`;
                 }
             }
         }

@@ -121,9 +121,58 @@ describe('parsing failed tests', () => {
 
     expect(junit?.failedTests).toEqual([])
   })
+
+  test('should take test location from file attribute', async () => {
+    const xml =
+      '<?xml version="1.0" encoding="UTF-8"?><testsuites tests="1" failures="1" errors="0" time="0.5"><testsuite name="suite A" errors="0" failures="1" skipped="0" tests="1"><testcase classname="class A" name="test one" file="__tests__/failing/service.test.js" time="0.1"><failure>boom</failure></testcase></testsuite></testsuites>'
+    const junit = await parseJunit(xml)
+
+    expect(junit?.failedTests?.[0].file).toBe(
+      '__tests__/failing/service.test.js'
+    )
+    expect(junit?.failedTests?.[0].line).toBeUndefined()
+  })
+
+  test('should take test location from first own stack-trace frame', async () => {
+    const xml =
+      '<?xml version="1.0" encoding="UTF-8"?><testsuites tests="1" failures="1" errors="0" time="0.5"><testsuite name="suite A" errors="0" failures="1" skipped="0" tests="1"><testcase classname="class A" name="test one" time="0.1"><failure>TypeError: boom\n    at Promise.then.completed (/repo/node_modules/jest-circus/build/utils.js:333:28)\n    at Object.toEqual (/repo/__tests__/failing/service.test.js:25:22)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)</failure></testcase></testsuite></testsuites>'
+    const junit = await parseJunit(xml)
+
+    expect(junit?.failedTests?.[0].file).toBe(
+      '/repo/__tests__/failing/service.test.js'
+    )
+    expect(junit?.failedTests?.[0].line).toBe(25)
+  })
+
+  test('should prefer stack-trace location over file attribute', async () => {
+    const xml =
+      '<?xml version="1.0" encoding="UTF-8"?><testsuites tests="1" failures="1" errors="0" time="0.5"><testsuite name="suite A" errors="0" failures="1" skipped="0" tests="1"><testcase classname="class A" name="test one" file="__tests__/other.test.js" time="0.1"><failure>boom\n    at Object.toEqual (__tests__/failing/service.test.js:25:22)</failure></testcase></testsuite></testsuites>'
+    const junit = await parseJunit(xml)
+
+    expect(junit?.failedTests?.[0].file).toBe(
+      '__tests__/failing/service.test.js'
+    )
+    expect(junit?.failedTests?.[0].line).toBe(25)
+  })
+
+  test('should not have test location when no file info', async () => {
+    const xml =
+      '<?xml version="1.0" encoding="UTF-8"?><testsuites tests="1" failures="1" errors="0" time="0.5"><testsuite name="suite A" errors="0" failures="1" skipped="0" tests="1"><testcase classname="class A" name="test one" time="0.1"><failure message="boom">no stack here</failure></testcase></testsuite></testsuites>'
+    const junit = await parseJunit(xml)
+
+    expect(junit?.failedTests?.[0].file).toBeUndefined()
+    expect(junit?.failedTests?.[0].line).toBeUndefined()
+  })
 })
 
 describe('failed tests to markdown', () => {
+  const options = {} as never
+  const optionsWithRepo = {
+    serverUrl: 'https://github.com',
+    repository: 'MishaKav/jest-coverage-comment',
+    commit: '05953710b21d222efa4f4535424a7af367be5a57',
+    prefix: '/home/runner/work/repo/repo/',
+  } as never
   const failedTest: FailedTest = {
     suiteName: 'suite A',
     classname: 'class A',
@@ -132,7 +181,7 @@ describe('failed tests to markdown', () => {
   }
 
   test('should return empty string when no failed tests', () => {
-    expect(failedTestsToMarkdown([])).toBe('')
+    expect(failedTestsToMarkdown([], options)).toBe('')
   })
 
   test('should render collapsed table with failed tests', () => {
@@ -145,56 +194,122 @@ describe('failed tests to markdown', () => {
         message: 'Timeout - Async callback was not invoked',
       },
     ]
-    const html = failedTestsToMarkdown(failedTests)
+    const html = failedTestsToMarkdown(failedTests, options)
 
     expect(html).toBe(
-      '<details><summary>:x: Failed Tests (<b>2</b>)</summary><table><tr><th>Test</th><th>Failure Message</th></tr><tr><td>test one</td><td>expected 1 to be 2</td></tr><tr><td>test two</td><td>Timeout - Async callback was not invoked</td></tr></table></details>'
+      '<details><summary>:x: Failed Tests (<b>2</b>)</summary><table><tr><th>Test</th><th>Failure Message</th></tr><tr><td><code>test one</code></td><td><code>expected 1 to be 2</code></td></tr><tr><td><code>test two</code></td><td><code>Timeout - Async callback was not invoked</code></td></tr></table></details>'
     )
   })
 
   test('should render title in summary', () => {
-    const html = failedTestsToMarkdown([failedTest], 'My Title')
+    const html = failedTestsToMarkdown([failedTest], options, 'My Title')
 
     expect(html).toContain(':x: Failed Tests — My Title (<b>1</b>)')
   })
 
-  test('should escape html and collapse multiline messages', () => {
-    const html = failedTestsToMarkdown([
-      {
-        suiteName: 'suite A',
-        classname: 'class A',
-        testName: 'test <b>one</b> & two',
-        message: 'expected <a> & "b"\n\nreceived | `c`',
-      },
-    ])
+  test('should escape html and keep line breaks in messages', () => {
+    const html = failedTestsToMarkdown(
+      [
+        {
+          suiteName: 'suite A',
+          classname: 'class A',
+          testName: 'test <b>one</b> & two',
+          message: 'expected <a> & "b"\n\nreceived | `c`',
+        },
+      ],
+      options
+    )
 
     expect(html).toContain(
-      '<td>test &lt;b&gt;one&lt;/b&gt; &amp; two</td><td>expected &lt;a&gt; &amp; "b" · received | `c`</td>'
+      '<td><code>test &lt;b&gt;one&lt;/b&gt; &amp; two</code></td><td><code>expected &lt;a&gt; &amp; "b"<br/><br/>received | `c`</code></td>'
+    )
+  })
+
+  test('should keep indentation of diff lines', () => {
+    const html = failedTestsToMarkdown(
+      [{ ...failedTest, message: '  Array [\n    Object {\n  ]' }],
+      options
+    )
+
+    expect(html).toContain(
+      '<td><code>Array [<br/>&nbsp;&nbsp;&nbsp;&nbsp;Object {<br/>&nbsp;&nbsp;]</code></td>'
     )
   })
 
   test('should remove stack-trace frames from messages', () => {
-    const html = failedTestsToMarkdown([
-      {
-        ...failedTest,
-        message:
-          'Error: expect(jest.fn()).toBeCalledWith(...expected)\n\nExpected: 200\nReceived: 201\n\nNumber of calls: 1\n    at Object.toBeCalledWith (/repo/__tests__/controller.test.js:35:29)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)',
-      },
-    ])
+    const html = failedTestsToMarkdown(
+      [
+        {
+          ...failedTest,
+          message:
+            'Error: expect(jest.fn()).toBeCalledWith(...expected)\n\nExpected: 200\nReceived: 201\n\nNumber of calls: 1\n    at Object.toBeCalledWith (/repo/__tests__/controller.test.js:35:29)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)',
+        },
+      ],
+      options
+    )
 
     expect(html).toContain(
-      '<td>Error: expect(jest.fn()).toBeCalledWith(...expected) · Expected: 200 · Received: 201 · Number of calls: 1</td>'
+      '<td><code>Error: expect(jest.fn()).toBeCalledWith(...expected)<br/><br/>Expected: 200<br/>Received: 201<br/><br/>Number of calls: 1</code></td>'
     )
     expect(html).not.toContain('at Object.toBeCalledWith')
   })
 
   test('should truncate long messages', () => {
-    const html = failedTestsToMarkdown([
-      { ...failedTest, message: 'a'.repeat(400) },
-    ])
+    const html = failedTestsToMarkdown(
+      [{ ...failedTest, message: 'a'.repeat(600) }],
+      options
+    )
 
-    expect(html).toContain(`<td>${'a'.repeat(300)}…</td>`)
-    expect(html).not.toContain('a'.repeat(301))
+    expect(html).toContain(`<td><code>${'a'.repeat(500)}…</code></td>`)
+    expect(html).not.toContain('a'.repeat(501))
+  })
+
+  test('should cap number of message lines', () => {
+    const message = Array.from({ length: 20 }, (_, i) => `line ${i + 1}`).join(
+      '\n'
+    )
+    const html = failedTestsToMarkdown([{ ...failedTest, message }], options)
+
+    expect(html).toContain('line 15<br/>…')
+    expect(html).not.toContain('line 16')
+  })
+
+  test('should link test name to the test file', () => {
+    const html = failedTestsToMarkdown(
+      [
+        {
+          ...failedTest,
+          file: '/home/runner/work/repo/repo/__tests__/failing/service.test.js',
+          line: 25,
+        },
+      ],
+      optionsWithRepo
+    )
+
+    expect(html).toContain(
+      '<td><a href="https://github.com/MishaKav/jest-coverage-comment/blob/05953710b21d222efa4f4535424a7af367be5a57/__tests__/failing/service.test.js#L25"><code>test one</code></a></td>'
+    )
+  })
+
+  test('should link test name without line when only file is known', () => {
+    const html = failedTestsToMarkdown(
+      [{ ...failedTest, file: '__tests__/failing/service.test.js' }],
+      optionsWithRepo
+    )
+
+    expect(html).toContain(
+      '<td><a href="https://github.com/MishaKav/jest-coverage-comment/blob/05953710b21d222efa4f4535424a7af367be5a57/__tests__/failing/service.test.js"><code>test one</code></a></td>'
+    )
+  })
+
+  test('should not link test name without repository or commit', () => {
+    const html = failedTestsToMarkdown(
+      [{ ...failedTest, file: '__tests__/failing/service.test.js', line: 25 }],
+      options
+    )
+
+    expect(html).toContain('<td><code>test one</code></td>')
+    expect(html).not.toContain('<a href')
   })
 
   test('should cap number of rendered failed tests', () => {
@@ -202,7 +317,7 @@ describe('failed tests to markdown', () => {
       ...failedTest,
       testName: `test ${i + 1}`,
     }))
-    const html = failedTestsToMarkdown(failedTests)
+    const html = failedTestsToMarkdown(failedTests, options)
 
     expect(html).toContain(':x: Failed Tests (<b>35</b>)')
     expect(html).toContain('test 30')
@@ -301,7 +416,7 @@ describe('parse junit and check report output', () => {
       'should test router should test get posts'
     )
     expect(failedTestsHtml).toContain(
-      'Expected: "Hello" · Received: "Hi" &amp; &lt;b&gt;`bold`&lt;/b&gt; | pipe'
+      'Expected: "Hello"<br/>Received: "Hi" &amp; &lt;b&gt;`bold`&lt;/b&gt; | pipe'
     )
   })
 

@@ -77,6 +77,8 @@ export interface FailedTest {
   classname: string
   testName: string
   message: string
+  file?: string
+  line?: number
 }
 
 export interface JunitReport extends Junit {

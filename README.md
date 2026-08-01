@@ -360,9 +360,9 @@ Requires `junitxml-path` (or `multiple-junitxml-files`), see [JUnit Test Report]
     show-failed-tests: true
 ```
 
-**Output**: Collapsible section with the names of failed tests and a short failure message for each. The section appears **only when there are failed tests** — on a green run the comment stays exactly the same as without this option.
+**Output**: Collapsible section with the names of failed tests and the jest failure message for each (stack traces are stripped). Test names link to the test file when the location can be resolved from the report. The section appears **only when there are failed tests** — on a green run the comment stays exactly the same as without this option.
 
-<details><summary>:x: Failed Tests (<b>2</b>)</summary><table><tr><th>Test</th><th>Failure Message</th></tr><tr><td>should test Service when #list method fails</td><td>expect(received).toBe(expected) · Expected: "Hello" · Received: "Hi"</td></tr><tr><td>should test router should test get posts</td><td>Timeout - Async callback was not invoked within the 5000 ms timeout</td></tr></table></details>
+<details><summary>:x: Failed Tests (<b>2</b>)</summary><table><tr><th>Test</th><th>Failure Message</th></tr><tr><td><code>PostsService › maps the API response to posts</code></td><td><code>Error: expect(received).toEqual(expected) // deep equality<br/><br/>- Expected  - 1<br/>+ Received  + 1<br/><br/>&nbsp;&nbsp;Array [<br/>&nbsp;&nbsp;&nbsp;&nbsp;Object {<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"id": 1,<br/>-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"title": "my first post",<br/>+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"title": "first post",<br/>&nbsp;&nbsp;&nbsp;&nbsp;},<br/>&nbsp;&nbsp;]</code></td></tr><tr><td><code>PostsService › fetches a single post by id</code></td><td><code>TypeError: Service.getPostById is not a function</code></td></tr></table></details>
 
 With `multiple-junitxml-files`, a separate collapsible section is added for every file that has failures, labeled with the file's title.
 

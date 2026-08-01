@@ -41,6 +41,7 @@ export async function getMultipleJunitReport(
         if (options.showFailedTests && parsedXml.failedTests?.length) {
           failedBlocks += `\n\n${failedTestsToMarkdown(
             parsedXml.failedTests,
+            options,
             title
           )}`
         }

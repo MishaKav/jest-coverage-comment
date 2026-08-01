@@ -4,7 +4,8 @@ import * as xml2js from 'xml2js'
 import { FailedTest, Junit, JunitReport, Options } from './types.d'
 import { getContentFile } from './utils'
 
-const MAX_FAILURE_MESSAGE_LENGTH = 300
+const MAX_FAILURE_MESSAGE_LENGTH = 500
+const MAX_FAILURE_MESSAGE_LINES = 15
 const MAX_FAILED_TESTS = 30
 
 /** Escape characters that are unsafe inside generated html. */
@@ -25,18 +26,63 @@ function getFailureMessage(node: any): string {
   return node?.$?.message ?? node?._?.trim() ?? ''
 }
 
-/** Collapse failure message to a truncated single line, without stack-trace frames. */
+/** Strip stack-trace frames from failure message, cap length and number of lines. */
 function formatFailureMessage(message: string): string {
   const withoutStack = message
     .split(/\r?\n/)
     .filter((line) => !/^\s+at\s/.test(line))
+    .map((line) => line.trimEnd())
     .join('\n')
 
-  const singleLine = withoutStack.trim().replace(/\s*\r?\n\s*/g, ' · ')
+  let text = withoutStack.trim()
 
-  return singleLine.length > MAX_FAILURE_MESSAGE_LENGTH
-    ? `${singleLine.slice(0, MAX_FAILURE_MESSAGE_LENGTH)}…`
-    : singleLine
+  if (text.length > MAX_FAILURE_MESSAGE_LENGTH) {
+    text = `${text.slice(0, MAX_FAILURE_MESSAGE_LENGTH)}…`
+  }
+
+  const lines = text.split('\n')
+  if (lines.length > MAX_FAILURE_MESSAGE_LINES) {
+    text = `${lines.slice(0, MAX_FAILURE_MESSAGE_LINES).join('\n')}\n…`
+  }
+
+  return text
+}
+
+/** Convert multiline failure message to html for a table cell. */
+function messageToHtml(message: string): string {
+  return escapeHtml(message)
+    .split('\n')
+    .map((line) => line.replace(/^ +| {2,}/g, (m) => '&nbsp;'.repeat(m.length)))
+    .join('<br/>')
+}
+
+/**
+ * Extract test file location from the first own stack-trace frame
+ * in the failure text (has the line number), falling back to the
+ * `file` attribute of jest-junit `addFileAttribute` option.
+ */
+function getTestLocation(
+  tc: any,
+  rawTexts: string[]
+): { file?: string; line?: number } {
+  for (const rawText of rawTexts) {
+    for (const textLine of rawText.split(/\r?\n/)) {
+      if (!/^\s+at\s/.test(textLine) || textLine.includes('node_modules')) {
+        continue
+      }
+
+      const match = textLine.match(/\(?([^()\s]+):(\d+):(\d+)\)?$/)
+      if (match) {
+        return { file: match[1], line: Number(match[2]) }
+      }
+    }
+  }
+
+  if (tc.$?.file) {
+    return { file: tc.$.file }
+  }
+
+  return {}
 }
 
 /** Parse junit.xml to Junit object */
@@ -81,15 +127,22 @@ export async function parseJunit(xmlContent: string): Promise<Junit | null> {
       testsuites?.flatMap((t: any) =>
         (t.testcase ?? [])
           .filter((tc: any) => tc.failure || tc.error)
-          .map((tc: any) => ({
-            suiteName: t.$?.name ?? '',
-            classname: tc.$?.classname ?? '',
-            testName: tc.$?.name ?? '',
-            message: [...(tc.failure ?? []), ...(tc.error ?? [])]
-              .map(getFailureMessage)
+          .map((tc: any) => {
+            const nodes = [...(tc.failure ?? []), ...(tc.error ?? [])]
+            const rawTexts = nodes
+              .flatMap((node: any) =>
+                typeof node === 'string' ? [node] : [node?.$?.message, node?._]
+              )
               .filter(Boolean)
-              .join('\n'),
-          }))
+
+            return {
+              suiteName: t.$?.name ?? '',
+              classname: tc.$?.classname ?? '',
+              testName: tc.$?.name ?? '',
+              message: nodes.map(getFailureMessage).filter(Boolean).join('\n'),
+              ...getTestLocation(tc, rawTexts),
+            }
+          })
       ) ?? []
 
     return {
@@ -139,9 +192,32 @@ ${table}`
   return table
 }
 
+/** Make test name cell - td, with link to the test file when known. */
+function toTestNameTd(test: FailedTest, options: Options): string {
+  const {
+    serverUrl = 'https://github.com',
+    repository,
+    commit,
+    prefix = '',
+    coveragePathPrefix = '',
+  } = options
+  const name = `<code>${escapeHtml(test.testName)}</code>`
+
+  if (!test.file || !repository || !commit) {
+    return `<td>${name}</td>`
+  }
+
+  const relative = prefix ? test.file.replace(prefix, '') : test.file
+  const anchor = test.line ? `#L${test.line}` : ''
+  const href = `${serverUrl}/${repository}/blob/${commit}/${coveragePathPrefix}${relative}${anchor}`
+
+  return `<td><a href="${href}">${name}</a></td>`
+}
+
 /** Convert failed tests to collapsed html table. */
 export function failedTestsToMarkdown(
   failedTests: FailedTest[],
+  options: Options,
   title?: string
 ): string {
   if (!failedTests.length) {
@@ -153,9 +229,9 @@ export function failedTestsToMarkdown(
     .slice(0, MAX_FAILED_TESTS)
     .map(
       (test) =>
-        `<tr><td>${escapeHtml(test.testName)}</td><td>${escapeHtml(
+        `<tr>${toTestNameTd(test, options)}<td><code>${messageToHtml(
           formatFailureMessage(test.message)
-        )}</td></tr>`
+        )}</code></td></tr>`
     )
 
   if (failedTests.length > MAX_FAILED_TESTS) {
@@ -188,7 +264,7 @@ export async function getJunitReport(options: Options): Promise<JunitReport> {
           parsedXml
         const failedTestsHtml =
           options.showFailedTests && failedTests?.length
-            ? failedTestsToMarkdown(failedTests)
+            ? failedTestsToMarkdown(failedTests, options)
             : ''
 
         return {
