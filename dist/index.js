@@ -1016,6 +1016,7 @@ const xml2js = __importStar(__nccwpck_require__(758));
 const utils_1 = __nccwpck_require__(9277);
 const MAX_FAILURE_MESSAGE_LENGTH = 500;
 const MAX_FAILURE_MESSAGE_LINES = 15;
+const MAX_REASON_LENGTH = 120;
 const MAX_FAILED_TESTS = 30;
 /** Escape characters that are unsafe inside generated html. */
 function escapeHtml(text) {
@@ -1049,9 +1050,36 @@ function formatFailureMessage(message) {
     }
     return text;
 }
-/** Escape markdown special characters in plain text. */
-function escapeMarkdown(text) {
-    return text.replace(/[\\`*_[\]<>~]/g, (m) => `\\${m}`);
+/**
+ * Extract short one-line reason from failure message:
+ * the `Expected/Received` pair, the first changed diff pair,
+ * or the first meaningful line.
+ */
+function extractShortReason(message) {
+    const lines = message
+        .split('\n')
+        .map((line) => line.trim().replace(/\s+/g, ' ').replace(/,$/, ''))
+        .filter(Boolean);
+    const expected = lines.find((line) => line.startsWith('Expected: '));
+    const received = lines.find((line) => line.startsWith('Received: '));
+    const removed = lines.find((line) => line.startsWith('- ') && !line.startsWith('- Expected'));
+    const added = lines.find((line) => line.startsWith('+ ') && !line.startsWith('+ Received'));
+    let reason = '';
+    if (expected && received) {
+        reason = `${expected} · ${received}`;
+    }
+    else if (removed && added) {
+        reason = `${removed} · ${added}`;
+    }
+    else {
+        const firstLine = lines.find((line) => !line.startsWith('expect(')) ?? lines[0] ?? '';
+        reason = firstLine.startsWith('thrown: ')
+            ? firstLine.replace(/^thrown: "?/, '').replace(/"$/, '')
+            : firstLine;
+    }
+    return reason.length > MAX_REASON_LENGTH
+        ? `${reason.slice(0, MAX_REASON_LENGTH)}…`
+        : reason;
 }
 /**
  * Wrap failure message in a fenced `diff` code block, so jest
@@ -1169,11 +1197,11 @@ ${table}`;
     return table;
 }
 /**
- * Make title line for a failed test.
- * The bold suite name carries the link to the test file (when known),
+ * Make test name html for the summary line.
+ * The suite name carries the link to the test file (when known),
  * the rest of the test name stays plain text.
  */
-function toTestTitleLine(test, options) {
+function toTestName(test, options) {
     const { serverUrl = 'https://github.com', repository, commit, prefix = '', coveragePathPrefix = '', } = options;
     const { suiteName, testName } = test;
     const hasSuitePrefix = Boolean(suiteName) &&
@@ -1181,15 +1209,15 @@ function toTestTitleLine(test, options) {
         testName !== suiteName;
     const mainText = hasSuitePrefix ? suiteName : testName;
     const restText = hasSuitePrefix
-        ? ` › ${escapeMarkdown(testName.slice(suiteName.length).trim())}`
+        ? ` › ${escapeHtml(testName.slice(suiteName.length).trim())}`
         : '';
     if (!test.file || !repository || !commit) {
-        return `:x: **${escapeMarkdown(mainText)}**${restText}`;
+        return `<b>${escapeHtml(mainText)}</b>${restText}`;
     }
     const relative = prefix ? test.file.replace(prefix, '') : test.file;
     const anchor = test.line ? `#L${test.line}` : '';
     const href = `${serverUrl}/${repository}/blob/${commit}/${coveragePathPrefix}${relative}${anchor}`;
-    return `:x: **[${escapeMarkdown(mainText)}](${href})**${restText}`;
+    return `<a href="${href}">${escapeHtml(mainText)}</a>${restText}`;
 }
 /** Convert failed tests to collapsed html table. */
 function failedTestsToMarkdown(failedTests, options, title) {
@@ -1197,13 +1225,15 @@ function failedTestsToMarkdown(failedTests, options, title) {
         return '';
     }
     const summaryTitle = title ? `Failed Tests — ${title}` : 'Failed Tests';
-    const entries = failedTests
-        .slice(0, MAX_FAILED_TESTS)
-        .map((test) => `${toTestTitleLine(test, options)}\n\n${messageToDiffBlock(formatFailureMessage(test.message))}`);
+    const entries = failedTests.slice(0, MAX_FAILED_TESTS).map((test) => {
+        const message = formatFailureMessage(test.message);
+        const reason = extractShortReason(message);
+        return `<details><summary>${toTestName(test, options)} — <code>${escapeHtml(reason)}</code></summary>\n\n${messageToDiffBlock(message)}\n\n</details>`;
+    });
     if (failedTests.length > MAX_FAILED_TESTS) {
         entries.push(`_...and ${failedTests.length - MAX_FAILED_TESTS} more failed tests_`);
     }
-    return `<details><summary>:x: ${escapeHtml(summaryTitle)} (<b>${failedTests.length}</b>)</summary>\n\n${entries.join('\n\n')}\n\n</details>`;
+    return `<details><summary>:x: ${escapeHtml(summaryTitle)} (<b>${failedTests.length}</b>)</summary>\n\n${entries.join('\n')}\n\n</details>`;
 }
 /** Return JUnit report. */
 async function getJunitReport(options) {

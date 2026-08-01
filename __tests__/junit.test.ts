@@ -198,10 +198,10 @@ describe('failed tests to markdown', () => {
 
     expect(html).toBe(
       '<details><summary>:x: Failed Tests (<b>2</b>)</summary>\n\n' +
-        ':x: **test one**\n\n' +
-        '```diff\nexpected 1 to be 2\n```\n\n' +
-        ':x: **test two**\n\n' +
-        '```diff\nTimeout - Async callback was not invoked\n```\n\n' +
+        '<details><summary><b>test one</b> — <code>expected 1 to be 2</code></summary>\n\n' +
+        '```diff\nexpected 1 to be 2\n```\n\n</details>\n' +
+        '<details><summary><b>test two</b> — <code>Timeout - Async callback was not invoked</code></summary>\n\n' +
+        '```diff\nTimeout - Async callback was not invoked\n```\n\n</details>\n\n' +
         '</details>'
     )
   })
@@ -212,21 +212,40 @@ describe('failed tests to markdown', () => {
     expect(html).toContain(':x: Failed Tests — My Title (<b>1</b>)')
   })
 
-  test('should escape markdown in test names and keep messages verbatim', () => {
+  test('should escape html in test names and reason, keep messages verbatim', () => {
     const html = failedTestsToMarkdown(
       [
         {
           suiteName: 'suite A',
           classname: 'class A',
-          testName: 'test <b>one</b> *bold* [x]',
+          testName: 'test <b>one</b> & two',
           message: 'expected <a> & "b"\n\nreceived | `c`',
         },
       ],
       options
     )
 
-    expect(html).toContain(':x: **test \\<b\\>one\\</b\\> \\*bold\\* \\[x\\]**')
+    expect(html).toContain(
+      '<summary><b>test &lt;b&gt;one&lt;/b&gt; &amp; two</b> — <code>expected &lt;a&gt; &amp; "b"</code></summary>'
+    )
     expect(html).toContain('```diff\nexpected <a> & "b"\n\nreceived | `c`\n```')
+  })
+
+  test('should extract diff pair as short reason', () => {
+    const html = failedTestsToMarkdown(
+      [
+        {
+          ...failedTest,
+          message:
+            'expect(received).toEqual(expected) // deep equality\n\n- Expected  - 1\n+ Received  + 1\n\n  Array [\n    Object {\n      "id": 1,\n-     "title": "my first post",\n+     "title": "first post",\n    },\n  ]',
+        },
+      ],
+      options
+    )
+
+    expect(html).toContain(
+      '— <code>- "title": "my first post" · + "title": "first post"</code></summary>'
+    )
   })
 
   test('should keep indentation of diff lines', () => {
@@ -310,7 +329,7 @@ describe('failed tests to markdown', () => {
     )
 
     expect(html).toContain(
-      ':x: **[test one](https://github.com/MishaKav/jest-coverage-comment/blob/05953710b21d222efa4f4535424a7af367be5a57/__tests__/failing/service.test.js#L25)**'
+      '<summary><a href="https://github.com/MishaKav/jest-coverage-comment/blob/05953710b21d222efa4f4535424a7af367be5a57/__tests__/failing/service.test.js#L25">test one</a> — <code>'
     )
   })
 
@@ -330,7 +349,7 @@ describe('failed tests to markdown', () => {
     )
 
     expect(html).toContain(
-      ':x: **[PostsService](https://github.com/MishaKav/jest-coverage-comment/blob/05953710b21d222efa4f4535424a7af367be5a57/__tests__/failing/service.test.js#L25)** › maps the API response to posts'
+      '<summary><a href="https://github.com/MishaKav/jest-coverage-comment/blob/05953710b21d222efa4f4535424a7af367be5a57/__tests__/failing/service.test.js#L25">PostsService</a> › maps the API response to posts — <code>boom</code></summary>'
     )
   })
 
@@ -341,7 +360,7 @@ describe('failed tests to markdown', () => {
     )
 
     expect(html).toContain(
-      ':x: **[test one](https://github.com/MishaKav/jest-coverage-comment/blob/05953710b21d222efa4f4535424a7af367be5a57/__tests__/failing/service.test.js)**'
+      '<summary><a href="https://github.com/MishaKav/jest-coverage-comment/blob/05953710b21d222efa4f4535424a7af367be5a57/__tests__/failing/service.test.js">test one</a> — <code>'
     )
   })
 
@@ -361,9 +380,9 @@ describe('failed tests to markdown', () => {
     )
 
     expect(html).toContain(
-      ':x: **PostsService** › maps the API response to posts'
+      '<b>PostsService</b> › maps the API response to posts'
     )
-    expect(html).not.toContain('](http')
+    expect(html).not.toContain('<a href')
   })
 
   test('should cap number of rendered failed tests', () => {
@@ -460,13 +479,18 @@ describe('parse junit and check report output', () => {
     expect(failedTestsHtml).toContain(
       '<details><summary>:x: Failed Tests (<b>3</b>)</summary>'
     )
-    expect(failedTestsHtml).toContain('**[should test controller](')
-    expect(failedTestsHtml).toContain(')** › when #getPost method method fails')
     expect(failedTestsHtml).toContain(
-      '**should test Service** › when #list method fails'
+      'should test controller</a> › when #getPost method method fails'
     )
-    expect(failedTestsHtml).toContain('**[should test router](')
-    expect(failedTestsHtml).toContain(')** › should test get posts')
+    expect(failedTestsHtml).toContain(
+      '<b>should test Service</b> › when #list method fails'
+    )
+    expect(failedTestsHtml).toContain(
+      'should test router</a> › should test get posts'
+    )
+    expect(failedTestsHtml).toContain(
+      '— <code>Expected: "Hello" · Received: "Hi" &amp;'
+    )
     expect(failedTestsHtml).toContain(
       'Expected: "Hello"\nReceived: "Hi" & <b>`bold`</b> | pipe'
     )

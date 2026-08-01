@@ -360,11 +360,11 @@ Requires `junitxml-path` (or `multiple-junitxml-files`), see [JUnit Test Report]
     show-failed-tests: true
 ```
 
-**Output**: Collapsible section with an entry per failed test — the suite name links to the test file (when the location can be resolved from the report), and the jest failure message renders as a `diff` code block with red/green highlighting (stack traces are stripped). The section appears **only when there are failed tests** — on a green run the comment stays exactly the same as without this option.
+**Output**: Collapsible section with one line per failed test — the suite name links to the test file (when the location can be resolved from the report) followed by a short failure reason. Clicking a test expands the full jest output as a `diff` code block with red/green highlighting (stack traces are stripped). The section appears **only when there are failed tests** — on a green run the comment stays exactly the same as without this option.
 
 <details open><summary>:x: Failed Tests (<b>2</b>)</summary>
 
-:x: **PostsService** › maps the API response to posts
+<details><summary><b>PostsService</b> › maps the API response to posts — <code>- "title": "my first post" · + "title": "first post"</code></summary>
 
 ```diff
 expect(received).toEqual(expected) // deep equality
@@ -381,11 +381,14 @@ expect(received).toEqual(expected) // deep equality
   ]
 ```
 
-:x: **PostsService** › fetches a single post by id
+</details>
+<details><summary><b>PostsService</b> › fetches a single post by id — <code>TypeError: Service.getPostById is not a function</code></summary>
 
 ```diff
 TypeError: Service.getPostById is not a function
 ```
+
+</details>
 
 </details>
 
