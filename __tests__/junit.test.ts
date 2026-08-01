@@ -96,6 +96,16 @@ describe('parsing failed tests', () => {
     )
   })
 
+  test('should keep detailed body text when message attribute is short', async () => {
+    const xml =
+      '<?xml version="1.0" encoding="UTF-8"?><testsuites tests="1" failures="1" errors="0" time="0.5"><testsuite name="suite A" errors="0" failures="1" skipped="0" tests="1"><testcase classname="class A" name="test one" time="0.1"><failure message="assertion failed">assertion failed\ndetailed diff line 1\ndetailed diff line 2</failure></testcase></testsuite></testsuites>'
+    const junit = await parseJunit(xml)
+
+    expect(junit?.failedTests?.[0].message).toBe(
+      'assertion failed\ndetailed diff line 1\ndetailed diff line 2'
+    )
+  })
+
   test('should collect testcase with error node', async () => {
     const xml =
       '<?xml version="1.0" encoding="UTF-8"?><testsuites tests="1" failures="0" errors="1" time="0.5"><testsuite name="suite A" errors="1" failures="0" skipped="0" tests="1"><testcase classname="class A" name="test one" time="0.1"><error message="TypeError: boom" type="TypeError">stack</error></testcase></testsuite></testsuites>'
@@ -410,6 +420,16 @@ describe('failed tests to markdown', () => {
     expect(html).toContain(
       '<a href="https://github.com/MishaKav/jest-coverage-comment/blob/05953710b21d222efa4f4535424a7af367be5a57/__tests__/failing/service.test.js#L25">test one</a>'
     )
+  })
+
+  test('should truncate very long test names', () => {
+    const html = failedTestsToMarkdown(
+      [{ ...failedTest, testName: 'a'.repeat(400) }],
+      options
+    )
+
+    expect(html).toContain(`<b>${'a'.repeat(255)}…</b>`)
+    expect(html).not.toContain('a'.repeat(256))
   })
 
   test('should not link test name when remove-links-to-files is enabled', () => {

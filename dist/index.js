@@ -1033,6 +1033,7 @@ const utils_1 = __nccwpck_require__(9277);
 const MAX_FAILURE_MESSAGE_LENGTH = 500;
 const MAX_FAILURE_MESSAGE_LINES = 15;
 const MAX_REASON_LENGTH = 120;
+const MAX_TEST_NAME_LENGTH = 255;
 exports.MAX_FAILED_TESTS = 30;
 const ABSOLUTE_PATH_REGEX = /^(\/|[A-Za-z]:\/)/;
 // guard memory on huge failure outputs, rendering truncates far below this
@@ -1053,9 +1054,13 @@ function getNodeTexts(node) {
     }
     return [node?.$?.message, node?._?.trim()].filter(Boolean);
 }
-/** Extract message from <failure> or <error> node, the `message` attribute wins. */
+/** Truncate text with ellipsis when it exceeds the given length. */
+function truncateText(text, maxLength) {
+    return text.length > maxLength ? `${text.slice(0, maxLength)}…` : text;
+}
+/** Extract message from <failure> or <error> node, the most detailed text wins. */
 function getFailureMessage(node) {
-    return getNodeTexts(node)[0] ?? '';
+    return getNodeTexts(node).reduce((longest, text) => text.length > longest.length ? text : longest, '');
 }
 /** Strip stack-trace frames and generic `Error:` prefix from failure message, cap length and number of lines. */
 function formatFailureMessage(message) {
@@ -1064,10 +1069,7 @@ function formatFailureMessage(message) {
         .filter((line) => !STACK_FRAME_REGEX.test(line))
         .map((line) => line.trimEnd())
         .join('\n');
-    let text = withoutStack.trim().replace(/^Error:\s*/, '');
-    if (text.length > MAX_FAILURE_MESSAGE_LENGTH) {
-        text = `${text.slice(0, MAX_FAILURE_MESSAGE_LENGTH)}…`;
-    }
+    let text = truncateText(withoutStack.trim().replace(/^Error:\s*/, ''), MAX_FAILURE_MESSAGE_LENGTH);
     const lines = text.split('\n');
     if (lines.length > MAX_FAILURE_MESSAGE_LINES) {
         text = `${lines.slice(0, MAX_FAILURE_MESSAGE_LINES).join('\n')}\n…`;
@@ -1101,9 +1103,7 @@ function extractShortReason(message) {
             ? firstLine.replace(/^thrown: "?/, '').replace(/"$/, '')
             : firstLine;
     }
-    return reason.length > MAX_REASON_LENGTH
-        ? `${reason.slice(0, MAX_REASON_LENGTH)}…`
-        : reason;
+    return truncateText(reason, MAX_REASON_LENGTH);
 }
 /**
  * Wrap failure message in a fenced `diff` code block, so jest
@@ -1231,9 +1231,9 @@ function toTestName(test, options) {
     const hasSuitePrefix = Boolean(suiteName) &&
         testName.startsWith(suiteName) &&
         testName !== suiteName;
-    const mainText = hasSuitePrefix ? suiteName : testName;
+    const mainText = truncateText(hasSuitePrefix ? suiteName : testName, MAX_TEST_NAME_LENGTH);
     const restText = hasSuitePrefix
-        ? ` › ${escapeHtml(testName.slice(suiteName.length).trim())}`
+        ? ` › ${escapeHtml(truncateText(testName.slice(suiteName.length).trim(), MAX_TEST_NAME_LENGTH))}`
         : '';
     const testFile = test.file?.replace(/\\/g, '/');
     const isAbsolutePath = Boolean(testFile && ABSOLUTE_PATH_REGEX.test(testFile));
