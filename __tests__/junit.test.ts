@@ -472,6 +472,18 @@ describe('failed tests to markdown', () => {
     expect(html).toContain('<b>test one</b>')
     expect(html).not.toContain('<a href')
   })
+
+  test('should link test name without line when remove-links-to-lines is enabled', () => {
+    const html = failedTestsToMarkdown(
+      [{ ...failedTest, file: '__tests__/failing/service.test.js', line: 25 }],
+      { ...(optionsWithRepo as object), removeLinksToLines: true } as never
+    )
+
+    expect(html).toContain(
+      '<a href="https://github.com/MishaKav/jest-coverage-comment/blob/05953710b21d222efa4f4535424a7af367be5a57/__tests__/failing/service.test.js">test one</a>'
+    )
+    expect(html).not.toContain('#L25')
+  })
 })
 
 describe('parse junit and check report output', () => {

@@ -1244,7 +1244,7 @@ ${table}`;
  * the rest of the test name stays plain text.
  */
 function toTestName(test, options) {
-    const { repository, commit, prefix = '', removeLinksToFiles } = options;
+    const { repository, commit, prefix = '', removeLinksToFiles, removeLinksToLines, } = options;
     const { suiteName, testName } = test;
     const hasSuitePrefix = Boolean(suiteName) &&
         testName.startsWith(suiteName) &&
@@ -1267,7 +1267,7 @@ function toTestName(test, options) {
     const urlOptions = isAbsolutePath
         ? { ...options, coveragePathPrefix: '' }
         : options;
-    const anchor = test.line ? `#L${test.line}` : '';
+    const anchor = test.line && !removeLinksToLines ? `#L${test.line}` : '';
     const href = escapeHtml((0, utils_1.getFileUrl)(urlOptions, encodePath(relative), anchor)).replace(/"/g, '&quot;');
     return `<a href="${href}">${escapeHtml(mainText)}</a>${restText}`;
 }
@@ -1480,6 +1480,7 @@ async function getMultipleJunitReport(options) {
         let failedBlocks = '';
         // `max-failed-tests` is a total budget across all files
         let remainingFailedTests = options.maxFailedTests || junit_1.MAX_FAILED_TESTS;
+        let omittedFailedTests = 0;
         for (const titleFileLine of lineReports) {
             const { title, file } = titleFileLine;
             const xmlContent = (0, utils_1.getContentFile)(file);
@@ -1493,7 +1494,13 @@ async function getMultipleJunitReport(options) {
                     failedBlocks += failedTestsHtml ? `\n\n${failedTestsHtml}` : '';
                     remainingFailedTests -= parsedXml.failedTests?.length ?? 0;
                 }
+                else if (options.showFailedTests) {
+                    omittedFailedTests += parsedXml.failedTests?.length ?? 0;
+                }
             }
+        }
+        if (omittedFailedTests > 0) {
+            failedBlocks += `\n\n_...and ${omittedFailedTests} more failed tests_`;
         }
         if (atLeastOneFileExists) {
             return table + failedBlocks;

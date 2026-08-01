@@ -273,7 +273,13 @@ ${table}`
  * the rest of the test name stays plain text.
  */
 function toTestName(test: FailedTest, options: Options): string {
-  const { repository, commit, prefix = '', removeLinksToFiles } = options
+  const {
+    repository,
+    commit,
+    prefix = '',
+    removeLinksToFiles,
+    removeLinksToLines,
+  } = options
   const { suiteName, testName } = test
   const hasSuitePrefix =
     Boolean(suiteName) &&
@@ -310,7 +316,7 @@ function toTestName(test: FailedTest, options: Options): string {
   const urlOptions = isAbsolutePath
     ? { ...options, coveragePathPrefix: '' }
     : options
-  const anchor = test.line ? `#L${test.line}` : ''
+  const anchor = test.line && !removeLinksToLines ? `#L${test.line}` : ''
   const href = escapeHtml(
     getFileUrl(urlOptions, encodePath(relative), anchor)
   ).replace(/"/g, '&quot;')

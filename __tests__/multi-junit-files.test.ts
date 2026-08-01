@@ -107,6 +107,7 @@ describe('multi junit report', () => {
     expect(result).toContain('Failed Tests — title1 (<b>3</b>)')
     expect(result).toContain('...and 1 more failed tests')
     expect(result).not.toContain('Failed Tests — title2')
+    expect(result).toContain('_...and 3 more failed tests_')
   })
 
   test('should not show failed tests when option disabled', async () => {

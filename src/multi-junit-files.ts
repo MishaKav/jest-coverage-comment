@@ -34,6 +34,7 @@ export async function getMultipleJunitReport(
     let failedBlocks = ''
     // `max-failed-tests` is a total budget across all files
     let remainingFailedTests = options.maxFailedTests || MAX_FAILED_TESTS
+    let omittedFailedTests = 0
 
     for (const titleFileLine of lineReports) {
       const { title, file } = titleFileLine
@@ -53,8 +54,14 @@ export async function getMultipleJunitReport(
           )
           failedBlocks += failedTestsHtml ? `\n\n${failedTestsHtml}` : ''
           remainingFailedTests -= parsedXml.failedTests?.length ?? 0
+        } else if (options.showFailedTests) {
+          omittedFailedTests += parsedXml.failedTests?.length ?? 0
         }
       }
+    }
+
+    if (omittedFailedTests > 0) {
+      failedBlocks += `\n\n_...and ${omittedFailedTests} more failed tests_`
     }
 
     if (atLeastOneFileExists) {
