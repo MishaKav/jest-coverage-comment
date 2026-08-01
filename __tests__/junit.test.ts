@@ -173,6 +173,21 @@ describe('failed tests to markdown', () => {
     )
   })
 
+  test('should remove stack-trace frames from messages', () => {
+    const html = failedTestsToMarkdown([
+      {
+        ...failedTest,
+        message:
+          'Error: expect(jest.fn()).toBeCalledWith(...expected)\n\nExpected: 200\nReceived: 201\n\nNumber of calls: 1\n    at Object.toBeCalledWith (/repo/__tests__/controller.test.js:35:29)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)',
+      },
+    ])
+
+    expect(html).toContain(
+      '<td>Error: expect(jest.fn()).toBeCalledWith(...expected) · Expected: 200 · Received: 201 · Number of calls: 1</td>'
+    )
+    expect(html).not.toContain('at Object.toBeCalledWith')
+  })
+
   test('should truncate long messages', () => {
     const html = failedTestsToMarkdown([
       { ...failedTest, message: 'a'.repeat(400) },

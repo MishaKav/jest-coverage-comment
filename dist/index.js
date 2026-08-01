@@ -898,7 +898,7 @@ async function main() {
         }
         if (options.junitFile) {
             const junit = await (0, junit_1.getJunitReport)(options);
-            const { junitHtml, failedTestsHtml, tests, skipped, failures, errors, time } = junit;
+            const { junitHtml, failedTestsHtml, tests, skipped, failures, errors, time, } = junit;
             finalHtml += junitHtml ? `\n\n${junitHtml}` : '';
             finalHtml += failedTestsHtml ? `\n\n${failedTestsHtml}` : '';
             if (junitHtml) {
@@ -1018,10 +1018,7 @@ const MAX_FAILURE_MESSAGE_LENGTH = 300;
 const MAX_FAILED_TESTS = 30;
 /** Escape characters that are unsafe inside generated html. */
 function escapeHtml(text) {
-    return text
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;');
+    return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 /**
  * Extract message from <failure> or <error> node.
@@ -1034,9 +1031,13 @@ function getFailureMessage(node) {
     }
     return node?.$?.message ?? node?._?.trim() ?? '';
 }
-/** Collapse failure message to a truncated single line. */
+/** Collapse failure message to a truncated single line, without stack-trace frames. */
 function formatFailureMessage(message) {
-    const singleLine = message.trim().replace(/\s*\r?\n\s*/g, ' · ');
+    const withoutStack = message
+        .split(/\r?\n/)
+        .filter((line) => !/^\s+at\s/.test(line))
+        .join('\n');
+    const singleLine = withoutStack.trim().replace(/\s*\r?\n\s*/g, ' · ');
     return singleLine.length > MAX_FAILURE_MESSAGE_LENGTH
         ? `${singleLine.slice(0, MAX_FAILURE_MESSAGE_LENGTH)}…`
         : singleLine;

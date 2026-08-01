@@ -25,9 +25,14 @@ function getFailureMessage(node: any): string {
   return node?.$?.message ?? node?._?.trim() ?? ''
 }
 
-/** Collapse failure message to a truncated single line. */
+/** Collapse failure message to a truncated single line, without stack-trace frames. */
 function formatFailureMessage(message: string): string {
-  const singleLine = message.trim().replace(/\s*\r?\n\s*/g, ' · ')
+  const withoutStack = message
+    .split(/\r?\n/)
+    .filter((line) => !/^\s+at\s/.test(line))
+    .join('\n')
+
+  const singleLine = withoutStack.trim().replace(/\s*\r?\n\s*/g, ' · ')
 
   return singleLine.length > MAX_FAILURE_MESSAGE_LENGTH
     ? `${singleLine.slice(0, MAX_FAILURE_MESSAGE_LENGTH)}…`
