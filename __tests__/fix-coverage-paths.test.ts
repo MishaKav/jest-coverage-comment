@@ -4,6 +4,7 @@ import {
   exportedForTesting,
 } from '../src/fix-coverage-paths'
 import { parseCoverage } from '../src/parse-coverage'
+import { getContentFile } from '../src/utils'
 import { Options } from '../src/types'
 import { spyCore } from './setup'
 
@@ -27,31 +28,17 @@ const options: Options = {
   summaryFile: `${__dirname}/../data/coverage_2/coverage-summary.json`,
 }
 
-// Text report produced by `jest --changedSince` when all covered files
-// live in one folder: istanbul strips the whole 'src/clients/abc' prefix
-const flatContent = `
---------------|---------|----------|---------|---------|-------------------
-File          | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s
---------------|---------|----------|---------|---------|-------------------
-All files     |      90 |      100 |     100 |      90 |
- responses.ts |      90 |      100 |     100 |      90 | 33
---------------|---------|----------|---------|---------|-------------------
-`
+// `jest --changedSince` run where covered files span two subfolders:
+// istanbul strips the common parent 'src/clients' from the text report
+const partialContent = getContentFile(
+  `${__dirname}/../data/coverage_2/coverage.txt`
+)
 
-// Same run, but covered files span two subfolders: the common parent
-// 'src/clients' is stripped and folder rows stay relative to it
-const partialContent = `
----------------|---------|----------|---------|---------|-------------------
-File           | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s
----------------|---------|----------|---------|---------|-------------------
-All files      |   84.21 |       75 |   83.33 |   84.21 |
- abc           |   86.66 |      100 |      80 |   86.66 |
-  client.ts    |     100 |      100 |     100 |     100 |
-  responses.ts |      80 |      100 |   66.66 |      80 | 10-12
- def           |      75 |       50 |     100 |      75 |
-  helpers.ts   |      75 |       50 |     100 |      75 | 5
----------------|---------|----------|---------|---------|-------------------
-`
+// `jest --changedSince` run where all covered files live in one folder:
+// istanbul strips the whole 'src/clients/abc' prefix
+const flatContent = getContentFile(
+  `${__dirname}/../data/coverage_3/coverage.txt`
+)
 
 describe('fix coverage paths', () => {
   test('should get parent directory', () => {
@@ -160,6 +147,20 @@ describe('fix coverage paths', () => {
     expect(spyCore.info).toHaveBeenCalledWith(
       `Restored 5 coverage path(s) from '${options.summaryFile}'`
     )
+  })
+
+  test('should fix paths when all covered files share one folder', () => {
+    const coverageArr = parseCoverage(flatContent)
+    const result = fixCoverageFilePaths(coverageArr, {
+      ...options,
+      coverageFile: `${__dirname}/../data/coverage_3/coverage.txt`,
+      summaryFile: `${__dirname}/../data/coverage_3/coverage-summary.json`,
+    })
+
+    expect(result.map((l) => l.file)).toEqual([
+      'All files',
+      'src/clients/abc/responses.ts',
+    ])
   })
 
   test('should keep paths when coverage-path-prefix is provided', () => {
