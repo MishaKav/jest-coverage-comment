@@ -620,11 +620,12 @@ function getPathCandidates(jsonContent, prefix) {
     if (!jsonContent || !prefix) {
         return [];
     }
+    const dirPrefix = prefix.endsWith('/') ? prefix : `${prefix}/`;
     try {
         const json = JSON.parse(jsonContent);
         return Object.keys(json)
-            .filter((key) => key !== 'total' && key.startsWith(prefix))
-            .map((key) => key.slice(prefix.length));
+            .filter((key) => key !== 'total' && key.startsWith(dirPrefix))
+            .map((key) => key.slice(dirPrefix.length));
     }
     catch (error) {
         if (error instanceof Error) {
@@ -690,6 +691,12 @@ function fixCoverageFilePaths(coverageArr, options) {
         const restored = result.filter((l, i) => l.file !== coverageArr[i].file);
         if (restored.length) {
             core.info(`Restored ${restored.length} coverage path(s) from '${summaryFile}'`);
+        }
+        const unresolved = result.filter((line) => (0, parse_coverage_1.isFile)(line) && !candidates.includes(line.file));
+        if (unresolved.length) {
+            core.warning(`Could not restore coverage path(s): ${unresolved
+                .map((line) => line.file)
+                .join(', ')}`);
         }
         return result;
     }

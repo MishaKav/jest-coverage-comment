@@ -15,11 +15,13 @@ function getPathCandidates(jsonContent: string, prefix: string): string[] {
     return []
   }
 
+  const dirPrefix = prefix.endsWith('/') ? prefix : `${prefix}/`
+
   try {
     const json = JSON.parse(jsonContent)
     return Object.keys(json)
-      .filter((key) => key !== 'total' && key.startsWith(prefix))
-      .map((key) => key.slice(prefix.length))
+      .filter((key) => key !== 'total' && key.startsWith(dirPrefix))
+      .map((key) => key.slice(dirPrefix.length))
   } catch (error) {
     if (error instanceof Error) {
       core.warning(`Parse summary report for coverage paths. ${error.message}`)
@@ -107,6 +109,18 @@ export function fixCoverageFilePaths(
     if (restored.length) {
       core.info(
         `Restored ${restored.length} coverage path(s) from '${summaryFile}'`
+      )
+    }
+
+    const unresolved = result.filter(
+      (line) => isFile(line) && !candidates.includes(line.file)
+    )
+
+    if (unresolved.length) {
+      core.warning(
+        `Could not restore coverage path(s): ${unresolved
+          .map((line) => line.file)
+          .join(', ')}`
       )
     }
 

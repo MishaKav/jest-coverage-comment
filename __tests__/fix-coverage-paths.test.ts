@@ -58,6 +58,16 @@ describe('fix coverage paths', () => {
     expect(candidates).toEqual(['src/clients/abc/responses.ts'])
   })
 
+  test('should get path candidates when prefix misses trailing slash', () => {
+    const jsonContent = `{
+      "total": {},
+      "${WORKSPACE}src/clients/abc/responses.ts": {}
+    }`
+    const candidates = getPathCandidates(jsonContent, WORKSPACE.slice(0, -1))
+
+    expect(candidates).toEqual(['src/clients/abc/responses.ts'])
+  })
+
   test('should return no candidates on empty content or prefix', () => {
     expect(getPathCandidates('', WORKSPACE)).toEqual([])
     expect(getPathCandidates('{"total": {}}', '')).toEqual([])
@@ -161,6 +171,20 @@ describe('fix coverage paths', () => {
       'All files',
       'src/clients/abc/responses.ts',
     ])
+  })
+
+  test('should warn on paths that cannot be restored', () => {
+    const coverageArr = parseCoverage(flatContent)
+    // both summary files end with 'responses.ts', so the match is ambiguous
+    const result = fixCoverageFilePaths(coverageArr, {
+      ...options,
+      summaryFile: `${__dirname}/../data/coverage_3/coverage-summary_2.json`,
+    })
+
+    expect(result.map((l) => l.file)).toEqual(['All files', 'responses.ts'])
+    expect(spyCore.warning).toHaveBeenCalledWith(
+      'Could not restore coverage path(s): responses.ts'
+    )
   })
 
   test('should keep paths when coverage-path-prefix is provided', () => {
