@@ -260,6 +260,13 @@ describe('failed tests to markdown', () => {
     expect(typeError).toContain(
       '```diff\nTypeError: Service.list is not a function\n```'
     )
+
+    const stackOnly = failedTestsToMarkdown(
+      [{ ...failedTest, message: '    at only (/repo/x.test.js:1:1)' }],
+      options
+    )
+    expect(stackOnly).toContain('at only (/repo/x.test.js:1:1)')
+    expect(stackOnly).not.toContain('```diff\n\n```')
   })
 
   test('should truncate long messages and test names', () => {

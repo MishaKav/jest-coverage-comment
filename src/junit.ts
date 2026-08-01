@@ -88,6 +88,11 @@ function formatFailureMessage(message: string): string {
     MAX_FAILURE_MESSAGE_LENGTH
   )
 
+  // a node holding only a stack trace strips to nothing, show the trace then
+  if (!text) {
+    text = truncateText(message.trim(), MAX_FAILURE_MESSAGE_LENGTH)
+  }
+
   const lines = text.split('\n')
   if (lines.length > MAX_FAILURE_MESSAGE_LINES) {
     text = `${lines.slice(0, MAX_FAILURE_MESSAGE_LINES).join('\n')}\n…`
