@@ -121,10 +121,10 @@ describe('parsing failed tests', () => {
     expect(stackOverAttr?.failedTests?.[0].line).toBe(25)
 
     const helperFrames = await parseJunit(
-      '<?xml version="1.0" encoding="UTF-8"?><testsuites tests="1" failures="1" errors="0" time="0.5"><testsuite name="suite A" errors="0" failures="1" skipped="0" tests="1"><testcase classname="class A" name="test one" time="0.1"><failure>boom\n    at assertPost (/my repo/src/helpers/assertions.js:10:5)\n    at Object.toEqual (/my repo/__tests__/failing/service.test.js:25:22)</failure></testcase></testsuite></testsuites>'
+      '<?xml version="1.0" encoding="UTF-8"?><testsuites tests="1" failures="1" errors="0" time="0.5"><testsuite name="suite A" errors="0" failures="1" skipped="0" tests="1"><testcase classname="class A" name="test one" time="0.1"><failure>boom\n    at assertPost (/my repo/src/helpers/assertions.js:10:5)\n    at Object.toEqual (/my repo/__tests__/(auth)/service.test.js:25:22)</failure></testcase></testsuite></testsuites>'
     )
     expect(helperFrames?.failedTests?.[0].file).toBe(
-      '/my repo/__tests__/failing/service.test.js'
+      '/my repo/__tests__/(auth)/service.test.js'
     )
     expect(helperFrames?.failedTests?.[0].line).toBe(25)
   })

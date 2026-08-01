@@ -454,7 +454,7 @@ async function createComment(options, body) {
             if (!options.removeLinksToLines) {
                 warningsArr.push('- Add "remove-links-to-lines: true" - to remove links to lines');
             }
-            if (options.showFailedTests) {
+            if (options.showFailedTests && body.includes(':x: Failed Tests')) {
                 warningsArr.push('- Reduce "max-failed-tests" - to show fewer failed tests in report');
             }
             core.warning(warningsArr.join('\n'));
@@ -1158,7 +1158,8 @@ function getTestLocation(tc, rawTexts) {
                 textLine.includes('node_modules')) {
                 continue;
             }
-            const match = textLine.match(/(?:\(|\bat\s)([^()]+):(\d+):(\d+)\)?$/);
+            const match = textLine.match(/\((.*):(\d+):(\d+)\)$/) ??
+                textLine.match(/\bat\s(.+):(\d+):(\d+)$/);
             if (match) {
                 frames.push({ file: match[1], line: Number(match[2]) });
             }

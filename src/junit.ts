@@ -165,7 +165,9 @@ function getTestLocation(
         continue
       }
 
-      const match = textLine.match(/(?:\(|\bat\s)([^()]+):(\d+):(\d+)\)?$/)
+      const match =
+        textLine.match(/\((.*):(\d+):(\d+)\)$/) ??
+        textLine.match(/\bat\s(.+):(\d+):(\d+)$/)
       if (match) {
         frames.push({ file: match[1], line: Number(match[2]) })
       }
