@@ -13,6 +13,7 @@ const ABSOLUTE_PATH_REGEX = /^(\/|[A-Za-z]:\/)/
 // guard memory on huge failure outputs, rendering truncates far below this
 const MAX_STORED_MESSAGE_LENGTH = 10000
 const STACK_FRAME_REGEX = /^\s+at\s/
+const TEST_FILE_REGEX = /(__tests__\/|\.(test|spec)\.[cm]?[jt]sx?$)/
 
 /** Escape characters that are unsafe inside generated html. */
 function escapeHtml(text: string): string {
@@ -125,6 +126,8 @@ function getTestLocation(
   tc: any,
   rawTexts: string[]
 ): { file?: string; line?: number } {
+  const frames: { file: string; line: number }[] = []
+
   for (const rawText of rawTexts) {
     for (const textLine of rawText.split(/\r?\n/)) {
       if (
@@ -136,16 +139,22 @@ function getTestLocation(
 
       const match = textLine.match(/\(?([^()\s]+):(\d+):(\d+)\)?$/)
       if (match) {
-        return { file: match[1], line: Number(match[2]) }
+        frames.push({ file: match[1], line: Number(match[2]) })
       }
     }
+  }
+
+  // a failure can be thrown inside an app helper, prefer the test file frame
+  const testFrame = frames.find((frame) => TEST_FILE_REGEX.test(frame.file))
+  if (testFrame) {
+    return testFrame
   }
 
   if (tc.$?.file) {
     return { file: tc.$.file }
   }
 
-  return {}
+  return frames[0] ?? {}
 }
 
 /** Parse junit.xml to Junit object */

@@ -1039,6 +1039,7 @@ const ABSOLUTE_PATH_REGEX = /^(\/|[A-Za-z]:\/)/;
 // guard memory on huge failure outputs, rendering truncates far below this
 const MAX_STORED_MESSAGE_LENGTH = 10000;
 const STACK_FRAME_REGEX = /^\s+at\s/;
+const TEST_FILE_REGEX = /(__tests__\/|\.(test|spec)\.[cm]?[jt]sx?$)/;
 /** Escape characters that are unsafe inside generated html. */
 function escapeHtml(text) {
     return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -1122,6 +1123,7 @@ function messageToDiffBlock(message) {
  * `file` attribute of jest-junit `addFileAttribute` option.
  */
 function getTestLocation(tc, rawTexts) {
+    const frames = [];
     for (const rawText of rawTexts) {
         for (const textLine of rawText.split(/\r?\n/)) {
             if (!STACK_FRAME_REGEX.test(textLine) ||
@@ -1130,14 +1132,19 @@ function getTestLocation(tc, rawTexts) {
             }
             const match = textLine.match(/\(?([^()\s]+):(\d+):(\d+)\)?$/);
             if (match) {
-                return { file: match[1], line: Number(match[2]) };
+                frames.push({ file: match[1], line: Number(match[2]) });
             }
         }
+    }
+    // a failure can be thrown inside an app helper, prefer the test file frame
+    const testFrame = frames.find((frame) => TEST_FILE_REGEX.test(frame.file));
+    if (testFrame) {
+        return testFrame;
     }
     if (tc.$?.file) {
         return { file: tc.$.file };
     }
-    return {};
+    return frames[0] ?? {};
 }
 /** Parse junit.xml to Junit object */
 async function parseJunit(xmlContent) {

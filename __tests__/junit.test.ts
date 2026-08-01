@@ -153,6 +153,28 @@ describe('parsing failed tests', () => {
     expect(junit?.failedTests?.[0].line).toBe(25)
   })
 
+  test('should prefer test file frame over app helper frames', async () => {
+    const xml =
+      '<?xml version="1.0" encoding="UTF-8"?><testsuites tests="1" failures="1" errors="0" time="0.5"><testsuite name="suite A" errors="0" failures="1" skipped="0" tests="1"><testcase classname="class A" name="test one" time="0.1"><failure>boom\n    at assertPost (/repo/src/helpers/assertions.js:10:5)\n    at Object.toEqual (/repo/__tests__/failing/service.test.js:25:22)</failure></testcase></testsuite></testsuites>'
+    const junit = await parseJunit(xml)
+
+    expect(junit?.failedTests?.[0].file).toBe(
+      '/repo/__tests__/failing/service.test.js'
+    )
+    expect(junit?.failedTests?.[0].line).toBe(25)
+  })
+
+  test('should prefer file attribute over non test-file frames', async () => {
+    const xml =
+      '<?xml version="1.0" encoding="UTF-8"?><testsuites tests="1" failures="1" errors="0" time="0.5"><testsuite name="suite A" errors="0" failures="1" skipped="0" tests="1"><testcase classname="class A" name="test one" file="__tests__/failing/service.test.js" time="0.1"><failure>boom\n    at assertPost (/repo/src/helpers/assertions.js:10:5)</failure></testcase></testsuite></testsuites>'
+    const junit = await parseJunit(xml)
+
+    expect(junit?.failedTests?.[0].file).toBe(
+      '__tests__/failing/service.test.js'
+    )
+    expect(junit?.failedTests?.[0].line).toBeUndefined()
+  })
+
   test('should not have test location when no file info', async () => {
     const xml =
       '<?xml version="1.0" encoding="UTF-8"?><testsuites tests="1" failures="1" errors="0" time="0.5"><testsuite name="suite A" errors="0" failures="1" skipped="0" tests="1"><testcase classname="class A" name="test one" time="0.1"><failure message="boom">no stack here</failure></testcase></testsuite></testsuites>'
