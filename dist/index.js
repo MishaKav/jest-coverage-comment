@@ -1260,7 +1260,9 @@ function toTestName(test, options) {
     const relative = testFile && isAbsolutePath && prefix
         ? testFile.replace(prefix.replace(/\\/g, '/'), '')
         : testFile;
-    const cannotResolvePath = !relative || (isAbsolutePath && ABSOLUTE_PATH_REGEX.test(relative));
+    const cannotResolvePath = !relative ||
+        (isAbsolutePath && ABSOLUTE_PATH_REGEX.test(relative)) ||
+        relative.split('/').includes('..');
     if (!repository || !commit || removeLinksToFiles || cannotResolvePath) {
         return `<b>${escapeHtml(mainText)}</b>${restText}`;
     }

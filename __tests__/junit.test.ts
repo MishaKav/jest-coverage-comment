@@ -473,6 +473,16 @@ describe('failed tests to markdown', () => {
     expect(html).not.toContain('<a href')
   })
 
+  test('should not link test name when path contains parent directory traversal', () => {
+    const html = failedTestsToMarkdown(
+      [{ ...failedTest, file: '../outside/service.test.js', line: 25 }],
+      optionsWithRepo
+    )
+
+    expect(html).toContain('<b>test one</b>')
+    expect(html).not.toContain('<a href')
+  })
+
   test('should link test name without line when remove-links-to-lines is enabled', () => {
     const html = failedTestsToMarkdown(
       [{ ...failedTest, file: '__tests__/failing/service.test.js', line: 25 }],

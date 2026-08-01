@@ -307,7 +307,9 @@ function toTestName(test: FailedTest, options: Options): string {
       ? testFile.replace(prefix.replace(/\\/g, '/'), '')
       : testFile
   const cannotResolvePath =
-    !relative || (isAbsolutePath && ABSOLUTE_PATH_REGEX.test(relative))
+    !relative ||
+    (isAbsolutePath && ABSOLUTE_PATH_REGEX.test(relative)) ||
+    relative.split('/').includes('..')
 
   if (!repository || !commit || removeLinksToFiles || cannotResolvePath) {
     return `<b>${escapeHtml(mainText)}</b>${restText}`
