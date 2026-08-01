@@ -281,11 +281,11 @@ function toTable(coverageArr, options) {
             return changedFiles?.all.some((c) => c.includes(line.file));
         })
             // Filter folders without files
-            .filter((_line, _i, arr) => {
+            .filter((line, _i, arr) => {
             if (!reportOnlyChangedFiles) {
                 return true;
             }
-            return arr.length > 1;
+            return (0, parse_coverage_1.isFile)(line) || arr.some(parse_coverage_1.isFile);
         })
             .map((line) => toRow(line, (0, parse_coverage_1.isFile)(line), options));
         rows.push(...files);
