@@ -90,7 +90,7 @@ describe('multi junit report', () => {
       '<details><summary>:x: Failed Tests — title2 (<b>3</b>)</summary>'
     )
     expect(result).toContain(
-      '<b>should test Service</b> › when #list method fails'
+      '**should test Service** › when #list method fails'
     )
   })
 

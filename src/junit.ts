@@ -48,14 +48,24 @@ function formatFailureMessage(message: string): string {
   return text
 }
 
+/** Escape markdown special characters in plain text. */
+function escapeMarkdown(text: string): string {
+  return text.replace(/[\\`*_[\]<>~]/g, (m) => `\\${m}`)
+}
+
 /**
- * Convert multiline failure message to a block-code cell.
- * Newlines are emitted as `&#10;` so the generated html stays on a single
- * line (a literal blank line would terminate the markdown html block),
- * while `<pre>` still renders them as real line breaks.
+ * Wrap failure message in a fenced `diff` code block, so jest
+ * `- Expected` / `+ Received` lines get red/green highlighting.
+ * The fence is extended when the message itself contains backtick runs.
  */
-function messageToHtml(message: string): string {
-  return `<pre>${escapeHtml(message).replace(/\n/g, '&#10;')}</pre>`
+function messageToDiffBlock(message: string): string {
+  const longestBacktickRun =
+    message
+      .match(/`+/g)
+      ?.reduce((max: number, run: string) => Math.max(max, run.length), 0) ?? 0
+  const fence = '`'.repeat(Math.max(3, longestBacktickRun + 1))
+
+  return `${fence}diff\n${message}\n${fence}`
 }
 
 /**
@@ -195,11 +205,11 @@ ${table}`
 }
 
 /**
- * Make test name cell - td.
- * The suite name carries the link to the test file (when known),
+ * Make title line for a failed test.
+ * The bold suite name carries the link to the test file (when known),
  * the rest of the test name stays plain text.
  */
-function toTestNameTd(test: FailedTest, options: Options): string {
+function toTestTitleLine(test: FailedTest, options: Options): string {
   const {
     serverUrl = 'https://github.com',
     repository,
@@ -212,20 +222,20 @@ function toTestNameTd(test: FailedTest, options: Options): string {
     Boolean(suiteName) &&
     testName.startsWith(suiteName) &&
     testName !== suiteName
-  const linkText = hasSuitePrefix ? suiteName : testName
+  const mainText = hasSuitePrefix ? suiteName : testName
   const restText = hasSuitePrefix
-    ? ` › ${escapeHtml(testName.slice(suiteName.length).trim())}`
+    ? ` › ${escapeMarkdown(testName.slice(suiteName.length).trim())}`
     : ''
 
   if (!test.file || !repository || !commit) {
-    return `<td><b>${escapeHtml(linkText)}</b>${restText}</td>`
+    return `:x: **${escapeMarkdown(mainText)}**${restText}`
   }
 
   const relative = prefix ? test.file.replace(prefix, '') : test.file
   const anchor = test.line ? `#L${test.line}` : ''
   const href = `${serverUrl}/${repository}/blob/${commit}/${coveragePathPrefix}${relative}${anchor}`
 
-  return `<td><a href="${href}">${escapeHtml(linkText)}</a>${restText}</td>`
+  return `:x: **[${escapeMarkdown(mainText)}](${href})**${restText}`
 }
 
 /** Convert failed tests to collapsed html table. */
@@ -239,28 +249,24 @@ export function failedTestsToMarkdown(
   }
 
   const summaryTitle = title ? `Failed Tests — ${title}` : 'Failed Tests'
-  const rows = failedTests
+  const entries = failedTests
     .slice(0, MAX_FAILED_TESTS)
     .map(
       (test) =>
-        `<tr>${toTestNameTd(test, options)}<td>${messageToHtml(
+        `${toTestTitleLine(test, options)}\n\n${messageToDiffBlock(
           formatFailureMessage(test.message)
-        )}</td></tr>`
+        )}`
     )
 
   if (failedTests.length > MAX_FAILED_TESTS) {
-    rows.push(
-      `<tr><td colspan="2">...and ${
-        failedTests.length - MAX_FAILED_TESTS
-      } more failed tests</td></tr>`
+    entries.push(
+      `_...and ${failedTests.length - MAX_FAILED_TESTS} more failed tests_`
     )
   }
 
   return `<details><summary>:x: ${escapeHtml(summaryTitle)} (<b>${
     failedTests.length
-  }</b>)</summary><table><tr><th>Test</th><th>Failure Message</th></tr>${rows.join(
-    ''
-  )}</table></details>`
+  }</b>)</summary>\n\n${entries.join('\n\n')}\n\n</details>`
 }
 
 /** Return JUnit report. */

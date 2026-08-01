@@ -360,9 +360,34 @@ Requires `junitxml-path` (or `multiple-junitxml-files`), see [JUnit Test Report]
     show-failed-tests: true
 ```
 
-**Output**: Collapsible section with the names of failed tests and the jest failure message for each (stack traces are stripped). Test names link to the test file when the location can be resolved from the report. The section appears **only when there are failed tests** — on a green run the comment stays exactly the same as without this option.
+**Output**: Collapsible section with an entry per failed test — the suite name links to the test file (when the location can be resolved from the report), and the jest failure message renders as a `diff` code block with red/green highlighting (stack traces are stripped). The section appears **only when there are failed tests** — on a green run the comment stays exactly the same as without this option.
 
-<details><summary>:x: Failed Tests (<b>2</b>)</summary><table><tr><th>Test</th><th>Failure Message</th></tr><tr><td><b>PostsService</b> › maps the API response to posts</td><td><pre>expect(received).toEqual(expected) // deep equality&#10;&#10;- Expected  - 1&#10;+ Received  + 1&#10;&#10;  Array [&#10;    Object {&#10;      "id": 1,&#10;-     "title": "my first post",&#10;+     "title": "first post",&#10;    },&#10;  ]</pre></td></tr><tr><td><b>PostsService</b> › fetches a single post by id</td><td><pre>TypeError: Service.getPostById is not a function</pre></td></tr></table></details>
+<details open><summary>:x: Failed Tests (<b>2</b>)</summary>
+
+:x: **PostsService** › maps the API response to posts
+
+```diff
+expect(received).toEqual(expected) // deep equality
+
+- Expected  - 1
++ Received  + 1
+
+  Array [
+    Object {
+      "id": 1,
+-     "title": "my first post",
++     "title": "first post",
+    },
+  ]
+```
+
+:x: **PostsService** › fetches a single post by id
+
+```diff
+TypeError: Service.getPostById is not a function
+```
+
+</details>
 
 With `multiple-junitxml-files`, a separate collapsible section is added for every file that has failures, labeled with the file's title.
 
