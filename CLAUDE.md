@@ -56,6 +56,23 @@ npm run package
 npm run all
 ```
 
+## Versioning and Changelog
+
+Every feature or fix PR must bump the version and update the changelog in the same PR — don't forget this step:
+
+1. Bump the version with `npm version patch --no-git-tag-version` (updates `package.json` and `package-lock.json`; the action uses `1.0.x` patch increments for features and fixes alike)
+2. Add a new entry at the top of `CHANGELOG.md` in the existing format:
+
+```markdown
+## [Jest Coverage Comment 1.0.X](https://github.com/MishaKav/jest-coverage-comment/tree/v1.0.X)
+
+**Release Date:** YYYY-MM-DD
+
+#### Changes
+
+- short bullet per change, referencing issues/PRs like (#92)
+```
+
 ## Testing
 
 The project uses Jest with TypeScript support:

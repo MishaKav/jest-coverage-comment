@@ -1,5 +1,15 @@
 # Changelog of the Jest Coverage Comment
 
+## [Jest Coverage Comment 1.0.36](https://github.com/MishaKav/jest-coverage-comment/tree/v1.0.36)
+
+**Release Date:** 2026-08-01
+
+#### Changes
+
+- add `show-failed-tests` input to show names of failed tests in the comment, with a link to the test file and expandable failure output (#92)
+- add `max-failed-tests` input to limit how many failed tests are shown, in total across all junit files (default `30`)
+- add `failedTestsHtml` output with the rendered failed-tests block
+
 ## [Jest Coverage Comment 1.0.35](https://github.com/MishaKav/jest-coverage-comment/tree/v1.0.35)
 
 **Release Date:** 2026-08-01
