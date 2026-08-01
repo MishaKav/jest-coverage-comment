@@ -130,9 +130,9 @@ function toFileNameTd(
   indent = false,
   options: Options
 ): string {
-  const { prefix, removeLinksToFiles } = options
+  const { prefix, coveragePathPrefix = '', removeLinksToFiles } = options
   const relative = line.file.replace(prefix, '')
-  const href = getFileUrl(options, relative)
+  const href = getFileUrl(options, `${coveragePathPrefix}${relative}`)
   const parts = relative.split('/')
   const last = parts[parts.length - 1]
   const space = indent ? '&nbsp; &nbsp;' : ''
@@ -150,11 +150,15 @@ function toMissingTd(line: CoverageLine, options: Options): string {
 
   return line.uncoveredLines
     .map((range) => {
-      const { prefix, removeLinksToLines } = options
+      const { prefix, coveragePathPrefix = '', removeLinksToLines } = options
       const [start, end = start] = range.split('-')
       const fragment = start === end ? `L${start}` : `L${start}-L${end}`
       const relative = line.file.replace(prefix, '')
-      const href = getFileUrl(options, relative, `#${fragment}`)
+      const href = getFileUrl(
+        options,
+        `${coveragePathPrefix}${relative}`,
+        `#${fragment}`
+      )
       const text = start === end ? start : `${start}&ndash;${end}`
 
       return removeLinksToLines ? text : `<a href="${href}">${text}</a>`

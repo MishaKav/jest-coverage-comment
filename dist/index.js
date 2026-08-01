@@ -318,9 +318,9 @@ function toTotalRow(line) {
 }
 /** Make fileName cell - td. */
 function toFileNameTd(line, indent = false, options) {
-    const { prefix, removeLinksToFiles } = options;
+    const { prefix, coveragePathPrefix = '', removeLinksToFiles } = options;
     const relative = line.file.replace(prefix, '');
-    const href = (0, utils_1.getFileUrl)(options, relative);
+    const href = (0, utils_1.getFileUrl)(options, `${coveragePathPrefix}${relative}`);
     const parts = relative.split('/');
     const last = parts[parts.length - 1];
     const space = indent ? '&nbsp; &nbsp;' : '';
@@ -335,11 +335,11 @@ function toMissingTd(line, options) {
     }
     return line.uncoveredLines
         .map((range) => {
-        const { prefix, removeLinksToLines } = options;
+        const { prefix, coveragePathPrefix = '', removeLinksToLines } = options;
         const [start, end = start] = range.split('-');
         const fragment = start === end ? `L${start}` : `L${start}-L${end}`;
         const relative = line.file.replace(prefix, '');
-        const href = (0, utils_1.getFileUrl)(options, relative, `#${fragment}`);
+        const href = (0, utils_1.getFileUrl)(options, `${coveragePathPrefix}${relative}`, `#${fragment}`);
         const text = start === end ? start : `${start}&ndash;${end}`;
         return removeLinksToLines ? text : `<a href="${href}">${text}</a>`;
     })
@@ -804,7 +804,7 @@ async function main() {
             if (maxFailedTestsInput) {
                 core.warning(`Invalid "max-failed-tests" input "${maxFailedTestsInput}", should be a positive number. Will use default value`);
             }
-            maxFailedTests = undefined;
+            maxFailedTests = junit_1.MAX_FAILED_TESTS;
         }
         const coverageTitle = core.getInput('coverage-title', { required: false });
         const coverageFile = core.getInput('coverage-path', {
@@ -910,18 +910,14 @@ async function main() {
         if (!options.hideSummary) {
             finalHtml += summaryHtml;
         }
+        // `max-failed-tests` is a total budget, shared with multiple-junitxml-files
+        let failedTestsBudget = maxFailedTests;
         if (options.junitFile) {
             const junit = await (0, junit_1.getJunitReport)(options);
             const { junitHtml, failedTestsHtml, failedTests, tests, skipped, failures, errors, time, } = junit;
             finalHtml += junitHtml ? `\n\n${junitHtml}` : '';
             finalHtml += failedTestsHtml ? `\n\n${failedTestsHtml}` : '';
-            // `max-failed-tests` is a total budget, share it with multiple-junitxml-files
-            if (options.showFailedTests) {
-                const cap = options.maxFailedTests || junit_1.MAX_FAILED_TESTS;
-                const remaining = cap - Math.min(failedTests?.length ?? 0, cap);
-                options.maxFailedTests = remaining;
-                options.showFailedTests = remaining > 0;
-            }
+            failedTestsBudget = Math.max(0, failedTestsBudget - failedTests.length);
             if (junitHtml) {
                 core.startGroup(options.junitTitle || 'Junit');
                 core.info(`tests: ${tests}`);
@@ -968,7 +964,7 @@ async function main() {
             finalHtml += `\n\n${(0, multi_files_1.getMultipleReport)(options)}`;
         }
         if (multipleJunitFiles?.length) {
-            const markdown = await (0, multi_junit_files_1.getMultipleJunitReport)(options);
+            const markdown = await (0, multi_junit_files_1.getMultipleJunitReport)(options, failedTestsBudget);
             finalHtml += markdown ? `\n\n${markdown}` : '';
         }
         if (!finalHtml || options.hideComment) {
@@ -1029,6 +1025,7 @@ var __importStar = (this && this.__importStar) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.MAX_FAILED_TESTS = void 0;
+exports.moreFailedTestsNote = moreFailedTestsNote;
 exports.parseJunit = parseJunit;
 exports.junitToMarkdown = junitToMarkdown;
 exports.failedTestsToMarkdown = failedTestsToMarkdown;
@@ -1046,7 +1043,7 @@ const ABSOLUTE_PATH_REGEX = /^(\/|[A-Za-z]:\/)/;
 // guard memory on huge failure outputs, rendering truncates far below this
 const MAX_STORED_MESSAGE_LENGTH = 10000;
 const STACK_FRAME_REGEX = /^\s+at\s/;
-const TEST_FILE_REGEX = /(__tests__\/|\.(test|spec)\.[cm]?[jt]sx?$)/;
+const TEST_FILE_REGEX = /(__tests__[\\/]|\.(test|spec)\.[cm]?[jt]sx?$)/;
 /** Escape characters that are unsafe inside generated html. */
 function escapeHtml(text) {
     return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -1070,9 +1067,13 @@ function truncateText(text, maxLength) {
 function encodePath(path) {
     return path.split('/').map(encodeURIComponent).join('/');
 }
-/** Extract message from <failure> or <error> node, the most detailed text wins. */
-function getFailureMessage(node) {
-    return getNodeTexts(node).reduce((longest, text) => text.length > longest.length ? text : longest, '');
+/** Extract message from <failure> or <error> node texts, the most detailed text wins. */
+function getFailureMessage(texts) {
+    return texts.reduce((longest, text) => text.length > longest.length ? text : longest, '');
+}
+/** Note about failed tests that were omitted from the report. */
+function moreFailedTestsNote(count) {
+    return `_...and ${count} more failed tests_`;
 }
 /** Strip stack-trace frames and generic `Error:` prefix from failure message, cap length and number of lines. */
 function formatFailureMessage(message) {
@@ -1158,7 +1159,7 @@ function getTestLocation(tc, rawTexts) {
     return frames[0] ?? {};
 }
 /** Parse junit.xml to Junit object */
-async function parseJunit(xmlContent) {
+async function parseJunit(xmlContent, collectFailedTests = true) {
     try {
         if (!xmlContent) {
             core.warning('JUnit XML was not provided');
@@ -1187,21 +1188,24 @@ async function parseJunit(xmlContent) {
         const skipped = testsuites
             ?.map((t) => Number(t['$'].skipped))
             .reduce((sum, a) => sum + a, 0) || 0;
-        const failedTests = testsuites?.flatMap((t) => (t.testcase ?? [])
-            .filter((tc) => tc.failure || tc.error)
-            .map((tc) => {
-            const nodes = [...(tc.failure ?? []), ...(tc.error ?? [])];
-            return {
-                suiteName: t.$?.name ?? '',
-                testName: tc.$?.name ?? '',
-                message: nodes
-                    .map(getFailureMessage)
-                    .filter(Boolean)
-                    .join('\n')
-                    .slice(0, MAX_STORED_MESSAGE_LENGTH),
-                ...getTestLocation(tc, nodes.flatMap(getNodeTexts)),
-            };
-        })) ?? [];
+        const failedTests = collectFailedTests
+            ? (testsuites?.flatMap((t) => (t.testcase ?? [])
+                .filter((tc) => tc.failure || tc.error)
+                .map((tc) => {
+                const nodes = [...(tc.failure ?? []), ...(tc.error ?? [])];
+                const nodeTexts = nodes.map(getNodeTexts);
+                return {
+                    suiteName: t.$?.name ?? '',
+                    testName: tc.$?.name ?? '',
+                    message: nodeTexts
+                        .map(getFailureMessage)
+                        .filter(Boolean)
+                        .join('\n')
+                        .slice(0, MAX_STORED_MESSAGE_LENGTH),
+                    ...getTestLocation(tc, nodeTexts.flat()),
+                };
+            })) ?? [])
+            : [];
         return {
             skipped,
             errors: Number(main.errors || errors),
@@ -1251,7 +1255,7 @@ function toTestName(test, options) {
         testName !== suiteName;
     const mainText = truncateText(hasSuitePrefix ? suiteName : testName, MAX_TEST_NAME_LENGTH);
     const restText = hasSuitePrefix
-        ? ` › ${escapeHtml(truncateText(testName.slice(suiteName.length).trim(), MAX_TEST_NAME_LENGTH))}`
+        ? ` › ${escapeHtml(truncateText(testName.slice(suiteName.length).trim(), Math.max(0, MAX_TEST_NAME_LENGTH - mainText.length)))}`
         : '';
     const testFile = test.file?.replace(/\\/g, '/');
     const isAbsolutePath = Boolean(testFile && ABSOLUTE_PATH_REGEX.test(testFile));
@@ -1266,19 +1270,19 @@ function toTestName(test, options) {
     if (!repository || !commit || removeLinksToFiles || cannotResolvePath) {
         return `<b>${escapeHtml(mainText)}</b>${restText}`;
     }
-    const urlOptions = isAbsolutePath
-        ? { ...options, coveragePathPrefix: '' }
-        : options;
+    // `coverage-path-prefix` applies only to paths that are still repo-relative
+    const linkPath = isAbsolutePath
+        ? encodePath(relative)
+        : `${options.coveragePathPrefix ?? ''}${encodePath(relative)}`;
     const anchor = test.line && !removeLinksToLines ? `#L${test.line}` : '';
-    const href = escapeHtml((0, utils_1.getFileUrl)(urlOptions, encodePath(relative), anchor)).replace(/"/g, '&quot;');
+    const href = escapeHtml((0, utils_1.getFileUrl)(options, linkPath, anchor)).replace(/"/g, '&quot;');
     return `<a href="${href}">${escapeHtml(mainText)}</a>${restText}`;
 }
 /** Convert failed tests to collapsed html table. */
-function failedTestsToMarkdown(failedTests, options, title) {
+function failedTestsToMarkdown(failedTests, options, title, maxFailedTests = options.maxFailedTests ?? exports.MAX_FAILED_TESTS) {
     if (!options.showFailedTests || !failedTests.length) {
         return '';
     }
-    const maxFailedTests = options.maxFailedTests || exports.MAX_FAILED_TESTS;
     const summaryTitle = title ? `Failed Tests — ${title}` : 'Failed Tests';
     const entries = failedTests.slice(0, maxFailedTests).map((test) => {
         const message = formatFailureMessage(test.message);
@@ -1286,7 +1290,7 @@ function failedTestsToMarkdown(failedTests, options, title) {
         return `<details><summary>${toTestName(test, options)} — <code>${escapeHtml(reason)}</code></summary>\n\n${messageToDiffBlock(message)}\n\n</details>`;
     });
     if (failedTests.length > maxFailedTests) {
-        entries.push(`_...and ${failedTests.length - maxFailedTests} more failed tests_`);
+        entries.push(moreFailedTestsNote(failedTests.length - maxFailedTests));
     }
     return `<details><summary>:x: ${escapeHtml(summaryTitle)} (<b>${failedTests.length}</b>)</summary>\n\n${entries.join('\n')}\n\n</details>`;
 }
@@ -1296,11 +1300,11 @@ async function getJunitReport(options) {
     try {
         if (junitFile) {
             const xmlContent = (0, utils_1.getContentFile)(junitFile);
-            const parsedXml = await parseJunit(xmlContent);
+            const parsedXml = await parseJunit(xmlContent, Boolean(options.showFailedTests));
             if (parsedXml) {
                 const junitHtml = junitToMarkdown(parsedXml, options);
                 const { skipped, errors, failures, tests, time, failedTests } = parsedXml;
-                const failedTestsHtml = failedTestsToMarkdown(failedTests ?? [], options);
+                const failedTestsHtml = failedTestsToMarkdown(failedTests, options);
                 return {
                     junitHtml,
                     failedTestsHtml,
@@ -1322,6 +1326,7 @@ async function getJunitReport(options) {
     return {
         junitHtml: '',
         failedTestsHtml: '',
+        failedTests: [],
         tests: 0,
         skipped: 0,
         failures: 0,
@@ -1465,7 +1470,7 @@ const core = __importStar(__nccwpck_require__(7484));
 const junit_1 = __nccwpck_require__(3664);
 const utils_1 = __nccwpck_require__(9277);
 /** Return multiple report in markdown format. */
-async function getMultipleJunitReport(options) {
+async function getMultipleJunitReport(options, maxFailedTests = options.maxFailedTests ?? junit_1.MAX_FAILED_TESTS) {
     const { multipleJunitFiles } = options;
     if (!multipleJunitFiles?.length) {
         return null;
@@ -1481,28 +1486,30 @@ async function getMultipleJunitReport(options) {
             '| --- | --- | --- | --- | --- | --- |\n';
         let failedBlocks = '';
         // `max-failed-tests` is a total budget across all files
-        let remainingFailedTests = options.maxFailedTests || junit_1.MAX_FAILED_TESTS;
+        let remainingFailedTests = maxFailedTests;
         let omittedFailedTests = 0;
         for (const titleFileLine of lineReports) {
             const { title, file } = titleFileLine;
             const xmlContent = (0, utils_1.getContentFile)(file);
-            const parsedXml = await (0, junit_1.parseJunit)(xmlContent);
+            const parsedXml = await (0, junit_1.parseJunit)(xmlContent, Boolean(options.showFailedTests));
             if (parsedXml) {
                 const junitHtml = (0, junit_1.junitToMarkdown)(parsedXml, options, true);
                 table += `| ${title} ${junitHtml}\n`;
                 atLeastOneFileExists = true;
-                if (remainingFailedTests > 0) {
-                    const failedTestsHtml = (0, junit_1.failedTestsToMarkdown)(parsedXml.failedTests ?? [], { ...options, maxFailedTests: remainingFailedTests }, title);
-                    failedBlocks += failedTestsHtml ? `\n\n${failedTestsHtml}` : '';
-                    remainingFailedTests -= parsedXml.failedTests?.length ?? 0;
-                }
-                else if (options.showFailedTests) {
-                    omittedFailedTests += parsedXml.failedTests?.length ?? 0;
+                if (options.showFailedTests) {
+                    if (remainingFailedTests > 0) {
+                        const failedTestsHtml = (0, junit_1.failedTestsToMarkdown)(parsedXml.failedTests, options, title, remainingFailedTests);
+                        failedBlocks += failedTestsHtml ? `\n\n${failedTestsHtml}` : '';
+                        remainingFailedTests -= parsedXml.failedTests.length;
+                    }
+                    else {
+                        omittedFailedTests += parsedXml.failedTests.length;
+                    }
                 }
             }
         }
         if (omittedFailedTests > 0) {
-            failedBlocks += `\n\n_...and ${omittedFailedTests} more failed tests_`;
+            failedBlocks += `\n\n${(0, junit_1.moreFailedTestsNote)(omittedFailedTests)}`;
         }
         if (atLeastOneFileExists) {
             return table + failedBlocks;
@@ -1818,8 +1825,8 @@ const core = __importStar(__nccwpck_require__(7484));
 const fs_1 = __nccwpck_require__(9896);
 /** Build URL to a file in the repository at the reported commit. */
 function getFileUrl(options, relativePath, anchor = '') {
-    const { serverUrl = 'https://github.com', repository, commit, coveragePathPrefix = '', } = options;
-    return `${serverUrl}/${repository}/blob/${commit}/${coveragePathPrefix}${relativePath}${anchor}`;
+    const { serverUrl = 'https://github.com', repository, commit } = options;
+    return `${serverUrl}/${repository}/blob/${commit}/${relativePath}${anchor}`;
 }
 function getPathToFile(pathToFile) {
     if (!pathToFile) {

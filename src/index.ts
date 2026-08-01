@@ -41,14 +41,14 @@ async function main(): Promise<void> {
     const maxFailedTestsInput = core.getInput('max-failed-tests', {
       required: false,
     })
-    let maxFailedTests: number | undefined = Number(maxFailedTestsInput)
+    let maxFailedTests = Number(maxFailedTestsInput)
     if (!Number.isInteger(maxFailedTests) || maxFailedTests < 1) {
       if (maxFailedTestsInput) {
         core.warning(
           `Invalid "max-failed-tests" input "${maxFailedTestsInput}", should be a positive number. Will use default value`
         )
       }
-      maxFailedTests = undefined
+      maxFailedTests = MAX_FAILED_TESTS
     }
     const coverageTitle = core.getInput('coverage-title', { required: false })
     const coverageFile = core.getInput('coverage-path', {
@@ -169,6 +169,9 @@ async function main(): Promise<void> {
       finalHtml += summaryHtml
     }
 
+    // `max-failed-tests` is a total budget, shared with multiple-junitxml-files
+    let failedTestsBudget = maxFailedTests
+
     if (options.junitFile) {
       const junit = await getJunitReport(options)
       const {
@@ -183,14 +186,7 @@ async function main(): Promise<void> {
       } = junit
       finalHtml += junitHtml ? `\n\n${junitHtml}` : ''
       finalHtml += failedTestsHtml ? `\n\n${failedTestsHtml}` : ''
-
-      // `max-failed-tests` is a total budget, share it with multiple-junitxml-files
-      if (options.showFailedTests) {
-        const cap = options.maxFailedTests || MAX_FAILED_TESTS
-        const remaining = cap - Math.min(failedTests?.length ?? 0, cap)
-        options.maxFailedTests = remaining
-        options.showFailedTests = remaining > 0
-      }
+      failedTestsBudget = Math.max(0, failedTestsBudget - failedTests.length)
 
       if (junitHtml) {
         core.startGroup(options.junitTitle || 'Junit')
@@ -252,7 +248,7 @@ async function main(): Promise<void> {
     }
 
     if (multipleJunitFiles?.length) {
-      const markdown = await getMultipleJunitReport(options)
+      const markdown = await getMultipleJunitReport(options, failedTestsBudget)
       finalHtml += markdown ? `\n\n${markdown}` : ''
     }
 

@@ -8,14 +8,9 @@ export function getFileUrl(
   relativePath: string,
   anchor = ''
 ): string {
-  const {
-    serverUrl = 'https://github.com',
-    repository,
-    commit,
-    coveragePathPrefix = '',
-  } = options
+  const { serverUrl = 'https://github.com', repository, commit } = options
 
-  return `${serverUrl}/${repository}/blob/${commit}/${coveragePathPrefix}${relativePath}${anchor}`
+  return `${serverUrl}/${repository}/blob/${commit}/${relativePath}${anchor}`
 }
 
 export function getPathToFile(pathToFile: string): string {

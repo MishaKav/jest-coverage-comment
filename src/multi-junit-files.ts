@@ -3,6 +3,7 @@ import {
   MAX_FAILED_TESTS,
   failedTestsToMarkdown,
   junitToMarkdown,
+  moreFailedTestsNote,
   parseJunit,
 } from './junit'
 import { Options } from './types'
@@ -10,7 +11,8 @@ import { getContentFile, notNull, parseLine } from './utils'
 
 /** Return multiple report in markdown format. */
 export async function getMultipleJunitReport(
-  options: Options
+  options: Options,
+  maxFailedTests = options.maxFailedTests ?? MAX_FAILED_TESTS
 ): Promise<string | null> {
   const { multipleJunitFiles } = options
 
@@ -33,35 +35,41 @@ export async function getMultipleJunitReport(
       '| --- | --- | --- | --- | --- | --- |\n'
     let failedBlocks = ''
     // `max-failed-tests` is a total budget across all files
-    let remainingFailedTests = options.maxFailedTests || MAX_FAILED_TESTS
+    let remainingFailedTests = maxFailedTests
     let omittedFailedTests = 0
 
     for (const titleFileLine of lineReports) {
       const { title, file } = titleFileLine
       const xmlContent = getContentFile(file)
-      const parsedXml = await parseJunit(xmlContent)
+      const parsedXml = await parseJunit(
+        xmlContent,
+        Boolean(options.showFailedTests)
+      )
 
       if (parsedXml) {
         const junitHtml = junitToMarkdown(parsedXml, options, true)
         table += `| ${title} ${junitHtml}\n`
         atLeastOneFileExists = true
 
-        if (remainingFailedTests > 0) {
-          const failedTestsHtml = failedTestsToMarkdown(
-            parsedXml.failedTests ?? [],
-            { ...options, maxFailedTests: remainingFailedTests },
-            title
-          )
-          failedBlocks += failedTestsHtml ? `\n\n${failedTestsHtml}` : ''
-          remainingFailedTests -= parsedXml.failedTests?.length ?? 0
-        } else if (options.showFailedTests) {
-          omittedFailedTests += parsedXml.failedTests?.length ?? 0
+        if (options.showFailedTests) {
+          if (remainingFailedTests > 0) {
+            const failedTestsHtml = failedTestsToMarkdown(
+              parsedXml.failedTests,
+              options,
+              title,
+              remainingFailedTests
+            )
+            failedBlocks += failedTestsHtml ? `\n\n${failedTestsHtml}` : ''
+            remainingFailedTests -= parsedXml.failedTests.length
+          } else {
+            omittedFailedTests += parsedXml.failedTests.length
+          }
         }
       }
     }
 
     if (omittedFailedTests > 0) {
-      failedBlocks += `\n\n_...and ${omittedFailedTests} more failed tests_`
+      failedBlocks += `\n\n${moreFailedTestsNote(omittedFailedTests)}`
     }
 
     if (atLeastOneFileExists) {

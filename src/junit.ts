@@ -13,7 +13,7 @@ const ABSOLUTE_PATH_REGEX = /^(\/|[A-Za-z]:\/)/
 // guard memory on huge failure outputs, rendering truncates far below this
 const MAX_STORED_MESSAGE_LENGTH = 10000
 const STACK_FRAME_REGEX = /^\s+at\s/
-const TEST_FILE_REGEX = /(__tests__\/|\.(test|spec)\.[cm]?[jt]sx?$)/
+const TEST_FILE_REGEX = /(__tests__[\\/]|\.(test|spec)\.[cm]?[jt]sx?$)/
 
 /** Escape characters that are unsafe inside generated html. */
 function escapeHtml(text: string): string {
@@ -43,13 +43,18 @@ function encodePath(path: string): string {
   return path.split('/').map(encodeURIComponent).join('/')
 }
 
-/** Extract message from <failure> or <error> node, the most detailed text wins. */
-function getFailureMessage(node: any): string {
-  return getNodeTexts(node).reduce(
+/** Extract message from <failure> or <error> node texts, the most detailed text wins. */
+function getFailureMessage(texts: string[]): string {
+  return texts.reduce(
     (longest: string, text: string) =>
       text.length > longest.length ? text : longest,
     ''
   )
+}
+
+/** Note about failed tests that were omitted from the report. */
+export function moreFailedTestsNote(count: number): string {
+  return `_...and ${count} more failed tests_`
 }
 
 /** Strip stack-trace frames and generic `Error:` prefix from failure message, cap length and number of lines. */
@@ -163,7 +168,10 @@ function getTestLocation(
 }
 
 /** Parse junit.xml to Junit object */
-export async function parseJunit(xmlContent: string): Promise<Junit | null> {
+export async function parseJunit(
+  xmlContent: string,
+  collectFailedTests = true
+): Promise<Junit | null> {
   try {
     if (!xmlContent) {
       core.warning('JUnit XML was not provided')
@@ -200,25 +208,27 @@ export async function parseJunit(xmlContent: string): Promise<Junit | null> {
         ?.map((t: any) => Number(t['$'].skipped))
         .reduce((sum: number, a: number) => sum + a, 0) || 0
 
-    const failedTests: FailedTest[] =
-      testsuites?.flatMap((t: any) =>
-        (t.testcase ?? [])
-          .filter((tc: any) => tc.failure || tc.error)
-          .map((tc: any) => {
-            const nodes = [...(tc.failure ?? []), ...(tc.error ?? [])]
+    const failedTests: FailedTest[] = collectFailedTests
+      ? (testsuites?.flatMap((t: any) =>
+          (t.testcase ?? [])
+            .filter((tc: any) => tc.failure || tc.error)
+            .map((tc: any) => {
+              const nodes = [...(tc.failure ?? []), ...(tc.error ?? [])]
+              const nodeTexts = nodes.map(getNodeTexts)
 
-            return {
-              suiteName: t.$?.name ?? '',
-              testName: tc.$?.name ?? '',
-              message: nodes
-                .map(getFailureMessage)
-                .filter(Boolean)
-                .join('\n')
-                .slice(0, MAX_STORED_MESSAGE_LENGTH),
-              ...getTestLocation(tc, nodes.flatMap(getNodeTexts)),
-            }
-          })
-      ) ?? []
+              return {
+                suiteName: t.$?.name ?? '',
+                testName: tc.$?.name ?? '',
+                message: nodeTexts
+                  .map(getFailureMessage)
+                  .filter(Boolean)
+                  .join('\n')
+                  .slice(0, MAX_STORED_MESSAGE_LENGTH),
+                ...getTestLocation(tc, nodeTexts.flat()),
+              }
+            })
+        ) ?? [])
+      : []
 
     return {
       skipped,
@@ -293,7 +303,7 @@ function toTestName(test: FailedTest, options: Options): string {
     ? ` › ${escapeHtml(
         truncateText(
           testName.slice(suiteName.length).trim(),
-          MAX_TEST_NAME_LENGTH
+          Math.max(0, MAX_TEST_NAME_LENGTH - mainText.length)
         )
       )}`
     : ''
@@ -315,13 +325,15 @@ function toTestName(test: FailedTest, options: Options): string {
     return `<b>${escapeHtml(mainText)}</b>${restText}`
   }
 
-  const urlOptions = isAbsolutePath
-    ? { ...options, coveragePathPrefix: '' }
-    : options
+  // `coverage-path-prefix` applies only to paths that are still repo-relative
+  const linkPath = isAbsolutePath
+    ? encodePath(relative)
+    : `${options.coveragePathPrefix ?? ''}${encodePath(relative)}`
   const anchor = test.line && !removeLinksToLines ? `#L${test.line}` : ''
-  const href = escapeHtml(
-    getFileUrl(urlOptions, encodePath(relative), anchor)
-  ).replace(/"/g, '&quot;')
+  const href = escapeHtml(getFileUrl(options, linkPath, anchor)).replace(
+    /"/g,
+    '&quot;'
+  )
 
   return `<a href="${href}">${escapeHtml(mainText)}</a>${restText}`
 }
@@ -330,13 +342,13 @@ function toTestName(test: FailedTest, options: Options): string {
 export function failedTestsToMarkdown(
   failedTests: FailedTest[],
   options: Options,
-  title?: string
+  title?: string,
+  maxFailedTests = options.maxFailedTests ?? MAX_FAILED_TESTS
 ): string {
   if (!options.showFailedTests || !failedTests.length) {
     return ''
   }
 
-  const maxFailedTests = options.maxFailedTests || MAX_FAILED_TESTS
   const summaryTitle = title ? `Failed Tests — ${title}` : 'Failed Tests'
   const entries = failedTests.slice(0, maxFailedTests).map((test) => {
     const message = formatFailureMessage(test.message)
@@ -348,9 +360,7 @@ export function failedTestsToMarkdown(
   })
 
   if (failedTests.length > maxFailedTests) {
-    entries.push(
-      `_...and ${failedTests.length - maxFailedTests} more failed tests_`
-    )
+    entries.push(moreFailedTestsNote(failedTests.length - maxFailedTests))
   }
 
   return `<details><summary>:x: ${escapeHtml(summaryTitle)} (<b>${
@@ -365,16 +375,16 @@ export async function getJunitReport(options: Options): Promise<JunitReport> {
   try {
     if (junitFile) {
       const xmlContent = getContentFile(junitFile)
-      const parsedXml = await parseJunit(xmlContent)
+      const parsedXml = await parseJunit(
+        xmlContent,
+        Boolean(options.showFailedTests)
+      )
 
       if (parsedXml) {
         const junitHtml = junitToMarkdown(parsedXml, options)
         const { skipped, errors, failures, tests, time, failedTests } =
           parsedXml
-        const failedTestsHtml = failedTestsToMarkdown(
-          failedTests ?? [],
-          options
-        )
+        const failedTestsHtml = failedTestsToMarkdown(failedTests, options)
 
         return {
           junitHtml,
@@ -397,6 +407,7 @@ export async function getJunitReport(options: Options): Promise<JunitReport> {
   return {
     junitHtml: '',
     failedTestsHtml: '',
+    failedTests: [],
     tests: 0,
     skipped: 0,
     failures: 0,

@@ -70,7 +70,7 @@ export interface Junit {
   failures: number
   errors: number
   time: number
-  failedTests?: FailedTest[] // calculated field
+  failedTests: FailedTest[] // calculated field
 }
 
 export interface FailedTest {
