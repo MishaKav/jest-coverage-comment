@@ -1257,7 +1257,10 @@ function toTestName(test, options) {
     const restText = hasSuitePrefix
         ? ` › ${escapeHtml(truncateText(testName.slice(suiteName.length).trim(), Math.max(0, MAX_TEST_NAME_LENGTH - mainText.length)))}`
         : '';
-    const testFile = test.file?.replace(/\\/g, '/');
+    const testFile = test.file
+        ?.replace(/^file:\/\/\/([A-Za-z]:\/)/, '$1')
+        .replace(/^file:\/\//, '')
+        .replace(/\\/g, '/');
     const isAbsolutePath = Boolean(testFile && ABSOLUTE_PATH_REGEX.test(testFile));
     // absolute stack-trace paths are repo-relative after removing the
     // workspace prefix, `coverage-path-prefix` applies only to relative ones

@@ -308,7 +308,10 @@ function toTestName(test: FailedTest, options: Options): string {
       )}`
     : ''
 
-  const testFile = test.file?.replace(/\\/g, '/')
+  const testFile = test.file
+    ?.replace(/^file:\/\/\/([A-Za-z]:\/)/, '$1')
+    .replace(/^file:\/\//, '')
+    .replace(/\\/g, '/')
   const isAbsolutePath = Boolean(testFile && ABSOLUTE_PATH_REGEX.test(testFile))
   // absolute stack-trace paths are repo-relative after removing the
   // workspace prefix, `coverage-path-prefix` applies only to relative ones

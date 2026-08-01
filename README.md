@@ -361,7 +361,7 @@ Requires `junitxml-path` (or `multiple-junitxml-files`), see [JUnit Test Report]
     show-failed-tests: true
 ```
 
-**Output**: Collapsible section with one line per failed test — the suite name links to the test file (when the location can be resolved from the report) followed by a short failure reason. Clicking a test expands the full jest output as a `diff` code block with red/green highlighting (stack traces are stripped). The section appears **only when there are failed tests** — on a green run the comment stays exactly the same as without this option.
+**Output**: Collapsible section (collapsed by default in the comment, expanded below for the example) with one line per failed test — the suite name links to the test file (when the location can be resolved from the report) followed by a short failure reason. Clicking a test expands the full jest output as a `diff` code block with red/green highlighting (stack traces are stripped). The section appears **only when there are failed tests** — on a green run the comment stays exactly the same as without this option.
 
 <details open><summary>:x: Failed Tests (<b>2</b>)</summary>
 

@@ -308,6 +308,18 @@ describe('failed tests to markdown', () => {
       optionsWithRepo
     )
     expect(encoded).toContain('/__tests__/a%23b.test.js#L5">test one</a>')
+
+    const fileUrl = failedTestsToMarkdown(
+      [
+        {
+          ...failedTest,
+          file: 'file:///home/runner/work/repo/repo/__tests__/failing/service.test.js',
+          line: 25,
+        },
+      ],
+      optionsWithRepo
+    )
+    expect(fileUrl).toContain('/__tests__/failing/service.test.js#L25">')
   })
 
   test('should link only suite name when test name starts with it', () => {
