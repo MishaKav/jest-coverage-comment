@@ -35,6 +35,9 @@ async function main(): Promise<void> {
     const junitFile = core.getInput('junitxml-path', {
       required: false,
     })
+    const showFailedTests = core.getBooleanInput('show-failed-tests', {
+      required: false,
+    })
     const coverageTitle = core.getInput('coverage-title', { required: false })
     const coverageFile = core.getInput('coverage-path', {
       required: false,
@@ -91,6 +94,7 @@ async function main(): Promise<void> {
       issueNumber,
       junitTitle,
       junitFile,
+      showFailedTests,
       coverageTitle,
       coverageFile,
       coveragePathPrefix,
@@ -154,8 +158,17 @@ async function main(): Promise<void> {
 
     if (options.junitFile) {
       const junit = await getJunitReport(options)
-      const { junitHtml, tests, skipped, failures, errors, time } = junit
+      const {
+        junitHtml,
+        failedTestsHtml,
+        tests,
+        skipped,
+        failures,
+        errors,
+        time,
+      } = junit
       finalHtml += junitHtml ? `\n\n${junitHtml}` : ''
+      finalHtml += failedTestsHtml ? `\n\n${failedTestsHtml}` : ''
 
       if (junitHtml) {
         core.startGroup(options.junitTitle || 'Junit')
@@ -172,6 +185,7 @@ async function main(): Promise<void> {
         core.setOutput('errors', errors)
         core.setOutput('time', time)
         core.setOutput('junitHtml', junitHtml)
+        core.setOutput('failedTestsHtml', failedTestsHtml)
         core.endGroup()
       }
     }

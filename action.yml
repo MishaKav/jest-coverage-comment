@@ -75,6 +75,11 @@ inputs:
     default: ''
     required: false
 
+  show-failed-tests:
+    description: 'Show names of failed tests in the comment (requires `junitxml-path` or `multiple-junitxml-files`)'
+    default: 'false'
+    required: false
+
   coverage-path:
     description: 'The location of the coverage.txt (Jest console output)'
     default: ''
@@ -131,6 +136,8 @@ outputs:
     description: 'Total number of tests with errors, get from `junitxml`'
   time:
     description: 'Seconds that took to run all the tests, get from `junitxml`'
+  failedTestsHtml:
+    description: 'The HTML block with names of failed tests, get from `junitxml` (empty when `show-failed-tests` is disabled or when there are no failures)'
   lines:
     description: 'Lines covered, get from Jest text report'
   branches:

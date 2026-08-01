@@ -36,6 +36,7 @@ A GitHub Action that adds Jest test coverage reports as comments to your pull re
     - [Coverage Summary Report](#coverage-summary-report)
     - [Coverage Console Report](#coverage-console-report)
     - [JUnit Test Report](#junit-test-report)
+    - [Show Failed Tests](#show-failed-tests)
     - [Multiple Files (Monorepo)](#multiple-files-monorepo)
     - [Matrix Strategy](#matrix-strategy)
     - [Workflow Dispatch Support](#workflow-dispatch-support)
@@ -139,6 +140,7 @@ jobs:
 | `badge-title`           | `Coverage`        | Title for the badge icon                                      |
 | `text-instead-badge`    | `false`           | Use simple text instead of badge images for coverage display  |
 | `junitxml-title`        |                   | Title for summary for junitxml                                |
+| `show-failed-tests`     | `false`           | Show names of failed tests in the comment (requires `junitxml-path` or `multiple-junitxml-files`) |
 | `coverage-title`        | `Coverage Report` | Title for the coverage report                                 |
 | `hide-summary`          | `false`           | Hide coverage summary report                                  |
 | `hide-comment`          | `false`           | Hide the whole comment (use when you need only the `output`)  |
@@ -176,6 +178,7 @@ jobs:
 | `failures`    | `0`      | Total number of tests with failures, get from `junitxml`                              |
 | `errors`      | `0`      | Total number of tests with errors, get from `junitxml`                                |
 | `time`        | `2.883`  | Seconds that took to run all the tests, get from `junitxml`                           |
+| `failedTestsHtml` | `...` | Collapsible block with names of failed tests, get from `junitxml` (empty when `show-failed-tests` is disabled or when there are no failures) |
 | `lines`       | `71`     | Lines covered, get from Jest text report                                              |
 | `branches`    | `100`    | Branches covered, get from Jest text report                                           |
 | `functions`   | `28`     | Functions covered, get from Jest text report                                          |
@@ -338,6 +341,30 @@ Workflow:
 **Output**: Table showing tests count, skipped, failures, errors, and execution time.
 
 <img alt="JUnit Report (Single File)" width="400px" src="https://user-images.githubusercontent.com/289035/161068120-303b47a9-c8e2-4fa6-80db-21aefbf9033b.png">
+
+</details>
+
+### Show Failed Tests
+
+<details>
+<summary>Show names of failed tests in the comment</summary>
+
+Requires `junitxml-path` (or `multiple-junitxml-files`), see [JUnit Test Report](#junit-test-report):
+
+```yaml
+- name: Jest Coverage Comment
+  uses: MishaKav/jest-coverage-comment@main
+  with:
+    junitxml-path: ./coverage/junit.xml
+    junitxml-title: Test Results
+    show-failed-tests: true
+```
+
+**Output**: Collapsible section with the names of failed tests and a short failure message for each. The section appears **only when there are failed tests** — on a green run the comment stays exactly the same as without this option.
+
+<details><summary>:x: Failed Tests (<b>2</b>)</summary><table><tr><th>Test</th><th>Failure Message</th></tr><tr><td>should test Service when #list method fails</td><td>expect(received).toBe(expected) · Expected: "Hello" · Received: "Hi"</td></tr><tr><td>should test router should test get posts</td><td>Timeout - Async callback was not invoked within the 5000 ms timeout</td></tr></table></details>
+
+With `multiple-junitxml-files`, a separate collapsible section is added for every file that has failures, labeled with the file's title.
 
 </details>
 

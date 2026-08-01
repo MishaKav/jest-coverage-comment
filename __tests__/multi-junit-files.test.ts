@@ -69,4 +69,37 @@ describe('multi junit report', () => {
       "
     `)
   })
+
+  test('should show failed tests only for files with failures', async () => {
+    const result = await getMultipleJunitReport({
+      showFailedTests: true,
+      multipleJunitFiles: [
+        `title1, ${__dirname}/../data/coverage_1/junit.xml`,
+        `title2, ${__dirname}/../data/coverage_1/junit_with_failures.xml`,
+      ],
+    } as never)
+
+    expect(result).toContain(
+      '| title1 | 6 | 0 :zzz: | 0 :x: | 0 :fire: | 0.732s :stopwatch: |'
+    )
+    expect(result).toContain(
+      '| title2 | 6 | 1 :zzz: | 2 :x: | 1 :fire: | 0.852s :stopwatch: |'
+    )
+    expect(result).not.toContain('Failed Tests — title1')
+    expect(result).toContain(
+      '<details><summary>:x: Failed Tests — title2 (<b>3</b>)</summary>'
+    )
+    expect(result).toContain('should test Service when #list method fails')
+  })
+
+  test('should not show failed tests when option disabled', async () => {
+    const result = await getMultipleJunitReport({
+      multipleJunitFiles: [
+        `title1, ${__dirname}/../data/coverage_1/junit_with_failures.xml`,
+      ],
+    } as never)
+
+    expect(result).not.toContain('<details>')
+    expect(result).not.toContain('Failed Tests')
+  })
 })

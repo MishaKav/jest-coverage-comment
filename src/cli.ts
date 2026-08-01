@@ -36,7 +36,7 @@ function getPathToFile(pathToFile: string): string {
 async function main(): Promise<void> {
   try {
     const summaryFile = './../data/coverage_1/coverage-summary.json'
-    const junitFile = './../data/coverage_1/junit.xml'
+    const junitFile = './../data/coverage_1/junit_with_failures.xml'
     const coverageFile = './../data/coverage_1/coverage.txt'
     const multipleFiles = [
       `Title1, ${getPathToFile('./../data/coverage_1/coverage-summary.json')}`,
@@ -46,7 +46,7 @@ async function main(): Promise<void> {
     ]
     const multipleJunitFiles = [
       `Title1, ${getPathToFile('./../data/coverage_1/junit.xml')}`,
-      `Title2, ${getPathToFile('./../data/coverage_1/junit.xml')}`,
+      `Title2, ${getPathToFile('./../data/coverage_1/junit_with_failures.xml')}`,
     ]
     const prefix = __dirname
 
@@ -66,6 +66,7 @@ async function main(): Promise<void> {
       summaryTitle: '',
       junitFile: getPathToFile(junitFile),
       junitTitle: '',
+      showFailedTests: true,
       coverageFile: getPathToFile(coverageFile),
       coverageTitle: 'Coverage Report',
       coveragePathPrefix: '',
@@ -87,8 +88,9 @@ async function main(): Promise<void> {
       : summaryHtml
 
     if (options.junitFile) {
-      const { junitHtml } = await getJunitReport(options)
+      const { junitHtml, failedTestsHtml } = await getJunitReport(options)
       finalHtml += junitHtml ? `\n\n${junitHtml}` : ''
+      finalHtml += failedTestsHtml ? `\n\n${failedTestsHtml}` : ''
     }
 
     if (options.coverageFile) {

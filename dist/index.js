@@ -790,6 +790,9 @@ async function main() {
         const junitFile = core.getInput('junitxml-path', {
             required: false,
         });
+        const showFailedTests = core.getBooleanInput('show-failed-tests', {
+            required: false,
+        });
         const coverageTitle = core.getInput('coverage-title', { required: false });
         const coverageFile = core.getInput('coverage-path', {
             required: false,
@@ -837,6 +840,7 @@ async function main() {
             issueNumber,
             junitTitle,
             junitFile,
+            showFailedTests,
             coverageTitle,
             coverageFile,
             coveragePathPrefix,
@@ -894,8 +898,9 @@ async function main() {
         }
         if (options.junitFile) {
             const junit = await (0, junit_1.getJunitReport)(options);
-            const { junitHtml, tests, skipped, failures, errors, time } = junit;
+            const { junitHtml, failedTestsHtml, tests, skipped, failures, errors, time } = junit;
             finalHtml += junitHtml ? `\n\n${junitHtml}` : '';
+            finalHtml += failedTestsHtml ? `\n\n${failedTestsHtml}` : '';
             if (junitHtml) {
                 core.startGroup(options.junitTitle || 'Junit');
                 core.info(`tests: ${tests}`);
@@ -910,6 +915,7 @@ async function main() {
                 core.setOutput('errors', errors);
                 core.setOutput('time', time);
                 core.setOutput('junitHtml', junitHtml);
+                core.setOutput('failedTestsHtml', failedTestsHtml);
                 core.endGroup();
             }
         }
@@ -1002,11 +1008,39 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.parseJunit = parseJunit;
 exports.junitToMarkdown = junitToMarkdown;
+exports.failedTestsToMarkdown = failedTestsToMarkdown;
 exports.getJunitReport = getJunitReport;
 /* eslint-disable  @typescript-eslint/no-explicit-any */
 const core = __importStar(__nccwpck_require__(7484));
 const xml2js = __importStar(__nccwpck_require__(758));
 const utils_1 = __nccwpck_require__(9277);
+const MAX_FAILURE_MESSAGE_LENGTH = 300;
+const MAX_FAILED_TESTS = 30;
+/** Escape characters that are unsafe inside generated html. */
+function escapeHtml(text) {
+    return text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+}
+/**
+ * Extract message from <failure> or <error> node.
+ * xml2js parses a node without attributes to a plain string,
+ * otherwise to `{ $: { message }, _: 'body text' }` (both parts optional).
+ */
+function getFailureMessage(node) {
+    if (typeof node === 'string') {
+        return node.trim();
+    }
+    return node?.$?.message ?? node?._?.trim() ?? '';
+}
+/** Collapse failure message to a truncated single line. */
+function formatFailureMessage(message) {
+    const singleLine = message.trim().replace(/\s*\r?\n\s*/g, ' · ');
+    return singleLine.length > MAX_FAILURE_MESSAGE_LENGTH
+        ? `${singleLine.slice(0, MAX_FAILURE_MESSAGE_LENGTH)}…`
+        : singleLine;
+}
 /** Parse junit.xml to Junit object */
 async function parseJunit(xmlContent) {
     try {
@@ -1037,12 +1071,24 @@ async function parseJunit(xmlContent) {
         const skipped = testsuites
             ?.map((t) => Number(t['$'].skipped))
             .reduce((sum, a) => sum + a, 0) || 0;
+        const failedTests = testsuites?.flatMap((t) => (t.testcase ?? [])
+            .filter((tc) => tc.failure || tc.error)
+            .map((tc) => ({
+            suiteName: t.$?.name ?? '',
+            classname: tc.$?.classname ?? '',
+            testName: tc.$?.name ?? '',
+            message: [...(tc.failure ?? []), ...(tc.error ?? [])]
+                .map(getFailureMessage)
+                .filter(Boolean)
+                .join('\n'),
+        }))) ?? [];
         return {
             skipped,
             errors: Number(main.errors || errors),
             failures: Number(main.failures),
             tests: Number(main.tests),
             time: Number(main.time),
+            failedTests,
         };
     }
     catch (error) {
@@ -1072,6 +1118,20 @@ ${table}`;
     }
     return table;
 }
+/** Convert failed tests to collapsed html table. */
+function failedTestsToMarkdown(failedTests, title) {
+    if (!failedTests.length) {
+        return '';
+    }
+    const summaryTitle = title ? `Failed Tests — ${title}` : 'Failed Tests';
+    const rows = failedTests
+        .slice(0, MAX_FAILED_TESTS)
+        .map((test) => `<tr><td>${escapeHtml(test.testName)}</td><td>${escapeHtml(formatFailureMessage(test.message))}</td></tr>`);
+    if (failedTests.length > MAX_FAILED_TESTS) {
+        rows.push(`<tr><td colspan="2">...and ${failedTests.length - MAX_FAILED_TESTS} more failed tests</td></tr>`);
+    }
+    return `<details><summary>:x: ${escapeHtml(summaryTitle)} (<b>${failedTests.length}</b>)</summary><table><tr><th>Test</th><th>Failure Message</th></tr>${rows.join('')}</table></details>`;
+}
 /** Return JUnit report. */
 async function getJunitReport(options) {
     const { junitFile } = options;
@@ -1081,9 +1141,13 @@ async function getJunitReport(options) {
             const parsedXml = await parseJunit(xmlContent);
             if (parsedXml) {
                 const junitHtml = junitToMarkdown(parsedXml, options);
-                const { skipped, errors, failures, tests, time } = parsedXml;
+                const { skipped, errors, failures, tests, time, failedTests } = parsedXml;
+                const failedTestsHtml = options.showFailedTests && failedTests?.length
+                    ? failedTestsToMarkdown(failedTests)
+                    : '';
                 return {
                     junitHtml,
+                    failedTestsHtml,
                     tests,
                     skipped,
                     failures,
@@ -1100,6 +1164,7 @@ async function getJunitReport(options) {
     }
     return {
         junitHtml: '',
+        failedTestsHtml: '',
         tests: 0,
         skipped: 0,
         failures: 0,
@@ -1257,6 +1322,7 @@ async function getMultipleJunitReport(options) {
         let atLeastOneFileExists = false;
         let table = '| Title | Tests | Skipped | Failures | Errors | Time |\n' +
             '| --- | --- | --- | --- | --- | --- |\n';
+        let failedBlocks = '';
         for (const titleFileLine of lineReports) {
             const { title, file } = titleFileLine;
             const xmlContent = (0, utils_1.getContentFile)(file);
@@ -1265,10 +1331,13 @@ async function getMultipleJunitReport(options) {
                 const junitHtml = (0, junit_1.junitToMarkdown)(parsedXml, options, true);
                 table += `| ${title} ${junitHtml}\n`;
                 atLeastOneFileExists = true;
+                if (options.showFailedTests && parsedXml.failedTests?.length) {
+                    failedBlocks += `\n\n${(0, junit_1.failedTestsToMarkdown)(parsedXml.failedTests, title)}`;
+                }
             }
         }
         if (atLeastOneFileExists) {
-            return table;
+            return table + failedBlocks;
         }
     }
     catch (error) {

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="jest tests" tests="6" failures="2" errors="1" time="0.852">
+  <testsuite name="should test controller" errors="0" failures="1" skipped="0" timestamp="2022-03-21T21:15:26" time="0.221" tests="2">
+    <testcase classname="should test controller when #getPost method method succeeds" name="should test controller when #getPost method method succeeds" time="0.004">
+    </testcase>
+    <testcase classname="should test controller when #getPost method method fails" name="should test controller when #getPost method method fails" time="0.012">
+      <failure message="Error: expect(received).toBe(expected) // Object.is equality&#10;&#10;Expected: &quot;Hello&quot;&#10;Received: &quot;Hi&quot; &amp; &lt;b&gt;`bold`&lt;/b&gt; | pipe">Error: expect(received).toBe(expected) // Object.is equality
+
+Expected: "Hello"
+Received: "Hi" &amp; &lt;b&gt;`bold`&lt;/b&gt; | pipe
+    at Object.&lt;anonymous&gt; (/src/controller.test.js:12:20)</failure>
+    </testcase>
+  </testsuite>
+  <testsuite name="should test server configuration" errors="0" failures="0" skipped="1" timestamp="2022-03-21T21:15:26" time="0.194" tests="1">
+    <testcase classname="should test server configuration should run the express server" name="should test server configuration should run the express server" time="0">
+      <skipped/>
+    </testcase>
+  </testsuite>
+  <testsuite name="should test Service" errors="0" failures="1" skipped="0" timestamp="2022-03-21T21:15:26" time="0.123" tests="2">
+    <testcase classname="should test Service when #list method succeeds" name="should test Service when #list method succeeds" time="0.006">
+    </testcase>
+    <testcase classname="should test Service when #list method fails" name="should test Service when #list method fails" time="0.009">
+      <failure>Timeout - Async callback was not invoked within the 5000 ms timeout specified by jest.setTimeout.</failure>
+    </testcase>
+  </testsuite>
+  <testsuite name="should test router" errors="1" failures="0" skipped="0" timestamp="2022-03-21T21:15:26" time="0.108" tests="1">
+    <testcase classname="should test router should test get posts" name="should test router should test get posts" time="0.003">
+      <error message="TypeError: Cannot read properties of undefined (reading 'posts')" type="TypeError">TypeError: Cannot read properties of undefined (reading 'posts')
+    at Router.get (/src/router.test.js:7:15)</error>
+    </testcase>
+  </testsuite>
+</testsuites>

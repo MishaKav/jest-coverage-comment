@@ -1,5 +1,5 @@
 import * as core from '@actions/core'
-import { junitToMarkdown, parseJunit } from './junit'
+import { failedTestsToMarkdown, junitToMarkdown, parseJunit } from './junit'
 import { Options } from './types'
 import { getContentFile, notNull, parseLine } from './utils'
 
@@ -26,6 +26,7 @@ export async function getMultipleJunitReport(
     let table =
       '| Title | Tests | Skipped | Failures | Errors | Time |\n' +
       '| --- | --- | --- | --- | --- | --- |\n'
+    let failedBlocks = ''
 
     for (const titleFileLine of lineReports) {
       const { title, file } = titleFileLine
@@ -36,11 +37,18 @@ export async function getMultipleJunitReport(
         const junitHtml = junitToMarkdown(parsedXml, options, true)
         table += `| ${title} ${junitHtml}\n`
         atLeastOneFileExists = true
+
+        if (options.showFailedTests && parsedXml.failedTests?.length) {
+          failedBlocks += `\n\n${failedTestsToMarkdown(
+            parsedXml.failedTests,
+            title
+          )}`
+        }
       }
     }
 
     if (atLeastOneFileExists) {
-      return table
+      return table + failedBlocks
     }
   } catch (error) {
     if (error instanceof Error) {
