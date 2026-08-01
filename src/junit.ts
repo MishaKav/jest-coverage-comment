@@ -38,6 +38,11 @@ function truncateText(text: string, maxLength: number): string {
   return text.length > maxLength ? `${text.slice(0, maxLength)}…` : text
 }
 
+/** Encode url-reserved characters in each path segment, keep `/` separators. */
+function encodePath(path: string): string {
+  return path.split('/').map(encodeURIComponent).join('/')
+}
+
 /** Extract message from <failure> or <error> node, the most detailed text wins. */
 function getFailureMessage(node: any): string {
   return getNodeTexts(node).reduce(
@@ -306,10 +311,9 @@ function toTestName(test: FailedTest, options: Options): string {
     ? { ...options, coveragePathPrefix: '' }
     : options
   const anchor = test.line ? `#L${test.line}` : ''
-  const href = escapeHtml(getFileUrl(urlOptions, relative, anchor)).replace(
-    /"/g,
-    '&quot;'
-  )
+  const href = escapeHtml(
+    getFileUrl(urlOptions, encodePath(relative), anchor)
+  ).replace(/"/g, '&quot;')
 
   return `<a href="${href}">${escapeHtml(mainText)}</a>${restText}`
 }

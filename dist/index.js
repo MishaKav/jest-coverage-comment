@@ -1059,6 +1059,10 @@ function getNodeTexts(node) {
 function truncateText(text, maxLength) {
     return text.length > maxLength ? `${text.slice(0, maxLength)}…` : text;
 }
+/** Encode url-reserved characters in each path segment, keep `/` separators. */
+function encodePath(path) {
+    return path.split('/').map(encodeURIComponent).join('/');
+}
 /** Extract message from <failure> or <error> node, the most detailed text wins. */
 function getFailureMessage(node) {
     return getNodeTexts(node).reduce((longest, text) => text.length > longest.length ? text : longest, '');
@@ -1257,7 +1261,7 @@ function toTestName(test, options) {
         ? { ...options, coveragePathPrefix: '' }
         : options;
     const anchor = test.line ? `#L${test.line}` : '';
-    const href = escapeHtml((0, utils_1.getFileUrl)(urlOptions, relative, anchor)).replace(/"/g, '&quot;');
+    const href = escapeHtml((0, utils_1.getFileUrl)(urlOptions, encodePath(relative), anchor)).replace(/"/g, '&quot;');
     return `<a href="${href}">${escapeHtml(mainText)}</a>${restText}`;
 }
 /** Convert failed tests to collapsed html table. */

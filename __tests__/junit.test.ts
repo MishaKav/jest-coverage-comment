@@ -454,6 +454,15 @@ describe('failed tests to markdown', () => {
     expect(html).not.toContain('a'.repeat(256))
   })
 
+  test('should url-encode reserved characters in linked test paths', () => {
+    const html = failedTestsToMarkdown(
+      [{ ...failedTest, file: '__tests__/a#b.test.js', line: 5 }],
+      optionsWithRepo
+    )
+
+    expect(html).toContain('/__tests__/a%23b.test.js#L5">test one</a>')
+  })
+
   test('should not link test name when remove-links-to-files is enabled', () => {
     const html = failedTestsToMarkdown(
       [{ ...failedTest, file: '__tests__/failing/service.test.js', line: 25 }],
