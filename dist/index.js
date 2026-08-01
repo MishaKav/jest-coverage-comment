@@ -1032,14 +1032,14 @@ function getFailureMessage(node) {
     }
     return node?.$?.message ?? node?._?.trim() ?? '';
 }
-/** Strip stack-trace frames from failure message, cap length and number of lines. */
+/** Strip stack-trace frames and generic `Error:` prefix from failure message, cap length and number of lines. */
 function formatFailureMessage(message) {
     const withoutStack = message
         .split(/\r?\n/)
         .filter((line) => !/^\s+at\s/.test(line))
         .map((line) => line.trimEnd())
         .join('\n');
-    let text = withoutStack.trim();
+    let text = withoutStack.trim().replace(/^Error:\s*/, '');
     if (text.length > MAX_FAILURE_MESSAGE_LENGTH) {
         text = `${text.slice(0, MAX_FAILURE_MESSAGE_LENGTH)}…`;
     }
@@ -1049,12 +1049,14 @@ function formatFailureMessage(message) {
     }
     return text;
 }
-/** Convert multiline failure message to html for a table cell. */
+/**
+ * Convert multiline failure message to a block-code cell.
+ * Newlines are emitted as `&#10;` so the generated html stays on a single
+ * line (a literal blank line would terminate the markdown html block),
+ * while `<pre>` still renders them as real line breaks.
+ */
 function messageToHtml(message) {
-    return escapeHtml(message)
-        .split('\n')
-        .map((line) => line.replace(/^ +| {2,}/g, (m) => '&nbsp;'.repeat(m.length)))
-        .join('<br/>');
+    return `<pre>${escapeHtml(message).replace(/\n/g, '&#10;')}</pre>`;
 }
 /**
  * Extract test file location from the first own stack-trace frame
@@ -1159,17 +1161,28 @@ ${table}`;
     }
     return table;
 }
-/** Make test name cell - td, with link to the test file when known. */
+/**
+ * Make test name cell - td.
+ * The suite name carries the link to the test file (when known),
+ * the rest of the test name stays plain text.
+ */
 function toTestNameTd(test, options) {
     const { serverUrl = 'https://github.com', repository, commit, prefix = '', coveragePathPrefix = '', } = options;
-    const name = `<code>${escapeHtml(test.testName)}</code>`;
+    const { suiteName, testName } = test;
+    const hasSuitePrefix = Boolean(suiteName) &&
+        testName.startsWith(suiteName) &&
+        testName !== suiteName;
+    const linkText = hasSuitePrefix ? suiteName : testName;
+    const restText = hasSuitePrefix
+        ? ` › ${escapeHtml(testName.slice(suiteName.length).trim())}`
+        : '';
     if (!test.file || !repository || !commit) {
-        return `<td>${name}</td>`;
+        return `<td><b>${escapeHtml(linkText)}</b>${restText}</td>`;
     }
     const relative = prefix ? test.file.replace(prefix, '') : test.file;
     const anchor = test.line ? `#L${test.line}` : '';
     const href = `${serverUrl}/${repository}/blob/${commit}/${coveragePathPrefix}${relative}${anchor}`;
-    return `<td><a href="${href}">${name}</a></td>`;
+    return `<td><a href="${href}">${escapeHtml(linkText)}</a>${restText}</td>`;
 }
 /** Convert failed tests to collapsed html table. */
 function failedTestsToMarkdown(failedTests, options, title) {
@@ -1179,7 +1192,7 @@ function failedTestsToMarkdown(failedTests, options, title) {
     const summaryTitle = title ? `Failed Tests — ${title}` : 'Failed Tests';
     const rows = failedTests
         .slice(0, MAX_FAILED_TESTS)
-        .map((test) => `<tr>${toTestNameTd(test, options)}<td><code>${messageToHtml(formatFailureMessage(test.message))}</code></td></tr>`);
+        .map((test) => `<tr>${toTestNameTd(test, options)}<td>${messageToHtml(formatFailureMessage(test.message))}</td></tr>`);
     if (failedTests.length > MAX_FAILED_TESTS) {
         rows.push(`<tr><td colspan="2">...and ${failedTests.length - MAX_FAILED_TESTS} more failed tests</td></tr>`);
     }

@@ -89,7 +89,9 @@ describe('multi junit report', () => {
     expect(result).toContain(
       '<details><summary>:x: Failed Tests — title2 (<b>3</b>)</summary>'
     )
-    expect(result).toContain('should test Service when #list method fails')
+    expect(result).toContain(
+      '<b>should test Service</b> › when #list method fails'
+    )
   })
 
   test('should not show failed tests when option disabled', async () => {
