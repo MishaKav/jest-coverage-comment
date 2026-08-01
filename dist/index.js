@@ -1054,10 +1054,16 @@ function escapeHtml(text) {
  * otherwise to `{ $: { message }, _: 'body text' }` (both parts optional).
  */
 function getNodeTexts(node) {
+    // strip leading blank lines only, keeping first-line indentation,
+    // so a body holding only an indented stack trace keeps its frame shape
+    const trimBody = (text) => {
+        const body = text?.replace(/^(?:[ \t]*\r?\n)+/, '').trimEnd();
+        return body?.trim() ? body : undefined;
+    };
     if (typeof node === 'string') {
-        return [node.trim()];
+        return [trimBody(node)].filter(Boolean);
     }
-    return [node?.$?.message, node?._?.trim()].filter(Boolean);
+    return [node?.$?.message, trimBody(node?._)].filter(Boolean);
 }
 /** Truncate text with ellipsis when it exceeds the given length. */
 function truncateText(text, maxLength) {
@@ -1067,9 +1073,24 @@ function truncateText(text, maxLength) {
 function encodePath(path) {
     return path.split('/').map(encodeURIComponent).join('/');
 }
-/** Extract message from <failure> or <error> node texts, the most detailed text wins. */
+/** Remove stack-trace frame lines from failure text. */
+function stripStackFrames(text) {
+    return text
+        .split(/\r?\n/)
+        .filter((line) => !STACK_FRAME_REGEX.test(line))
+        .map((line) => line.trimEnd())
+        .join('\n')
+        .trim();
+}
+/**
+ * Extract message from <failure> or <error> node texts, the most
+ * detailed text after removing stack frames wins, so a short message
+ * attribute is preferred over a body holding only the stack trace.
+ */
 function getFailureMessage(texts) {
-    return texts.reduce((longest, text) => text.length > longest.length ? text : longest, '');
+    const meaningful = texts.map(stripStackFrames).filter(Boolean);
+    const candidates = meaningful.length ? meaningful : texts;
+    return candidates.reduce((longest, text) => text.length > longest.length ? text : longest, '');
 }
 /** Note about failed tests that were omitted from the report. */
 function moreFailedTestsNote(count) {
@@ -1077,12 +1098,7 @@ function moreFailedTestsNote(count) {
 }
 /** Strip stack-trace frames and generic `Error:` prefix from failure message, cap length and number of lines. */
 function formatFailureMessage(message) {
-    const withoutStack = message
-        .split(/\r?\n/)
-        .filter((line) => !STACK_FRAME_REGEX.test(line))
-        .map((line) => line.trimEnd())
-        .join('\n');
-    let text = truncateText(withoutStack.trim().replace(/^Error:\s*/, ''), MAX_FAILURE_MESSAGE_LENGTH);
+    let text = truncateText(stripStackFrames(message).replace(/^Error:\s*/, ''), MAX_FAILURE_MESSAGE_LENGTH);
     const lines = text.split('\n');
     if (lines.length > MAX_FAILURE_MESSAGE_LINES) {
         text = `${lines.slice(0, MAX_FAILURE_MESSAGE_LINES).join('\n')}\n…`;
@@ -1250,12 +1266,10 @@ ${table}`;
 function toTestName(test, options) {
     const { repository, commit, prefix = '', removeLinksToFiles, removeLinksToLines, } = options;
     const { suiteName, testName } = test;
-    const hasSuitePrefix = Boolean(suiteName) &&
-        testName.startsWith(suiteName) &&
-        testName !== suiteName;
-    const mainText = truncateText(hasSuitePrefix ? suiteName : testName, MAX_TEST_NAME_LENGTH);
-    const restText = hasSuitePrefix
-        ? ` › ${escapeHtml(truncateText(testName.slice(suiteName.length).trim(), Math.max(0, MAX_TEST_NAME_LENGTH - mainText.length)))}`
+    const hasSuitePrefix = Boolean(suiteName) && testName.startsWith(suiteName);
+    const mainText = truncateText(suiteName || testName, MAX_TEST_NAME_LENGTH);
+    const restText = suiteName && testName !== suiteName
+        ? ` › ${escapeHtml(truncateText(hasSuitePrefix ? testName.slice(suiteName.length).trim() : testName, Math.max(0, MAX_TEST_NAME_LENGTH - mainText.length)))}`
         : '';
     const testFile = test.file
         ?.replace(/^file:\/\/\/([A-Za-z]:\/)/, '$1')

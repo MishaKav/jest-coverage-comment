@@ -98,7 +98,7 @@ describe('parsing failed tests', () => {
 
   test('should take the most detailed failure text', async () => {
     const xml =
-      '<?xml version="1.0" encoding="UTF-8"?><testsuites tests="2" failures="2" errors="0" time="0.5"><testsuite name="suite A" errors="0" failures="2" skipped="0" tests="2"><testcase classname="class A" name="test one" time="0.1"><failure>Timeout - Async callback was not invoked</failure></testcase><testcase classname="class B" name="test two" time="0.1"><failure message="assertion failed">assertion failed\ndetailed diff line 1\ndetailed diff line 2</failure></testcase></testsuite></testsuites>'
+      '<?xml version="1.0" encoding="UTF-8"?><testsuites tests="3" failures="3" errors="0" time="0.5"><testsuite name="suite A" errors="0" failures="3" skipped="0" tests="3"><testcase classname="class A" name="test one" time="0.1"><failure>Timeout - Async callback was not invoked</failure></testcase><testcase classname="class B" name="test two" time="0.1"><failure message="assertion failed">assertion failed\ndetailed diff line 1\ndetailed diff line 2</failure></testcase><testcase classname="class C" name="test three" time="0.1"><failure message="expected 3 to be 4">\n    at Object.toEqual (/repo/__tests__/x.test.js:9:9)\n    at run (/repo/jest.js:3:4)</failure></testcase></testsuite></testsuites>'
     const junit = await parseJunit(xml)
 
     expect(junit?.failedTests?.[0].message).toBe(
@@ -107,6 +107,8 @@ describe('parsing failed tests', () => {
     expect(junit?.failedTests?.[1].message).toBe(
       'assertion failed\ndetailed diff line 1\ndetailed diff line 2'
     )
+    // message attribute wins over a body holding only the stack trace
+    expect(junit?.failedTests?.[2].message).toBe('expected 3 to be 4')
   })
 
   test('should prefer test-file stack frame over file attribute and helper frames', async () => {
@@ -177,9 +179,9 @@ describe('failed tests to markdown', () => {
 
     expect(html).toBe(
       '<details><summary>:x: Failed Tests (<b>2</b>)</summary>\n\n' +
-        '<details><summary><b>test one</b> — <code>expected 1 to be 2</code></summary>\n\n' +
+        '<details><summary><b>suite A</b> › test one — <code>expected 1 to be 2</code></summary>\n\n' +
         '```diff\nexpected 1 to be 2\n```\n\n</details>\n' +
-        '<details><summary><b>test two</b> — <code>Timeout - Async callback was not invoked</code></summary>\n\n' +
+        '<details><summary><b>suite B</b> › test two — <code>Timeout - Async callback was not invoked</code></summary>\n\n' +
         '```diff\nTimeout - Async callback was not invoked\n```\n\n</details>\n\n' +
         '</details>'
     )
@@ -193,7 +195,7 @@ describe('failed tests to markdown', () => {
     const html = failedTestsToMarkdown(
       [
         {
-          suiteName: 'suite A',
+          suiteName: '',
           testName: 'test <b>one</b> & two',
           message: 'expected <a> & "b"\n\nreceived | `c`',
         },
@@ -279,7 +281,7 @@ describe('failed tests to markdown', () => {
     expect(manyLines).not.toContain('line 16')
 
     const longName = failedTestsToMarkdown(
-      [{ ...failedTest, testName: 'a'.repeat(400) }],
+      [{ ...failedTest, suiteName: '', testName: 'a'.repeat(400) }],
       options
     )
     expect(longName).toContain(`<b>${'a'.repeat(255)}…</b>`)
@@ -300,14 +302,16 @@ describe('failed tests to markdown', () => {
     )
 
     expect(html).toContain(
-      '<summary><a href="https://github.com/MishaKav/jest-coverage-comment/blob/05953710b21d222efa4f4535424a7af367be5a57/__tests__/failing/service.test.js#L25">test one</a> — <code>'
+      '<summary><a href="https://github.com/MishaKav/jest-coverage-comment/blob/05953710b21d222efa4f4535424a7af367be5a57/__tests__/failing/service.test.js#L25">suite A</a> › test one — <code>'
     )
 
     const encoded = failedTestsToMarkdown(
       [{ ...failedTest, file: '__tests__/a#b.test.js', line: 5 }],
       optionsWithRepo
     )
-    expect(encoded).toContain('/__tests__/a%23b.test.js#L5">test one</a>')
+    expect(encoded).toContain(
+      '/__tests__/a%23b.test.js#L5">suite A</a> › test one'
+    )
 
     const fileUrl = failedTestsToMarkdown(
       [
@@ -343,7 +347,7 @@ describe('failed tests to markdown', () => {
 
   test('should link without line anchor when line is unknown or remove-links-to-lines is enabled', () => {
     const linkWithoutAnchor =
-      '<a href="https://github.com/MishaKav/jest-coverage-comment/blob/05953710b21d222efa4f4535424a7af367be5a57/__tests__/failing/service.test.js">test one</a>'
+      '<a href="https://github.com/MishaKav/jest-coverage-comment/blob/05953710b21d222efa4f4535424a7af367be5a57/__tests__/failing/service.test.js">suite A</a> › test one'
 
     const noLine = failedTestsToMarkdown(
       [{ ...failedTest, file: '__tests__/failing/service.test.js' }],
@@ -387,7 +391,7 @@ describe('failed tests to markdown', () => {
         [{ ...failedTest, file, line: 25 }],
         optionsWithRepo
       )
-      expect(html).toContain('<b>test one</b>')
+      expect(html).toContain('<b>suite A</b> › test one')
       expect(html).not.toContain('<a href')
     }
 
