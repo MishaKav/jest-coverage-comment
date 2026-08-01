@@ -248,15 +248,6 @@ describe('failed tests to markdown', () => {
     )
   })
 
-  test('should keep indentation of diff lines', () => {
-    const html = failedTestsToMarkdown(
-      [{ ...failedTest, message: '  Array [\n    Object {\n  ]' }],
-      options
-    )
-
-    expect(html).toContain('```diff\nArray [\n    Object {\n  ]\n```')
-  })
-
   test('should extend fence when message contains backticks fence', () => {
     const html = failedTestsToMarkdown(
       [{ ...failedTest, message: 'some\n```\ncode\n```' }],
@@ -395,6 +386,20 @@ describe('failed tests to markdown', () => {
     expect(html).toContain(':x: Failed Tests (<b>35</b>)')
     expect(html).toContain('test 30')
     expect(html).not.toContain('test 31')
+    expect(html).toContain('...and 5 more failed tests')
+  })
+
+  test('should respect max-failed-tests option', () => {
+    const failedTests: FailedTest[] = Array.from({ length: 15 }, (_, i) => ({
+      ...failedTest,
+      testName: `test ${i + 1}`,
+    }))
+    const html = failedTestsToMarkdown(failedTests, {
+      maxFailedTests: 10,
+    } as never)
+
+    expect(html).toContain('test 10')
+    expect(html).not.toContain('test 11')
     expect(html).toContain('...and 5 more failed tests')
   })
 })

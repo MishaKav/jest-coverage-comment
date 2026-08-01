@@ -38,6 +38,9 @@ async function main(): Promise<void> {
     const showFailedTests = core.getBooleanInput('show-failed-tests', {
       required: false,
     })
+    const maxFailedTests = Number(
+      core.getInput('max-failed-tests', { required: false })
+    )
     const coverageTitle = core.getInput('coverage-title', { required: false })
     const coverageFile = core.getInput('coverage-path', {
       required: false,
@@ -95,6 +98,7 @@ async function main(): Promise<void> {
       junitTitle,
       junitFile,
       showFailedTests,
+      maxFailedTests,
       coverageTitle,
       coverageFile,
       coveragePathPrefix,

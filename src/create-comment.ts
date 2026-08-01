@@ -45,6 +45,12 @@ export async function createComment(
         )
       }
 
+      if (options.showFailedTests) {
+        warningsArr.push(
+          '- Reduce "max-failed-tests" - to show fewer failed tests in report'
+        )
+      }
+
       core.warning(warningsArr.join('\n'))
     }
 

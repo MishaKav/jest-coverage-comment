@@ -80,6 +80,11 @@ inputs:
     default: 'false'
     required: false
 
+  max-failed-tests:
+    description: 'Maximum number of failed tests to show in the comment, useful on big repos (requires `show-failed-tests`)'
+    default: '30'
+    required: false
+
   coverage-path:
     description: 'The location of the coverage.txt (Jest console output)'
     default: ''

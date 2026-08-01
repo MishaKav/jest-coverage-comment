@@ -282,8 +282,9 @@ export function failedTestsToMarkdown(
     return ''
   }
 
+  const maxFailedTests = options.maxFailedTests || MAX_FAILED_TESTS
   const summaryTitle = title ? `Failed Tests — ${title}` : 'Failed Tests'
-  const entries = failedTests.slice(0, MAX_FAILED_TESTS).map((test) => {
+  const entries = failedTests.slice(0, maxFailedTests).map((test) => {
     const message = formatFailureMessage(test.message)
     const reason = extractShortReason(message)
 
@@ -292,9 +293,9 @@ export function failedTestsToMarkdown(
     )}</code></summary>\n\n${messageToDiffBlock(message)}\n\n</details>`
   })
 
-  if (failedTests.length > MAX_FAILED_TESTS) {
+  if (failedTests.length > maxFailedTests) {
     entries.push(
-      `_...and ${failedTests.length - MAX_FAILED_TESTS} more failed tests_`
+      `_...and ${failedTests.length - maxFailedTests} more failed tests_`
     )
   }
 

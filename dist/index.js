@@ -454,6 +454,9 @@ async function createComment(options, body) {
             if (!options.removeLinksToLines) {
                 warningsArr.push('- Add "remove-links-to-lines: true" - to remove links to lines');
             }
+            if (options.showFailedTests) {
+                warningsArr.push('- Reduce "max-failed-tests" - to show fewer failed tests in report');
+            }
             core.warning(warningsArr.join('\n'));
         }
         if (eventName === 'push') {
@@ -793,6 +796,7 @@ async function main() {
         const showFailedTests = core.getBooleanInput('show-failed-tests', {
             required: false,
         });
+        const maxFailedTests = Number(core.getInput('max-failed-tests', { required: false }));
         const coverageTitle = core.getInput('coverage-title', { required: false });
         const coverageFile = core.getInput('coverage-path', {
             required: false,
@@ -841,6 +845,7 @@ async function main() {
             junitTitle,
             junitFile,
             showFailedTests,
+            maxFailedTests,
             coverageTitle,
             coverageFile,
             coveragePathPrefix,
@@ -1224,14 +1229,15 @@ function failedTestsToMarkdown(failedTests, options, title) {
     if (!failedTests.length) {
         return '';
     }
+    const maxFailedTests = options.maxFailedTests || MAX_FAILED_TESTS;
     const summaryTitle = title ? `Failed Tests — ${title}` : 'Failed Tests';
-    const entries = failedTests.slice(0, MAX_FAILED_TESTS).map((test) => {
+    const entries = failedTests.slice(0, maxFailedTests).map((test) => {
         const message = formatFailureMessage(test.message);
         const reason = extractShortReason(message);
         return `<details><summary>${toTestName(test, options)} — <code>${escapeHtml(reason)}</code></summary>\n\n${messageToDiffBlock(message)}\n\n</details>`;
     });
-    if (failedTests.length > MAX_FAILED_TESTS) {
-        entries.push(`_...and ${failedTests.length - MAX_FAILED_TESTS} more failed tests_`);
+    if (failedTests.length > maxFailedTests) {
+        entries.push(`_...and ${failedTests.length - maxFailedTests} more failed tests_`);
     }
     return `<details><summary>:x: ${escapeHtml(summaryTitle)} (<b>${failedTests.length}</b>)</summary>\n\n${entries.join('\n')}\n\n</details>`;
 }

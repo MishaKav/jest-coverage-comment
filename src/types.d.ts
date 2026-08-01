@@ -28,6 +28,7 @@ export interface Options {
   multipleFiles?: string[]
   multipleJunitFiles?: string[]
   showFailedTests?: boolean
+  maxFailedTests?: number
 }
 
 export interface ChangedFiles {
