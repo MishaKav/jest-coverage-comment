@@ -795,7 +795,16 @@ async function main() {
         const showFailedTests = core.getBooleanInput('show-failed-tests', {
             required: false,
         });
-        const maxFailedTests = Number(core.getInput('max-failed-tests', { required: false }));
+        const maxFailedTestsInput = core.getInput('max-failed-tests', {
+            required: false,
+        });
+        let maxFailedTests = Number(maxFailedTestsInput);
+        if (!Number.isInteger(maxFailedTests) || maxFailedTests < 1) {
+            if (maxFailedTestsInput) {
+                core.warning(`Invalid "max-failed-tests" input "${maxFailedTestsInput}", should be a positive number. Will use default value`);
+            }
+            maxFailedTests = undefined;
+        }
         const coverageTitle = core.getInput('coverage-title', { required: false });
         const coverageFile = core.getInput('coverage-path', {
             required: false,
@@ -1112,7 +1121,8 @@ function messageToDiffBlock(message) {
 function getTestLocation(tc, rawTexts) {
     for (const rawText of rawTexts) {
         for (const textLine of rawText.split(/\r?\n/)) {
-            if (!STACK_FRAME_REGEX.test(textLine) || textLine.includes('node_modules')) {
+            if (!STACK_FRAME_REGEX.test(textLine) ||
+                textLine.includes('node_modules')) {
                 continue;
             }
             const match = textLine.match(/\(?([^()\s]+):(\d+):(\d+)\)?$/);

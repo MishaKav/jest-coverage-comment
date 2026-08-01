@@ -38,9 +38,18 @@ async function main(): Promise<void> {
     const showFailedTests = core.getBooleanInput('show-failed-tests', {
       required: false,
     })
-    const maxFailedTests = Number(
-      core.getInput('max-failed-tests', { required: false })
-    )
+    const maxFailedTestsInput = core.getInput('max-failed-tests', {
+      required: false,
+    })
+    let maxFailedTests: number | undefined = Number(maxFailedTestsInput)
+    if (!Number.isInteger(maxFailedTests) || maxFailedTests < 1) {
+      if (maxFailedTestsInput) {
+        core.warning(
+          `Invalid "max-failed-tests" input "${maxFailedTestsInput}", should be a positive number. Will use default value`
+        )
+      }
+      maxFailedTests = undefined
+    }
     const coverageTitle = core.getInput('coverage-title', { required: false })
     const coverageFile = core.getInput('coverage-path', {
       required: false,
