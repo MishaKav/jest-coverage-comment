@@ -89,27 +89,35 @@ export function fixCoverageFilePaths(
     return coverageArr
   }
 
-  if (!existsSync(getPathToFile(summaryFile))) {
-    return coverageArr
+  try {
+    if (!existsSync(getPathToFile(summaryFile))) {
+      return coverageArr
+    }
+
+    const jsonContent = getContentFile(summaryFile)
+    const candidates = getPathCandidates(jsonContent, prefix)
+
+    if (!candidates.length) {
+      return coverageArr
+    }
+
+    const result = restorePaths(coverageArr, candidates)
+    const restored = result.filter((l, i) => l.file !== coverageArr[i].file)
+
+    if (restored.length) {
+      core.info(
+        `Restored ${restored.length} coverage path(s) from '${summaryFile}'`
+      )
+    }
+
+    return result
+  } catch (error) {
+    if (error instanceof Error) {
+      core.warning(`Restoring coverage paths. ${error.message}`)
+    }
   }
 
-  const jsonContent = getContentFile(summaryFile)
-  const candidates = getPathCandidates(jsonContent, prefix)
-
-  if (!candidates.length) {
-    return coverageArr
-  }
-
-  const result = restorePaths(coverageArr, candidates)
-  const restored = result.filter((l, i) => l.file !== coverageArr[i].file)
-
-  if (restored.length) {
-    core.info(
-      `Restored ${restored.length} coverage path(s) from '${summaryFile}'`
-    )
-  }
-
-  return result
+  return coverageArr
 }
 
 export const exportedForTesting = {

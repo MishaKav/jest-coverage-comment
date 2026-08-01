@@ -677,20 +677,28 @@ function fixCoverageFilePaths(coverageArr, options) {
     if (coveragePathPrefix || !prefix || !summaryFile) {
         return coverageArr;
     }
-    if (!(0, fs_1.existsSync)((0, utils_1.getPathToFile)(summaryFile))) {
-        return coverageArr;
+    try {
+        if (!(0, fs_1.existsSync)((0, utils_1.getPathToFile)(summaryFile))) {
+            return coverageArr;
+        }
+        const jsonContent = (0, utils_1.getContentFile)(summaryFile);
+        const candidates = getPathCandidates(jsonContent, prefix);
+        if (!candidates.length) {
+            return coverageArr;
+        }
+        const result = restorePaths(coverageArr, candidates);
+        const restored = result.filter((l, i) => l.file !== coverageArr[i].file);
+        if (restored.length) {
+            core.info(`Restored ${restored.length} coverage path(s) from '${summaryFile}'`);
+        }
+        return result;
     }
-    const jsonContent = (0, utils_1.getContentFile)(summaryFile);
-    const candidates = getPathCandidates(jsonContent, prefix);
-    if (!candidates.length) {
-        return coverageArr;
+    catch (error) {
+        if (error instanceof Error) {
+            core.warning(`Restoring coverage paths. ${error.message}`);
+        }
     }
-    const result = restorePaths(coverageArr, candidates);
-    const restored = result.filter((l, i) => l.file !== coverageArr[i].file);
-    if (restored.length) {
-        core.info(`Restored ${restored.length} coverage path(s) from '${summaryFile}'`);
-    }
-    return result;
+    return coverageArr;
 }
 exports.exportedForTesting = {
     parentDir,

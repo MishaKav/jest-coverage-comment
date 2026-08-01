@@ -190,6 +190,17 @@ describe('fix coverage paths', () => {
     ).toBe(coverageArr)
   })
 
+  test('should keep paths when summary file cannot be read', () => {
+    const coverageArr = parseCoverage(partialContent)
+    // a directory passes the existsSync check, but reading it throws
+    const result = fixCoverageFilePaths(coverageArr, {
+      ...options,
+      summaryFile: `${__dirname}/../data/coverage_2`,
+    })
+
+    expect(result).toBe(coverageArr)
+  })
+
   test('should keep already correct report untouched', () => {
     const coverageArr = parseCoverage(partialContent)
     const fixedArr = fixCoverageFilePaths(coverageArr, options)
