@@ -1142,7 +1142,7 @@ function getTestLocation(tc, rawTexts) {
                 textLine.includes('node_modules')) {
                 continue;
             }
-            const match = textLine.match(/\(?([^()\s]+):(\d+):(\d+)\)?$/);
+            const match = textLine.match(/(?:\(|\bat\s)([^()]+):(\d+):(\d+)\)?$/);
             if (match) {
                 frames.push({ file: match[1], line: Number(match[2]) });
             }
