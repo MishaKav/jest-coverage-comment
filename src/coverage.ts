@@ -2,6 +2,7 @@ import * as core from '@actions/core'
 import { CoverageLine, CoverageReport, Options } from './types.d'
 import { getContentFile, getCoverageColor } from './utils'
 import { parseCoverage, getTotalLine, isFile, isFolder } from './parse-coverage'
+import { fixCoverageFilePaths } from './fix-coverage-paths'
 
 const DEFAULT_COVERAGE: Omit<CoverageReport, 'coverageHtml'> = {
   coverage: 0,
@@ -205,7 +206,7 @@ export function getCoverageReport(options: Options): CoverageReport {
     }
 
     const txtContent = getContentFile(coverageFile)
-    const coverageArr = parseCoverage(txtContent)
+    const coverageArr = fixCoverageFilePaths(parseCoverage(txtContent), options)
 
     if (coverageArr) {
       const coverage = getCoverage(coverageArr)

@@ -679,6 +679,7 @@ collectCoverageFrom: ['src/**/*.{js,ts}', '!src/**/*.test.{js,ts}']
 
 - Use `coverage-path-prefix` if your test paths differ from repository structure
 - Ensure the action runs on the correct commit SHA
+- When Jest runs with `--changedSince` or `--findRelatedTests`, istanbul strips the common parent directory of all covered files from the text report (`coverage-path`). The action restores the full paths automatically from `coverage-summary-path` (must come from the same run, the default path works when both reporters run together). Auto-restore is skipped when `coverage-path-prefix` is set
 
 ### Workflow Dispatch Events
 

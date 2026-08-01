@@ -225,6 +225,7 @@ exports.getCoverageReport = getCoverageReport;
 const core = __importStar(__nccwpck_require__(7484));
 const utils_1 = __nccwpck_require__(9277);
 const parse_coverage_1 = __nccwpck_require__(4218);
+const fix_coverage_paths_1 = __nccwpck_require__(6635);
 const DEFAULT_COVERAGE = {
     coverage: 0,
     color: 'red',
@@ -366,7 +367,7 @@ function getCoverageReport(options) {
             return { ...DEFAULT_COVERAGE, coverageHtml: '' };
         }
         const txtContent = (0, utils_1.getContentFile)(coverageFile);
-        const coverageArr = (0, parse_coverage_1.parseCoverage)(txtContent);
+        const coverageArr = (0, fix_coverage_paths_1.fixCoverageFilePaths)((0, parse_coverage_1.parseCoverage)(txtContent), options);
         if (coverageArr) {
             const coverage = getCoverage(coverageArr);
             const coverageHtml = coverageToMarkdown(coverageArr, options);
@@ -561,6 +562,142 @@ async function createComment(options, body) {
         }
     }
 }
+
+
+/***/ }),
+
+/***/ 6635:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.exportedForTesting = void 0;
+exports.fixCoverageFilePaths = fixCoverageFilePaths;
+const core = __importStar(__nccwpck_require__(7484));
+const fs_1 = __nccwpck_require__(9896);
+const utils_1 = __nccwpck_require__(9277);
+const parse_coverage_1 = __nccwpck_require__(4218);
+/** Get parent directory of a file path ('' when there is none). */
+function parentDir(filePath) {
+    return filePath.split('/').slice(0, -1).join('/');
+}
+/** Extract repo-relative file paths from coverage-summary.json content. */
+function getPathCandidates(jsonContent, prefix) {
+    if (!jsonContent || !prefix) {
+        return [];
+    }
+    try {
+        const json = JSON.parse(jsonContent);
+        return Object.keys(json)
+            .filter((key) => key !== 'total' && key.startsWith(prefix))
+            .map((key) => key.slice(prefix.length));
+    }
+    catch (error) {
+        if (error instanceof Error) {
+            core.warning(`Parse summary report for coverage paths. ${error.message}`);
+        }
+    }
+    return [];
+}
+/** Find the only candidate that ends with the truncated path, if any. */
+function matchCandidate(file, candidates) {
+    if (candidates.includes(file)) {
+        return null;
+    }
+    const matches = candidates.filter((c) => c.endsWith(`/${file}`));
+    return matches.length === 1 ? matches[0] : null;
+}
+/** Restore parent directories stripped by istanbul's text reporter. */
+function restorePaths(coverageArr, candidates) {
+    const fixedFiles = new Map();
+    const result = coverageArr.map((line) => {
+        if (!(0, parse_coverage_1.isFile)(line)) {
+            return line;
+        }
+        const fixed = matchCandidate(line.file, candidates);
+        if (!fixed) {
+            return line;
+        }
+        fixedFiles.set(line.file, fixed);
+        return { ...line, file: fixed };
+    });
+    return result.map((line) => {
+        if (!(0, parse_coverage_1.isFolder)(line) || line.file === 'All files') {
+            return line;
+        }
+        for (const [original, fixed] of fixedFiles) {
+            if (parentDir(original) === line.file) {
+                return { ...line, file: parentDir(fixed) };
+            }
+        }
+        return line;
+    });
+}
+/**
+ * Fix truncated paths produced by `jest --changedSince` / `--findRelatedTests`.
+ * Istanbul's text reporter strips the common parent directory of all covered
+ * files, so restore it from the full paths in coverage-summary.json.
+ */
+function fixCoverageFilePaths(coverageArr, options) {
+    const { summaryFile, prefix, coveragePathPrefix } = options;
+    if (coveragePathPrefix || !prefix || !summaryFile) {
+        return coverageArr;
+    }
+    if (!(0, fs_1.existsSync)((0, utils_1.getPathToFile)(summaryFile))) {
+        return coverageArr;
+    }
+    const jsonContent = (0, utils_1.getContentFile)(summaryFile);
+    const candidates = getPathCandidates(jsonContent, prefix);
+    if (!candidates.length) {
+        return coverageArr;
+    }
+    const result = restorePaths(coverageArr, candidates);
+    const restored = result.filter((l, i) => l.file !== coverageArr[i].file);
+    if (restored.length) {
+        core.info(`Restored ${restored.length} coverage path(s) from '${summaryFile}'`);
+    }
+    return result;
+}
+exports.exportedForTesting = {
+    parentDir,
+    getPathCandidates,
+    matchCandidate,
+    restorePaths,
+};
 
 
 /***/ }),

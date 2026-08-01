@@ -1,5 +1,11 @@
 # Changelog of the Jest Coverage Comment
 
+## Unreleased
+
+#### Changes
+
+- Fix 404 file links when Jest runs with `--changedSince`/`--findRelatedTests` — restore directory paths stripped by istanbul's text reporter using `coverage-summary.json`, [#89](https://github.com/MishaKav/jest-coverage-comment/issues/89)
+
 ## [Jest Coverage Comment 1.0.34](https://github.com/MishaKav/jest-coverage-comment/tree/v1.0.34)
 
 **Release Date:** 2026-06-27
