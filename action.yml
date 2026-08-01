@@ -142,7 +142,7 @@ outputs:
   time:
     description: 'Seconds that took to run all the tests, get from `junitxml`'
   failedTestsHtml:
-    description: 'The HTML block with names of failed tests, get from `junitxml` (empty when `show-failed-tests` is disabled or when there are no failures)'
+    description: 'The HTML block with names of failed tests, get from `junitxml-path` like the other junitxml outputs (empty when `show-failed-tests` is disabled or when there are no failures)'
   lines:
     description: 'Lines covered, get from Jest text report'
   branches:

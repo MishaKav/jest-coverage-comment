@@ -179,7 +179,7 @@ jobs:
 | `failures`    | `0`      | Total number of tests with failures, get from `junitxml`                              |
 | `errors`      | `0`      | Total number of tests with errors, get from `junitxml`                                |
 | `time`        | `2.883`  | Seconds that took to run all the tests, get from `junitxml`                           |
-| `failedTestsHtml` | `...` | Collapsible block with names of failed tests, get from `junitxml` (empty when `show-failed-tests` is disabled or when there are no failures) |
+| `failedTestsHtml` | `...` | Collapsible block with names of failed tests, get from `junitxml-path` like the other junitxml outputs (empty when `show-failed-tests` is disabled or when there are no failures) |
 | `lines`       | `71`     | Lines covered, get from Jest text report                                              |
 | `branches`    | `100`    | Branches covered, get from Jest text report                                           |
 | `functions`   | `28`     | Functions covered, get from Jest text report                                          |

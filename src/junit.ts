@@ -371,6 +371,7 @@ export async function getJunitReport(options: Options): Promise<JunitReport> {
         return {
           junitHtml,
           failedTestsHtml,
+          failedTests,
           tests,
           skipped,
           failures,

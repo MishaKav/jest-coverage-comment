@@ -2,7 +2,7 @@ import * as core from '@actions/core'
 import { Options } from './types.d'
 import { context } from '@actions/github'
 import { createComment } from './create-comment'
-import { getJunitReport } from './junit'
+import { MAX_FAILED_TESTS, getJunitReport } from './junit'
 import { getCoverageReport } from './coverage'
 import { getSummaryReport } from './summary'
 import { getChangedFiles } from './changed-files'
@@ -174,6 +174,7 @@ async function main(): Promise<void> {
       const {
         junitHtml,
         failedTestsHtml,
+        failedTests,
         tests,
         skipped,
         failures,
@@ -182,6 +183,14 @@ async function main(): Promise<void> {
       } = junit
       finalHtml += junitHtml ? `\n\n${junitHtml}` : ''
       finalHtml += failedTestsHtml ? `\n\n${failedTestsHtml}` : ''
+
+      // `max-failed-tests` is a total budget, share it with multiple-junitxml-files
+      if (options.showFailedTests) {
+        const cap = options.maxFailedTests || MAX_FAILED_TESTS
+        const remaining = cap - Math.min(failedTests?.length ?? 0, cap)
+        options.maxFailedTests = remaining
+        options.showFailedTests = remaining > 0
+      }
 
       if (junitHtml) {
         core.startGroup(options.junitTitle || 'Junit')

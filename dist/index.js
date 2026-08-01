@@ -912,9 +912,16 @@ async function main() {
         }
         if (options.junitFile) {
             const junit = await (0, junit_1.getJunitReport)(options);
-            const { junitHtml, failedTestsHtml, tests, skipped, failures, errors, time, } = junit;
+            const { junitHtml, failedTestsHtml, failedTests, tests, skipped, failures, errors, time, } = junit;
             finalHtml += junitHtml ? `\n\n${junitHtml}` : '';
             finalHtml += failedTestsHtml ? `\n\n${failedTestsHtml}` : '';
+            // `max-failed-tests` is a total budget, share it with multiple-junitxml-files
+            if (options.showFailedTests) {
+                const cap = options.maxFailedTests || junit_1.MAX_FAILED_TESTS;
+                const remaining = cap - Math.min(failedTests?.length ?? 0, cap);
+                options.maxFailedTests = remaining;
+                options.showFailedTests = remaining > 0;
+            }
             if (junitHtml) {
                 core.startGroup(options.junitTitle || 'Junit');
                 core.info(`tests: ${tests}`);
@@ -1295,6 +1302,7 @@ async function getJunitReport(options) {
                 return {
                     junitHtml,
                     failedTestsHtml,
+                    failedTests,
                     tests,
                     skipped,
                     failures,
