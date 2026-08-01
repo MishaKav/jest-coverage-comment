@@ -318,9 +318,9 @@ function toTotalRow(line) {
 }
 /** Make fileName cell - td. */
 function toFileNameTd(line, indent = false, options) {
-    const { serverUrl = 'https://github.com', repository, prefix, commit, coveragePathPrefix, removeLinksToFiles, } = options;
+    const { prefix, removeLinksToFiles } = options;
     const relative = line.file.replace(prefix, '');
-    const href = `${serverUrl}/${repository}/blob/${commit}/${coveragePathPrefix}${relative}`;
+    const href = (0, utils_1.getFileUrl)(options, relative);
     const parts = relative.split('/');
     const last = parts[parts.length - 1];
     const space = indent ? '&nbsp; &nbsp;' : '';
@@ -335,11 +335,10 @@ function toMissingTd(line, options) {
     }
     return line.uncoveredLines
         .map((range) => {
-        const { serverUrl = 'https://github.com', repository, commit, coveragePathPrefix, removeLinksToLines, } = options;
+        const { removeLinksToLines } = options;
         const [start, end = start] = range.split('-');
         const fragment = start === end ? `L${start}` : `L${start}-L${end}`;
-        const relative = line.file;
-        const href = `${serverUrl}/${repository}/blob/${commit}/${coveragePathPrefix}${relative}#${fragment}`;
+        const href = (0, utils_1.getFileUrl)(options, line.file, `#${fragment}`);
         const text = start === end ? start : `${start}&ndash;${end}`;
         return removeLinksToLines ? text : `<a href="${href}">${text}</a>`;
     })
@@ -914,6 +913,7 @@ async function main() {
                 core.info(`errors: ${errors}`);
                 core.info(`time: ${time}`);
                 core.info(`junitHtml: ${junitHtml}`);
+                core.info(`failedTestsHtml: ${failedTestsHtml}`);
                 core.setOutput('tests', tests);
                 core.setOutput('skipped', skipped);
                 core.setOutput('failures', failures);
@@ -1023,26 +1023,33 @@ const MAX_FAILURE_MESSAGE_LENGTH = 500;
 const MAX_FAILURE_MESSAGE_LINES = 15;
 const MAX_REASON_LENGTH = 120;
 const MAX_FAILED_TESTS = 30;
+// guard memory on huge failure outputs, rendering truncates far below this
+const MAX_STORED_MESSAGE_LENGTH = 10000;
+const STACK_FRAME_REGEX = /^\s+at\s/;
 /** Escape characters that are unsafe inside generated html. */
 function escapeHtml(text) {
     return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 /**
- * Extract message from <failure> or <error> node.
+ * Extract texts from <failure> or <error> node.
  * xml2js parses a node without attributes to a plain string,
  * otherwise to `{ $: { message }, _: 'body text' }` (both parts optional).
  */
-function getFailureMessage(node) {
+function getNodeTexts(node) {
     if (typeof node === 'string') {
-        return node.trim();
+        return [node.trim()];
     }
-    return node?.$?.message ?? node?._?.trim() ?? '';
+    return [node?.$?.message, node?._?.trim()].filter(Boolean);
+}
+/** Extract message from <failure> or <error> node, the `message` attribute wins. */
+function getFailureMessage(node) {
+    return getNodeTexts(node)[0] ?? '';
 }
 /** Strip stack-trace frames and generic `Error:` prefix from failure message, cap length and number of lines. */
 function formatFailureMessage(message) {
     const withoutStack = message
         .split(/\r?\n/)
-        .filter((line) => !/^\s+at\s/.test(line))
+        .filter((line) => !STACK_FRAME_REGEX.test(line))
         .map((line) => line.trimEnd())
         .join('\n');
     let text = withoutStack.trim().replace(/^Error:\s*/, '');
@@ -1092,10 +1099,9 @@ function extractShortReason(message) {
  * The fence is extended when the message itself contains backtick runs.
  */
 function messageToDiffBlock(message) {
-    const longestBacktickRun = message
-        .match(/`+/g)
-        ?.reduce((max, run) => Math.max(max, run.length), 0) ?? 0;
-    const fence = '`'.repeat(Math.max(3, longestBacktickRun + 1));
+    const backtickRuns = message.match(/`+/g) ?? [];
+    const longestRun = Math.max(0, ...backtickRuns.map((run) => run.length));
+    const fence = '`'.repeat(Math.max(3, longestRun + 1));
     return `${fence}diff\n${message}\n${fence}`;
 }
 /**
@@ -1106,7 +1112,7 @@ function messageToDiffBlock(message) {
 function getTestLocation(tc, rawTexts) {
     for (const rawText of rawTexts) {
         for (const textLine of rawText.split(/\r?\n/)) {
-            if (!/^\s+at\s/.test(textLine) || textLine.includes('node_modules')) {
+            if (!STACK_FRAME_REGEX.test(textLine) || textLine.includes('node_modules')) {
                 continue;
             }
             const match = textLine.match(/\(?([^()\s]+):(\d+):(\d+)\)?$/);
@@ -1154,15 +1160,15 @@ async function parseJunit(xmlContent) {
             .filter((tc) => tc.failure || tc.error)
             .map((tc) => {
             const nodes = [...(tc.failure ?? []), ...(tc.error ?? [])];
-            const rawTexts = nodes
-                .flatMap((node) => typeof node === 'string' ? [node] : [node?.$?.message, node?._])
-                .filter(Boolean);
             return {
                 suiteName: t.$?.name ?? '',
-                classname: tc.$?.classname ?? '',
                 testName: tc.$?.name ?? '',
-                message: nodes.map(getFailureMessage).filter(Boolean).join('\n'),
-                ...getTestLocation(tc, rawTexts),
+                message: nodes
+                    .map(getFailureMessage)
+                    .filter(Boolean)
+                    .join('\n')
+                    .slice(0, MAX_STORED_MESSAGE_LENGTH),
+                ...getTestLocation(tc, nodes.flatMap(getNodeTexts)),
             };
         })) ?? [];
         return {
@@ -1207,7 +1213,7 @@ ${table}`;
  * the rest of the test name stays plain text.
  */
 function toTestName(test, options) {
-    const { serverUrl = 'https://github.com', repository, commit, prefix = '', coveragePathPrefix = '', } = options;
+    const { repository, commit, prefix = '', removeLinksToFiles } = options;
     const { suiteName, testName } = test;
     const hasSuitePrefix = Boolean(suiteName) &&
         testName.startsWith(suiteName) &&
@@ -1216,17 +1222,17 @@ function toTestName(test, options) {
     const restText = hasSuitePrefix
         ? ` › ${escapeHtml(testName.slice(suiteName.length).trim())}`
         : '';
-    if (!test.file || !repository || !commit) {
+    if (!test.file || !repository || !commit || removeLinksToFiles) {
         return `<b>${escapeHtml(mainText)}</b>${restText}`;
     }
     const relative = prefix ? test.file.replace(prefix, '') : test.file;
     const anchor = test.line ? `#L${test.line}` : '';
-    const href = `${serverUrl}/${repository}/blob/${commit}/${coveragePathPrefix}${relative}${anchor}`;
+    const href = (0, utils_1.getFileUrl)(options, relative, anchor);
     return `<a href="${href}">${escapeHtml(mainText)}</a>${restText}`;
 }
 /** Convert failed tests to collapsed html table. */
 function failedTestsToMarkdown(failedTests, options, title) {
-    if (!failedTests.length) {
+    if (!options.showFailedTests || !failedTests.length) {
         return '';
     }
     const maxFailedTests = options.maxFailedTests || MAX_FAILED_TESTS;
@@ -1251,9 +1257,7 @@ async function getJunitReport(options) {
             if (parsedXml) {
                 const junitHtml = junitToMarkdown(parsedXml, options);
                 const { skipped, errors, failures, tests, time, failedTests } = parsedXml;
-                const failedTestsHtml = options.showFailedTests && failedTests?.length
-                    ? failedTestsToMarkdown(failedTests, options)
-                    : '';
+                const failedTestsHtml = failedTestsToMarkdown(failedTests ?? [], options);
                 return {
                     junitHtml,
                     failedTestsHtml,
@@ -1440,9 +1444,8 @@ async function getMultipleJunitReport(options) {
                 const junitHtml = (0, junit_1.junitToMarkdown)(parsedXml, options, true);
                 table += `| ${title} ${junitHtml}\n`;
                 atLeastOneFileExists = true;
-                if (options.showFailedTests && parsedXml.failedTests?.length) {
-                    failedBlocks += `\n\n${(0, junit_1.failedTestsToMarkdown)(parsedXml.failedTests, options, title)}`;
-                }
+                const failedTestsHtml = (0, junit_1.failedTestsToMarkdown)(parsedXml.failedTests ?? [], options, title);
+                failedBlocks += failedTestsHtml ? `\n\n${failedTestsHtml}` : '';
             }
         }
         if (atLeastOneFileExists) {
@@ -1750,12 +1753,18 @@ var __importStar = (this && this.__importStar) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.parseLine = void 0;
+exports.getFileUrl = getFileUrl;
 exports.getPathToFile = getPathToFile;
 exports.getContentFile = getContentFile;
 exports.getCoverageColor = getCoverageColor;
 exports.notNull = notNull;
 const core = __importStar(__nccwpck_require__(7484));
 const fs_1 = __nccwpck_require__(9896);
+/** Build URL to a file in the repository at the reported commit. */
+function getFileUrl(options, relativePath, anchor = '') {
+    const { serverUrl = 'https://github.com', repository, commit, coveragePathPrefix = '', } = options;
+    return `${serverUrl}/${repository}/blob/${commit}/${coveragePathPrefix}${relativePath}${anchor}`;
+}
 function getPathToFile(pathToFile) {
     if (!pathToFile) {
         return '';

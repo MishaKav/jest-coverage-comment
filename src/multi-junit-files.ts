@@ -38,13 +38,12 @@ export async function getMultipleJunitReport(
         table += `| ${title} ${junitHtml}\n`
         atLeastOneFileExists = true
 
-        if (options.showFailedTests && parsedXml.failedTests?.length) {
-          failedBlocks += `\n\n${failedTestsToMarkdown(
-            parsedXml.failedTests,
-            options,
-            title
-          )}`
-        }
+        const failedTestsHtml = failedTestsToMarkdown(
+          parsedXml.failedTests ?? [],
+          options,
+          title
+        )
+        failedBlocks += failedTestsHtml ? `\n\n${failedTestsHtml}` : ''
       }
     }
 

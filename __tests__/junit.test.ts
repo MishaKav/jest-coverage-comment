@@ -80,7 +80,6 @@ describe('parsing failed tests', () => {
     expect(junit?.failedTests).toHaveLength(1)
     expect(junit?.failedTests?.[0]).toEqual({
       suiteName: 'suite A',
-      classname: 'class A',
       testName: 'test one',
       message: 'expected 1 to be 2',
     })
@@ -133,24 +132,13 @@ describe('parsing failed tests', () => {
     expect(junit?.failedTests?.[0].line).toBeUndefined()
   })
 
-  test('should take test location from first own stack-trace frame', async () => {
+  test('should prefer stack-trace location over file attribute', async () => {
     const xml =
-      '<?xml version="1.0" encoding="UTF-8"?><testsuites tests="1" failures="1" errors="0" time="0.5"><testsuite name="suite A" errors="0" failures="1" skipped="0" tests="1"><testcase classname="class A" name="test one" time="0.1"><failure>TypeError: boom\n    at Promise.then.completed (/repo/node_modules/jest-circus/build/utils.js:333:28)\n    at Object.toEqual (/repo/__tests__/failing/service.test.js:25:22)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)</failure></testcase></testsuite></testsuites>'
+      '<?xml version="1.0" encoding="UTF-8"?><testsuites tests="1" failures="1" errors="0" time="0.5"><testsuite name="suite A" errors="0" failures="1" skipped="0" tests="1"><testcase classname="class A" name="test one" file="__tests__/other.test.js" time="0.1"><failure>TypeError: boom\n    at Promise.then.completed (/repo/node_modules/jest-circus/build/utils.js:333:28)\n    at Object.toEqual (/repo/__tests__/failing/service.test.js:25:22)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)</failure></testcase></testsuite></testsuites>'
     const junit = await parseJunit(xml)
 
     expect(junit?.failedTests?.[0].file).toBe(
       '/repo/__tests__/failing/service.test.js'
-    )
-    expect(junit?.failedTests?.[0].line).toBe(25)
-  })
-
-  test('should prefer stack-trace location over file attribute', async () => {
-    const xml =
-      '<?xml version="1.0" encoding="UTF-8"?><testsuites tests="1" failures="1" errors="0" time="0.5"><testsuite name="suite A" errors="0" failures="1" skipped="0" tests="1"><testcase classname="class A" name="test one" file="__tests__/other.test.js" time="0.1"><failure>boom\n    at Object.toEqual (__tests__/failing/service.test.js:25:22)</failure></testcase></testsuite></testsuites>'
-    const junit = await parseJunit(xml)
-
-    expect(junit?.failedTests?.[0].file).toBe(
-      '__tests__/failing/service.test.js'
     )
     expect(junit?.failedTests?.[0].line).toBe(25)
   })
@@ -166,8 +154,9 @@ describe('parsing failed tests', () => {
 })
 
 describe('failed tests to markdown', () => {
-  const options = {} as never
+  const options = { showFailedTests: true } as never
   const optionsWithRepo = {
+    showFailedTests: true,
     serverUrl: 'https://github.com',
     repository: 'MishaKav/jest-coverage-comment',
     commit: '05953710b21d222efa4f4535424a7af367be5a57',
@@ -175,7 +164,6 @@ describe('failed tests to markdown', () => {
   } as never
   const failedTest: FailedTest = {
     suiteName: 'suite A',
-    classname: 'class A',
     testName: 'test one',
     message: 'expected 1 to be 2',
   }
@@ -184,12 +172,15 @@ describe('failed tests to markdown', () => {
     expect(failedTestsToMarkdown([], options)).toBe('')
   })
 
+  test('should return empty string when show-failed-tests is disabled', () => {
+    expect(failedTestsToMarkdown([failedTest], {} as never)).toBe('')
+  })
+
   test('should render collapsed section with failed tests', () => {
     const failedTests: FailedTest[] = [
       failedTest,
       {
         suiteName: 'suite B',
-        classname: 'class B',
         testName: 'test two',
         message: 'Timeout - Async callback was not invoked',
       },
@@ -217,7 +208,6 @@ describe('failed tests to markdown', () => {
       [
         {
           suiteName: 'suite A',
-          classname: 'class A',
           testName: 'test <b>one</b> & two',
           message: 'expected <a> & "b"\n\nreceived | `c`',
         },
@@ -329,7 +319,6 @@ describe('failed tests to markdown', () => {
       [
         {
           suiteName: 'PostsService',
-          classname: 'PostsService maps the API response to posts',
           testName: 'PostsService maps the API response to posts',
           message: 'boom',
           file: '__tests__/failing/service.test.js',
@@ -360,7 +349,6 @@ describe('failed tests to markdown', () => {
       [
         {
           suiteName: 'PostsService',
-          classname: 'PostsService maps the API response to posts',
           testName: 'PostsService maps the API response to posts',
           message: 'boom',
           file: '__tests__/failing/service.test.js',
@@ -381,26 +369,30 @@ describe('failed tests to markdown', () => {
       ...failedTest,
       testName: `test ${i + 1}`,
     }))
-    const html = failedTestsToMarkdown(failedTests, options)
 
+    const html = failedTestsToMarkdown(failedTests, options)
     expect(html).toContain(':x: Failed Tests (<b>35</b>)')
     expect(html).toContain('test 30')
     expect(html).not.toContain('test 31')
     expect(html).toContain('...and 5 more failed tests')
-  })
 
-  test('should respect max-failed-tests option', () => {
-    const failedTests: FailedTest[] = Array.from({ length: 15 }, (_, i) => ({
-      ...failedTest,
-      testName: `test ${i + 1}`,
-    }))
-    const html = failedTestsToMarkdown(failedTests, {
+    const htmlWithMax = failedTestsToMarkdown(failedTests, {
+      showFailedTests: true,
       maxFailedTests: 10,
     } as never)
+    expect(htmlWithMax).toContain('test 10')
+    expect(htmlWithMax).not.toContain('test 11')
+    expect(htmlWithMax).toContain('...and 25 more failed tests')
+  })
 
-    expect(html).toContain('test 10')
-    expect(html).not.toContain('test 11')
-    expect(html).toContain('...and 5 more failed tests')
+  test('should not link test name when remove-links-to-files is enabled', () => {
+    const html = failedTestsToMarkdown(
+      [{ ...failedTest, file: '__tests__/failing/service.test.js', line: 25 }],
+      { ...(optionsWithRepo as object), removeLinksToFiles: true } as never
+    )
+
+    expect(html).toContain('<b>test one</b>')
+    expect(html).not.toContain('<a href')
   })
 })
 

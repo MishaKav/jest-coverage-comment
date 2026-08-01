@@ -75,7 +75,6 @@ export interface Junit {
 
 export interface FailedTest {
   suiteName: string
-  classname: string
   testName: string
   message: string
   file?: string

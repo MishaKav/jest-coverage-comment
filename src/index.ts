@@ -182,6 +182,7 @@ async function main(): Promise<void> {
         core.info(`errors: ${errors}`)
         core.info(`time: ${time}`)
         core.info(`junitHtml: ${junitHtml}`)
+        core.info(`failedTestsHtml: ${failedTestsHtml}`)
 
         core.setOutput('tests', tests)
         core.setOutput('skipped', skipped)

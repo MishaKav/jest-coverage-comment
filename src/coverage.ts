@@ -1,6 +1,6 @@
 import * as core from '@actions/core'
 import { CoverageLine, CoverageReport, Options } from './types.d'
-import { getContentFile, getCoverageColor } from './utils'
+import { getContentFile, getCoverageColor, getFileUrl } from './utils'
 import { parseCoverage, getTotalLine, isFile, isFolder } from './parse-coverage'
 import { fixCoverageFilePaths } from './fix-coverage-paths'
 
@@ -130,16 +130,9 @@ function toFileNameTd(
   indent = false,
   options: Options
 ): string {
-  const {
-    serverUrl = 'https://github.com',
-    repository,
-    prefix,
-    commit,
-    coveragePathPrefix,
-    removeLinksToFiles,
-  } = options
+  const { prefix, removeLinksToFiles } = options
   const relative = line.file.replace(prefix, '')
-  const href = `${serverUrl}/${repository}/blob/${commit}/${coveragePathPrefix}${relative}`
+  const href = getFileUrl(options, relative)
   const parts = relative.split('/')
   const last = parts[parts.length - 1]
   const space = indent ? '&nbsp; &nbsp;' : ''
@@ -157,17 +150,10 @@ function toMissingTd(line: CoverageLine, options: Options): string {
 
   return line.uncoveredLines
     .map((range) => {
-      const {
-        serverUrl = 'https://github.com',
-        repository,
-        commit,
-        coveragePathPrefix,
-        removeLinksToLines,
-      } = options
+      const { removeLinksToLines } = options
       const [start, end = start] = range.split('-')
       const fragment = start === end ? `L${start}` : `L${start}-L${end}`
-      const relative = line.file
-      const href = `${serverUrl}/${repository}/blob/${commit}/${coveragePathPrefix}${relative}#${fragment}`
+      const href = getFileUrl(options, line.file, `#${fragment}`)
       const text = start === end ? start : `${start}&ndash;${end}`
 
       return removeLinksToLines ? text : `<a href="${href}">${text}</a>`

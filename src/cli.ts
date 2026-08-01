@@ -67,7 +67,6 @@ async function main(): Promise<void> {
       junitFile: getPathToFile(junitFile),
       junitTitle: '',
       showFailedTests: true,
-      maxFailedTests: 30,
       coverageFile: getPathToFile(coverageFile),
       coverageTitle: 'Coverage Report',
       coveragePathPrefix: '',

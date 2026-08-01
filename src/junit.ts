@@ -2,12 +2,15 @@
 import * as core from '@actions/core'
 import * as xml2js from 'xml2js'
 import { FailedTest, Junit, JunitReport, Options } from './types.d'
-import { getContentFile } from './utils'
+import { getContentFile, getFileUrl } from './utils'
 
 const MAX_FAILURE_MESSAGE_LENGTH = 500
 const MAX_FAILURE_MESSAGE_LINES = 15
 const MAX_REASON_LENGTH = 120
 const MAX_FAILED_TESTS = 30
+// guard memory on huge failure outputs, rendering truncates far below this
+const MAX_STORED_MESSAGE_LENGTH = 10000
+const STACK_FRAME_REGEX = /^\s+at\s/
 
 /** Escape characters that are unsafe inside generated html. */
 function escapeHtml(text: string): string {
@@ -15,23 +18,28 @@ function escapeHtml(text: string): string {
 }
 
 /**
- * Extract message from <failure> or <error> node.
+ * Extract texts from <failure> or <error> node.
  * xml2js parses a node without attributes to a plain string,
  * otherwise to `{ $: { message }, _: 'body text' }` (both parts optional).
  */
-function getFailureMessage(node: any): string {
+function getNodeTexts(node: any): string[] {
   if (typeof node === 'string') {
-    return node.trim()
+    return [node.trim()]
   }
 
-  return node?.$?.message ?? node?._?.trim() ?? ''
+  return [node?.$?.message, node?._?.trim()].filter(Boolean)
+}
+
+/** Extract message from <failure> or <error> node, the `message` attribute wins. */
+function getFailureMessage(node: any): string {
+  return getNodeTexts(node)[0] ?? ''
 }
 
 /** Strip stack-trace frames and generic `Error:` prefix from failure message, cap length and number of lines. */
 function formatFailureMessage(message: string): string {
   const withoutStack = message
     .split(/\r?\n/)
-    .filter((line) => !/^\s+at\s/.test(line))
+    .filter((line) => !STACK_FRAME_REGEX.test(line))
     .map((line) => line.trimEnd())
     .join('\n')
 
@@ -93,11 +101,9 @@ function extractShortReason(message: string): string {
  * The fence is extended when the message itself contains backtick runs.
  */
 function messageToDiffBlock(message: string): string {
-  const longestBacktickRun =
-    message
-      .match(/`+/g)
-      ?.reduce((max: number, run: string) => Math.max(max, run.length), 0) ?? 0
-  const fence = '`'.repeat(Math.max(3, longestBacktickRun + 1))
+  const backtickRuns = message.match(/`+/g) ?? []
+  const longestRun = Math.max(0, ...backtickRuns.map((run) => run.length))
+  const fence = '`'.repeat(Math.max(3, longestRun + 1))
 
   return `${fence}diff\n${message}\n${fence}`
 }
@@ -113,7 +119,10 @@ function getTestLocation(
 ): { file?: string; line?: number } {
   for (const rawText of rawTexts) {
     for (const textLine of rawText.split(/\r?\n/)) {
-      if (!/^\s+at\s/.test(textLine) || textLine.includes('node_modules')) {
+      if (
+        !STACK_FRAME_REGEX.test(textLine) ||
+        textLine.includes('node_modules')
+      ) {
         continue
       }
 
@@ -175,18 +184,16 @@ export async function parseJunit(xmlContent: string): Promise<Junit | null> {
           .filter((tc: any) => tc.failure || tc.error)
           .map((tc: any) => {
             const nodes = [...(tc.failure ?? []), ...(tc.error ?? [])]
-            const rawTexts = nodes
-              .flatMap((node: any) =>
-                typeof node === 'string' ? [node] : [node?.$?.message, node?._]
-              )
-              .filter(Boolean)
 
             return {
               suiteName: t.$?.name ?? '',
-              classname: tc.$?.classname ?? '',
               testName: tc.$?.name ?? '',
-              message: nodes.map(getFailureMessage).filter(Boolean).join('\n'),
-              ...getTestLocation(tc, rawTexts),
+              message: nodes
+                .map(getFailureMessage)
+                .filter(Boolean)
+                .join('\n')
+                .slice(0, MAX_STORED_MESSAGE_LENGTH),
+              ...getTestLocation(tc, nodes.flatMap(getNodeTexts)),
             }
           })
       ) ?? []
@@ -244,13 +251,7 @@ ${table}`
  * the rest of the test name stays plain text.
  */
 function toTestName(test: FailedTest, options: Options): string {
-  const {
-    serverUrl = 'https://github.com',
-    repository,
-    commit,
-    prefix = '',
-    coveragePathPrefix = '',
-  } = options
+  const { repository, commit, prefix = '', removeLinksToFiles } = options
   const { suiteName, testName } = test
   const hasSuitePrefix =
     Boolean(suiteName) &&
@@ -261,13 +262,13 @@ function toTestName(test: FailedTest, options: Options): string {
     ? ` › ${escapeHtml(testName.slice(suiteName.length).trim())}`
     : ''
 
-  if (!test.file || !repository || !commit) {
+  if (!test.file || !repository || !commit || removeLinksToFiles) {
     return `<b>${escapeHtml(mainText)}</b>${restText}`
   }
 
   const relative = prefix ? test.file.replace(prefix, '') : test.file
   const anchor = test.line ? `#L${test.line}` : ''
-  const href = `${serverUrl}/${repository}/blob/${commit}/${coveragePathPrefix}${relative}${anchor}`
+  const href = getFileUrl(options, relative, anchor)
 
   return `<a href="${href}">${escapeHtml(mainText)}</a>${restText}`
 }
@@ -278,7 +279,7 @@ export function failedTestsToMarkdown(
   options: Options,
   title?: string
 ): string {
-  if (!failedTests.length) {
+  if (!options.showFailedTests || !failedTests.length) {
     return ''
   }
 
@@ -317,10 +318,10 @@ export async function getJunitReport(options: Options): Promise<JunitReport> {
         const junitHtml = junitToMarkdown(parsedXml, options)
         const { skipped, errors, failures, tests, time, failedTests } =
           parsedXml
-        const failedTestsHtml =
-          options.showFailedTests && failedTests?.length
-            ? failedTestsToMarkdown(failedTests, options)
-            : ''
+        const failedTestsHtml = failedTestsToMarkdown(
+          failedTests ?? [],
+          options
+        )
 
         return {
           junitHtml,

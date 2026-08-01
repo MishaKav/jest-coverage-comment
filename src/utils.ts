@@ -1,6 +1,22 @@
 import * as core from '@actions/core'
 import { existsSync, readFileSync } from 'fs'
-import { CoverageColor, MultipleFilesLine } from './types'
+import { CoverageColor, MultipleFilesLine, Options } from './types'
+
+/** Build URL to a file in the repository at the reported commit. */
+export function getFileUrl(
+  options: Options,
+  relativePath: string,
+  anchor = ''
+): string {
+  const {
+    serverUrl = 'https://github.com',
+    repository,
+    commit,
+    coveragePathPrefix = '',
+  } = options
+
+  return `${serverUrl}/${repository}/blob/${commit}/${coveragePathPrefix}${relativePath}${anchor}`
+}
 
 export function getPathToFile(pathToFile: string): string {
   if (!pathToFile) {
