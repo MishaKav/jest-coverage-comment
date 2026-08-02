@@ -41,10 +41,7 @@ export async function getMultipleJunitReport(
     for (const titleFileLine of lineReports) {
       const { title, file } = titleFileLine
       const xmlContent = getContentFile(file)
-      const parsedXml = await parseJunit(
-        xmlContent,
-        Boolean(options.showFailedTests)
-      )
+      const parsedXml = await parseJunit(xmlContent, options.showFailedTests)
 
       if (parsedXml) {
         const junitHtml = junitToMarkdown(parsedXml, options, true)

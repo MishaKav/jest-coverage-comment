@@ -1271,7 +1271,7 @@ ${table}`;
 function toTestName(test, options) {
     const { repository, commit, prefix = '', removeLinksToFiles, removeLinksToLines, } = options;
     const { suiteName, testName } = test;
-    const hasSuitePrefix = Boolean(suiteName) && testName.startsWith(suiteName);
+    const hasSuitePrefix = suiteName && testName.startsWith(suiteName);
     const mainText = truncateText(suiteName || testName, MAX_TEST_NAME_LENGTH);
     const restText = suiteName && testName !== suiteName
         ? ` › ${escapeHtml(truncateText(hasSuitePrefix ? testName.slice(suiteName.length).trim() : testName, Math.max(0, MAX_TEST_NAME_LENGTH - mainText.length)))}`
@@ -1280,7 +1280,7 @@ function toTestName(test, options) {
         ?.replace(/^file:\/\/\/([A-Za-z]:\/)/, '$1')
         .replace(/^file:\/\//, '')
         .replace(/\\/g, '/');
-    const isAbsolutePath = Boolean(testFile && ABSOLUTE_PATH_REGEX.test(testFile));
+    const isAbsolutePath = testFile ? ABSOLUTE_PATH_REGEX.test(testFile) : false;
     // Absolute stack-trace paths are repo-relative after removing the
     // workspace prefix, `coverage-path-prefix` applies only to relative ones
     const relative = testFile && isAbsolutePath && prefix
@@ -1322,7 +1322,7 @@ async function getJunitReport(options) {
     try {
         if (junitFile) {
             const xmlContent = (0, utils_1.getContentFile)(junitFile);
-            const parsedXml = await parseJunit(xmlContent, Boolean(options.showFailedTests));
+            const parsedXml = await parseJunit(xmlContent, options.showFailedTests);
             if (parsedXml) {
                 const junitHtml = junitToMarkdown(parsedXml, options);
                 const { skipped, errors, failures, tests, time, failedTests } = parsedXml;
@@ -1513,7 +1513,7 @@ async function getMultipleJunitReport(options, maxFailedTests = options.maxFaile
         for (const titleFileLine of lineReports) {
             const { title, file } = titleFileLine;
             const xmlContent = (0, utils_1.getContentFile)(file);
-            const parsedXml = await (0, junit_1.parseJunit)(xmlContent, Boolean(options.showFailedTests));
+            const parsedXml = await (0, junit_1.parseJunit)(xmlContent, options.showFailedTests);
             if (parsedXml) {
                 const junitHtml = (0, junit_1.junitToMarkdown)(parsedXml, options, true);
                 table += `| ${title} ${junitHtml}\n`;

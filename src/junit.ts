@@ -316,7 +316,7 @@ function toTestName(test: FailedTest, options: Options): string {
     removeLinksToLines,
   } = options
   const { suiteName, testName } = test
-  const hasSuitePrefix = Boolean(suiteName) && testName.startsWith(suiteName)
+  const hasSuitePrefix = suiteName && testName.startsWith(suiteName)
   const mainText = truncateText(suiteName || testName, MAX_TEST_NAME_LENGTH)
   const restText =
     suiteName && testName !== suiteName
@@ -332,7 +332,7 @@ function toTestName(test: FailedTest, options: Options): string {
     ?.replace(/^file:\/\/\/([A-Za-z]:\/)/, '$1')
     .replace(/^file:\/\//, '')
     .replace(/\\/g, '/')
-  const isAbsolutePath = Boolean(testFile && ABSOLUTE_PATH_REGEX.test(testFile))
+  const isAbsolutePath = testFile ? ABSOLUTE_PATH_REGEX.test(testFile) : false
   // Absolute stack-trace paths are repo-relative after removing the
   // workspace prefix, `coverage-path-prefix` applies only to relative ones
   const relative =
@@ -398,10 +398,7 @@ export async function getJunitReport(options: Options): Promise<JunitReport> {
   try {
     if (junitFile) {
       const xmlContent = getContentFile(junitFile)
-      const parsedXml = await parseJunit(
-        xmlContent,
-        Boolean(options.showFailedTests)
-      )
+      const parsedXml = await parseJunit(xmlContent, options.showFailedTests)
 
       if (parsedXml) {
         const junitHtml = junitToMarkdown(parsedXml, options)
