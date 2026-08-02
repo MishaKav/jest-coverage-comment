@@ -10,7 +10,7 @@ const MAX_REASON_LENGTH = 120
 const MAX_TEST_NAME_LENGTH = 255
 export const MAX_FAILED_TESTS = 30
 const ABSOLUTE_PATH_REGEX = /^(\/|[A-Za-z]:\/)/
-// guard memory on huge failure outputs, rendering truncates far below this
+// Guard memory on huge failure outputs, rendering truncates far below this
 const MAX_STORED_MESSAGE_LENGTH = 10000
 const STACK_FRAME_REGEX = /^\s+at\s/
 const TEST_FILE_REGEX = /(__tests__[\\/]|\.(test|spec)\.[cm]?[jt]sx?$)/
@@ -26,7 +26,7 @@ function escapeHtml(text: string): string {
  * otherwise to `{ $: { message }, _: 'body text' }` (both parts optional).
  */
 function getNodeTexts(node: any): string[] {
-  // strip leading blank lines only, keeping first-line indentation,
+  // Strip leading blank lines only, keeping first-line indentation,
   // so a body holding only an indented stack trace keeps its frame shape
   const trimBody = (text?: string): string | undefined => {
     const body = text?.replace(/^(?:[ \t]*\r?\n)+/, '').trimEnd()
@@ -88,7 +88,7 @@ function formatFailureMessage(message: string): string {
     MAX_FAILURE_MESSAGE_LENGTH
   )
 
-  // a node holding only a stack trace strips to nothing, show the trace then
+  // A node holding only a stack trace strips to nothing, show the trace then
   if (!text) {
     text = truncateText(message.trim(), MAX_FAILURE_MESSAGE_LENGTH)
   }
@@ -179,7 +179,7 @@ function getTestLocation(
     }
   }
 
-  // a failure can be thrown inside an app helper, prefer the test file frame
+  // A failure can be thrown inside an app helper, prefer the test file frame
   const testFrame = frames.find((frame) => TEST_FILE_REGEX.test(frame.file))
   if (testFrame) {
     return testFrame
@@ -333,7 +333,7 @@ function toTestName(test: FailedTest, options: Options): string {
     .replace(/^file:\/\//, '')
     .replace(/\\/g, '/')
   const isAbsolutePath = Boolean(testFile && ABSOLUTE_PATH_REGEX.test(testFile))
-  // absolute stack-trace paths are repo-relative after removing the
+  // Absolute stack-trace paths are repo-relative after removing the
   // workspace prefix, `coverage-path-prefix` applies only to relative ones
   const relative =
     testFile && isAbsolutePath && prefix

@@ -133,20 +133,20 @@ jobs:
 <details>
 <summary>🎨 Display Options</summary>
 
-| Name                    | Default           | Description                                                   |
-| ----------------------- | ----------------- | ------------------------------------------------------------- |
-| `title`                 |                   | Main title for the comment                                    |
-| `summary-title`         |                   | Title for the coverage summary                                |
-| `badge-title`           | `Coverage`        | Title for the badge icon                                      |
-| `text-instead-badge`    | `false`           | Use simple text instead of badge images for coverage display  |
-| `junitxml-title`        |                   | Title for summary for junitxml                                |
-| `show-failed-tests`     | `false`           | Show names of failed tests in the comment (requires `junitxml-path` or `multiple-junitxml-files`) |
+| Name                    | Default           | Description                                                                                                           |
+| ----------------------- | ----------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `title`                 |                   | Main title for the comment                                                                                            |
+| `summary-title`         |                   | Title for the coverage summary                                                                                        |
+| `badge-title`           | `Coverage`        | Title for the badge icon                                                                                              |
+| `text-instead-badge`    | `false`           | Use simple text instead of badge images for coverage display                                                          |
+| `junitxml-title`        |                   | Title for summary for junitxml                                                                                        |
+| `show-failed-tests`     | `false`           | Show names of failed tests in the comment (requires `junitxml-path` or `multiple-junitxml-files`)                     |
 | `max-failed-tests`      | `30`              | Maximum number of failed tests to show in the comment, in total across all junit files (requires `show-failed-tests`) |
-| `coverage-title`        | `Coverage Report` | Title for the coverage report                                 |
-| `hide-summary`          | `false`           | Hide coverage summary report                                  |
-| `hide-comment`          | `false`           | Hide the whole comment (use when you need only the `output`)  |
-| `remove-links-to-files` | `false`           | Remove links to files (useful when summary-report is too big) |
-| `remove-links-to-lines` | `false`           | Remove links to lines (useful when summary-report is too big) |
+| `coverage-title`        | `Coverage Report` | Title for the coverage report                                                                                         |
+| `hide-summary`          | `false`           | Hide coverage summary report                                                                                          |
+| `hide-comment`          | `false`           | Hide the whole comment (use when you need only the `output`)                                                          |
+| `remove-links-to-files` | `false`           | Remove links to files (useful when summary-report is too big)                                                         |
+| `remove-links-to-lines` | `false`           | Remove links to lines (useful when summary-report is too big)                                                         |
 
 </details>
 
@@ -169,21 +169,21 @@ jobs:
 <details>
 <summary>📤 Available Outputs</summary>
 
-| Name          | Example  | Description                                                                           |
-| ------------- | -------- | ------------------------------------------------------------------------------------- |
-| `coverage`    | `78`     | Percentage of the coverage, get from `coverage-summary.json`                          |
-| `color`       | `yellow` | Color of the percentage. You can see the whole list of [badge colors](#-badge-colors) |
-| `summaryHtml` | `...`    | Markdown table with summary. See the [result examples](#-result-examples)             |
-| `tests`       | `9`      | Total number of tests, get from `junitxml`                                            |
-| `skipped`     | `0`      | Total number of skipped tests, get from `junitxml`                                    |
-| `failures`    | `0`      | Total number of tests with failures, get from `junitxml`                              |
-| `errors`      | `0`      | Total number of tests with errors, get from `junitxml`                                |
-| `time`        | `2.883`  | Seconds that took to run all the tests, get from `junitxml`                           |
-| `failedTestsHtml` | `...` | Collapsible block with names of failed tests from `junitxml-path` (empty when `show-failed-tests` is disabled or when there are no failures). Like the other junitxml outputs, it is not published for `multiple-junitxml-files` |
-| `lines`       | `71`     | Lines covered, get from Jest text report                                              |
-| `branches`    | `100`    | Branches covered, get from Jest text report                                           |
-| `functions`   | `28`     | Functions covered, get from Jest text report                                          |
-| `statements`  | `100`    | Statements covered, get from Jest text report                                         |
+| Name              | Example  | Description                                                                                                                                                                         |
+| ----------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `coverage`        | `78`     | Percentage of the coverage, get from `coverage-summary.json`                                                                                                                        |
+| `color`           | `yellow` | Color of the percentage. You can see the whole list of [badge colors](#-badge-colors)                                                                                               |
+| `summaryHtml`     | `...`    | Markdown table with summary. See the [result examples](#-result-examples)                                                                                                           |
+| `tests`           | `9`      | Total number of tests, get from `junitxml`                                                                                                                                          |
+| `skipped`         | `0`      | Total number of skipped tests, get from `junitxml`                                                                                                                                  |
+| `failures`        | `0`      | Total number of tests with failures, get from `junitxml`                                                                                                                            |
+| `errors`          | `0`      | Total number of tests with errors, get from `junitxml`                                                                                                                              |
+| `time`            | `2.883`  | Seconds that took to run all the tests, get from `junitxml`                                                                                                                         |
+| `failedTestsHtml` | `...`    | Collapsible block with names of failed tests, get from `junitxml`. Empty when `show-failed-tests` is disabled or there are no failures; not published for `multiple-junitxml-files` |
+| `lines`           | `71`     | Lines covered, get from Jest text report                                                                                                                                            |
+| `branches`        | `100`    | Branches covered, get from Jest text report                                                                                                                                         |
+| `functions`       | `28`     | Functions covered, get from Jest text report                                                                                                                                        |
+| `statements`      | `100`    | Statements covered, get from Jest text report                                                                                                                                       |
 
 </details>
 

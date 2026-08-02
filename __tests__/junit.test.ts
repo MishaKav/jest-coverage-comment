@@ -107,7 +107,7 @@ describe('parsing failed tests', () => {
     expect(junit?.failedTests?.[1].message).toBe(
       'assertion failed\ndetailed diff line 1\ndetailed diff line 2'
     )
-    // message attribute wins over a body holding only the stack trace
+    // Message attribute wins over a body holding only the stack trace
     expect(junit?.failedTests?.[2].message).toBe('expected 3 to be 4')
   })
 
@@ -296,7 +296,7 @@ describe('failed tests to markdown', () => {
   })
 
   test('should link test name to the test file', () => {
-    // absolute stack-trace path: workspace prefix stripped, coverage-path-prefix not prepended
+    // Absolute stack-trace path: workspace prefix stripped, coverage-path-prefix not prepended
     const html = failedTestsToMarkdown(
       [
         {
