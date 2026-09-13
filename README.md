@@ -4,6 +4,8 @@
 ![License](https://img.shields.io/github/license/MishaKav/jest-coverage-comment)
 ![Version](https://img.shields.io/github/package-json/v/MishaKav/jest-coverage-comment)
 [![WakaTime](https://wakatime.com/badge/user/f838c8aa-c197-42f0-b335-cd1d26159dfd/project/9b2410f3-4104-44ec-bd7f-8d2553a31ffb.svg)](https://wakatime.com/badge/user/f838c8aa-c197-42f0-b335-cd1d26159dfd/project/9b2410f3-4104-44ec-bd7f-8d2553a31ffb)
+[![GitHub Sponsors](https://img.shields.io/badge/Sponsor-%E2%9D%A4-ea4aaa?logo=githubsponsors&logoColor=white)](https://github.com/sponsors/MishaKav)
+[![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-%E2%98%95-ffdd00?logo=buymeacoffee&logoColor=black)](https://buymeacoffee.com/MishaKav)
 
 A GitHub Action that adds Jest test coverage reports as comments to your pull requests, helping you track and improve test coverage with visual feedback.
 
@@ -61,6 +63,7 @@ A GitHub Action that adds Jest test coverage reports as comments to your pull re
   - [🤝 Contributing](#-contributing)
     - [Development Setup](#development-setup)
   - [👥 Contributors](#-contributors)
+  - [💖 Support This Project](#-support-this-project)
   - [📄 License](#-license)
   - [🔗 Similar Actions](#-similar-actions)
 
@@ -794,6 +797,24 @@ npm run package
   <img src="https://contrib.rocks/image?repo=MishaKav/jest-coverage-comment" alt="Contributors" />
 </a>
 
+## 💖 Support This Project
+
+Jest Coverage Comment is free and open source, and I maintain it in my spare time. If it saves you time or makes your pull requests nicer, consider supporting its continued development:
+
+<div align="center">
+
+[![GitHub Sponsors](https://img.shields.io/badge/GitHub%20Sponsors-%E2%9D%A4-ea4aaa?style=for-the-badge&logo=githubsponsors&logoColor=white)](https://github.com/sponsors/MishaKav)
+[![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-%E2%98%95-ffdd00?style=for-the-badge&logo=buymeacoffee&logoColor=black)](https://buymeacoffee.com/MishaKav)
+[![PayPal](https://img.shields.io/badge/PayPal-Donate-00457C?style=for-the-badge&logo=paypal&logoColor=white)](https://paypal.me/MishaKav)
+
+</div>
+
+- 💖 **[GitHub Sponsors](https://github.com/sponsors/MishaKav)** - Monthly or one-time sponsorship, works with company billing
+- ☕ **[Buy Me a Coffee](https://buymeacoffee.com/MishaKav)** - A quick one-off thanks
+- 💳 **[PayPal](https://paypal.me/MishaKav)** - Direct donation
+
+Not in a position to donate? Giving the project a ⭐, reporting a bug, or sharing it with your team helps just as much.
+
 ## 📄 License
 
 MIT © [Misha Kav](https://github.com/MishaKav)
@@ -809,6 +830,6 @@ Check out [pytest-coverage-comment](https://github.com/marketplace/actions/pytes
 
 <div align="center">
 
-**If you find this action helpful, please consider giving it a ⭐ on [GitHub](https://github.com/MishaKav/jest-coverage-comment)!**
+**If you find this action helpful, please consider giving it a ⭐ on [GitHub](https://github.com/MishaKav/jest-coverage-comment) or [buying me a coffee ☕](https://buymeacoffee.com/MishaKav)!**
 
 </div>

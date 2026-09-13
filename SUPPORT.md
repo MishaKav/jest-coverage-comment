@@ -32,6 +32,16 @@ For security vulnerabilities, please follow the [Security Policy](SECURITY.md) a
 
 Interested in contributing? See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
+## Supporting the Project
+
+jest-coverage-comment is free and open source. If it helps you, you can support its development:
+
+- [GitHub Sponsors](https://github.com/sponsors/MishaKav) - monthly or one-time sponsorship, works with company billing
+- [Buy Me a Coffee](https://buymeacoffee.com/MishaKav) - a quick one-off thanks
+- [PayPal](https://paypal.me/MishaKav) - direct donation
+
+Starring the repository or sharing it with others helps too.
+
 ---
 
 **Response time**: Issues are typically reviewed within a few days, though response times may vary.

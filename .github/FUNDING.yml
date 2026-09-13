@@ -1,2 +1,4 @@
-patreon: MishaKav
-custom: ['paypal.me/MishaKav']
+# Sponsor button config: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/displaying-a-sponsor-button-in-your-repository
+github: MishaKav
+buy_me_a_coffee: MishaKav
+custom: ['https://paypal.me/MishaKav']
