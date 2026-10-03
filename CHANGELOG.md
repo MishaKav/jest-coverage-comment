@@ -1,5 +1,14 @@
 # Changelog of the Jest Coverage Comment
 
+## [Jest Coverage Comment 1.0.37](https://github.com/MishaKav/jest-coverage-comment/tree/v1.0.37)
+
+**Release Date:** 2026-10-03
+
+#### Changes
+
+- Bump `eslint` to v10
+- Bump dev dependencies to latest (`@vercel/ncc` v0.45, `typescript-eslint`, `@types/node`, `eslint-plugin-jest`, `prettier`, `ts-jest`, and others)
+
 ## [Jest Coverage Comment 1.0.36](https://github.com/MishaKav/jest-coverage-comment/tree/v1.0.36)
 
 **Release Date:** 2026-08-01
