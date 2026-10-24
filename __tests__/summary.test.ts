@@ -20,6 +20,25 @@ describe('coverage from summary', () => {
     expect(coverage.coverage).toBe(78)
   })
 
+  test('should only take a number for the badge and its color', () => {
+    expect(getCoverage({ lines: { pct: '85.5' } } as never)).toEqual({
+      color: 'green',
+      coverage: 85,
+    })
+    expect(getCoverage({ lines: { pct: '99%evil' } } as never)).toEqual({
+      color: 'red',
+      coverage: 0,
+    })
+    expect(getCoverage({ lines: { pct: '9'.repeat(400) } } as never)).toEqual({
+      color: 'red',
+      coverage: 0,
+    })
+    expect(getCoverage({ lines: { pct: 'Unknown' } } as never)).toEqual({
+      color: 'red',
+      coverage: 0,
+    })
+  })
+
   test('should return default coverage from summary', () => {
     const coverage = getCoverage({} as never)
 
@@ -36,6 +55,20 @@ describe('summary to td', () => {
       pct: 78.57,
     } as never)
     expect(line).toBe('78.57% (33/42)')
+  })
+
+  test('should escape report values in td', () => {
+    const line = lineSummaryToTd({
+      total: '[a](https://evil.example)',
+      covered: '<b>1</b> & 2',
+      pct: '99|**y**\n\nz',
+    } as never)
+    expect(line).toBe(
+      '99\\|\\*\\*y\\*\\* z% (&lt;b&gt;1&lt;\\/b&gt; &amp; 2/\\[a\\]\\(https\\:\\/\\/evil\\.example\\))'
+    )
+    expect(
+      lineSummaryToTd({ total: 0, covered: 0, pct: 'Unknown' } as never)
+    ).toBe('Unknown% (0/0)')
   })
 
   test('should return default summary to td', () => {
@@ -188,5 +221,37 @@ describe('coverage when have default values', () => {
     expect(coverage).toBe(0)
     expect(color).toBe('red')
     expect(spyCore.warning).toHaveBeenCalledTimes(0)
+  })
+})
+
+describe('summary with untrusted values', () => {
+  const options: Options = {
+    token: 'token_123',
+    repository: 'MishaKav/jest-coverage-comment',
+    serverUrl: 'https://github.com',
+    commit: '05953710b21d222efa4f4535424a7af367be5a57',
+    watermark: '<!-- Jest Coverage Comment: 1 -->\n',
+    summaryTitle: '',
+    prefix: '',
+    badgeTitle: 'Coverage',
+    summaryFile: '',
+  }
+  const lineSummary = (pct: unknown): never =>
+    ({ total: 10, covered: 9, skipped: 0, pct }) as never
+
+  test('should keep the table intact and the badge numeric', () => {
+    const summary = {
+      lines: lineSummary('100%25-brightgreen.svg" /><img src="x'),
+      statements: lineSummary('1|2\n| --- |'),
+      functions: lineSummary('Unknown'),
+      branches: lineSummary(90),
+    } as never
+    const markdown = summaryToMarkdown(summary, options, true)
+
+    expect(markdown).toBe(
+      '| <a href="https://github.com/MishaKav/jest-coverage-comment/blob/05953710b21d222efa4f4535424a7af367be5a57/README.md"><img alt="Coverage: 0%" src="https://img.shields.io/badge/Coverage-0%25-red.svg" /></a><br/> |' +
+        ' 1\\|2 \\| \\-\\-\\- \\|% (9/10) | 90% (9/10) | Unknown% (9/10) |'
+    )
+    expect(markdown.split('\n')).toHaveLength(1)
   })
 })

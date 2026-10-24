@@ -5,6 +5,7 @@ import {
   getContentFile,
   getCoverageColor,
   getFileUrl,
+  stripLineBreaks,
 } from './utils'
 import { parseCoverage, getTotalLine, isFile, isFolder } from './parse-coverage'
 import { fixCoverageFilePaths } from './fix-coverage-paths'
@@ -34,7 +35,7 @@ function coverageToMarkdown(
   // doesn't parse markdown in the table cells. The block ends with the line,
   // so text after it (e.g. in a readme) still renders as markdown, and a line
   // break (e.g. from a report value) must not end the block early
-  return `<!-- jest-coverage-comment -->${reportHtml.replace(/[\r\n]+/g, ' ')}`
+  return `<!-- jest-coverage-comment -->${stripLineBreaks(reportHtml)}`
 }
 
 /** Get coverage and color from CoverageLine[]. */

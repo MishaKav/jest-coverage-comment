@@ -245,7 +245,7 @@ function coverageToMarkdown(coverageArr, options) {
     // doesn't parse markdown in the table cells. The block ends with the line,
     // so text after it (e.g. in a readme) still renders as markdown, and a line
     // break (e.g. from a report value) must not end the block early
-    return `<!-- jest-coverage-comment -->${reportHtml.replace(/[\r\n]+/g, ' ')}`;
+    return `<!-- jest-coverage-comment -->${(0, utils_1.stripLineBreaks)(reportHtml)}`;
 }
 /** Get coverage and color from CoverageLine[]. */
 function getCoverage(coverageArr) {
@@ -1272,7 +1272,9 @@ ${table}`;
  */
 function toTestName(test, options) {
     const { repository, commit, prefix = '', removeLinksToFiles, removeLinksToLines, } = options;
-    const { suiteName, testName } = test;
+    // a line break would end the html block of the summary line
+    const suiteName = (0, utils_1.stripLineBreaks)(test.suiteName);
+    const testName = (0, utils_1.stripLineBreaks)(test.testName);
     const hasSuitePrefix = suiteName && testName.startsWith(suiteName);
     const mainText = truncateText(suiteName || testName, MAX_TEST_NAME_LENGTH);
     const restText = suiteName && testName !== suiteName
@@ -1717,8 +1719,9 @@ function lineSummaryToTd(line) {
     if (!line.pct) {
         return '';
     }
+    // report values are untrusted (e.g. from a fork PR)
     const { total, covered, pct } = line;
-    return `${pct}% (${covered}/${total})`;
+    return `${(0, utils_1.escapeMarkdown)(pct)}% (${(0, utils_1.escapeMarkdown)(covered)}/${(0, utils_1.escapeMarkdown)(total)})`;
 }
 /** Convert summary to md. */
 function summaryToMarkdown(summary, options, withoutHeader = false) {
@@ -1750,9 +1753,14 @@ function getCoverage(summary) {
     if (!summary?.lines) {
         return { coverage: 0, color: 'red' };
     }
-    const { lines } = summary;
-    const color = (0, utils_1.getCoverageColor)(lines.pct);
-    const coverage = parseInt(lines.pct.toString());
+    // report values are untrusted, only a number may reach the badge,
+    // other text could fake its message or color
+    const pct = String(summary.lines.pct);
+    // a very long digit string parses to Infinity
+    const parsed = (0, utils_1.isPlainNumber)(pct) ? Number(pct) : 0;
+    const value = Number.isFinite(parsed) ? parsed : 0;
+    const color = (0, utils_1.getCoverageColor)(value);
+    const coverage = Math.trunc(value);
     return { color, coverage };
 }
 /** Return full html coverage report and coverage percentage. */
@@ -1843,6 +1851,9 @@ exports.parseLine = void 0;
 exports.getFileUrl = getFileUrl;
 exports.escapeHtml = escapeHtml;
 exports.escapeHtmlAttr = escapeHtmlAttr;
+exports.isPlainNumber = isPlainNumber;
+exports.stripLineBreaks = stripLineBreaks;
+exports.escapeMarkdown = escapeMarkdown;
 exports.encodePath = encodePath;
 exports.hasParentSegment = hasParentSegment;
 exports.getPathToFile = getPathToFile;
@@ -1863,6 +1874,26 @@ function escapeHtml(text) {
 /** Escape a value placed inside a double-quoted html attribute. */
 function escapeHtmlAttr(text) {
     return escapeHtml(text).replace(/"/g, '&quot;');
+}
+/** A plain non-negative number, e.g. `78.57`. */
+function isPlainNumber(text) {
+    return /^\d+(\.\d+)?$/.test(text);
+}
+/** Replace line breaks with a space, e.g. to keep a value on one line. */
+function stripLineBreaks(text) {
+    return text.replace(/[\r\n]+/g, ' ');
+}
+/**
+ * Escape a value for a markdown table cell: line breaks become spaces, ascii
+ * punctuation is backslash-escaped (no markdown, `|`, autolinks) and `&<>`
+ * become entities. A plain number stays as is.
+ */
+function escapeMarkdown(value) {
+    const text = String(value);
+    if (isPlainNumber(text)) {
+        return text;
+    }
+    return escapeHtml(stripLineBreaks(text).replace(/[!-%'-/:;=?@[-`{-~]/g, '\\$&'));
 }
 /** Encode url-reserved characters in each path segment, keep `/` separators. */
 function encodePath(path) {

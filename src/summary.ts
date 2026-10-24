@@ -1,7 +1,13 @@
 import * as core from '@actions/core'
 import { existsSync } from 'fs'
 import { SummaryReport, LineSummary, Options, Summary } from './types.d'
-import { getContentFile, getCoverageColor, getPathToFile } from './utils'
+import {
+  escapeMarkdown,
+  getContentFile,
+  getCoverageColor,
+  getPathToFile,
+  isPlainNumber,
+} from './utils'
 
 /** Parse coverage-summary.json to Summary object. */
 export function parseSummary(jsonContent: string): Summary | null {
@@ -30,8 +36,9 @@ function lineSummaryToTd(line: LineSummary): string {
     return ''
   }
 
+  // report values are untrusted (e.g. from a fork PR)
   const { total, covered, pct } = line
-  return `${pct}% (${covered}/${total})`
+  return `${escapeMarkdown(pct)}% (${escapeMarkdown(covered)}/${escapeMarkdown(total)})`
 }
 
 /** Convert summary to md. */
@@ -86,10 +93,14 @@ export function getCoverage(
     return { coverage: 0, color: 'red' }
   }
 
-  const { lines } = summary
-
-  const color = getCoverageColor(lines.pct)
-  const coverage = parseInt(lines.pct.toString())
+  // report values are untrusted, only a number may reach the badge,
+  // other text could fake its message or color
+  const pct = String(summary.lines.pct)
+  // a very long digit string parses to Infinity
+  const parsed = isPlainNumber(pct) ? Number(pct) : 0
+  const value = Number.isFinite(parsed) ? parsed : 0
+  const color = getCoverageColor(value)
+  const coverage = Math.trunc(value)
 
   return { color, coverage }
 }
