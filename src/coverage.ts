@@ -1,6 +1,11 @@
 import * as core from '@actions/core'
 import { CoverageLine, CoverageReport, Options } from './types.d'
-import { getContentFile, getCoverageColor, getFileUrl } from './utils'
+import {
+  escapeHtmlAttr,
+  getContentFile,
+  getCoverageColor,
+  getFileUrl,
+} from './utils'
 import { parseCoverage, getTotalLine, isFile, isFolder } from './parse-coverage'
 import { fixCoverageFilePaths } from './fix-coverage-paths'
 
@@ -25,7 +30,11 @@ function coverageToMarkdown(
   const onlyChanged = reportOnlyChangedFiles ? '• ' : ''
   const reportHtml = `<details><summary>${coverageTitle} ${onlyChanged}(<b>${coverage}%</b>)</summary>${table}</details>`
 
-  return reportHtml
+  // a line starting with an html comment is a raw html block, so github
+  // doesn't parse markdown in the table cells. The block ends with the line,
+  // so text after it (e.g. in a readme) still renders as markdown, and a line
+  // break (e.g. from a report value) must not end the block early
+  return `<!-- jest-coverage-comment -->${reportHtml.replace(/[\r\n]+/g, ' ')}`
 }
 
 /** Get coverage and color from CoverageLine[]. */
@@ -102,7 +111,7 @@ function toHeadRow(): string {
   return '<tr><th>File</th><th>% Stmts</th><th>% Branch</th><th>% Funcs</th><th>% Lines</th><th>Uncovered Line #s</th></tr>'
 }
 
-/** Make html row - tr. */
+/** Make html row - tr. Report values are untrusted (e.g. from a fork PR), so they are escaped. */
 function toRow(line: CoverageLine, indent = false, options: Options): string {
   const { stmts, branch, funcs, lines } = line
 
@@ -110,7 +119,7 @@ function toRow(line: CoverageLine, indent = false, options: Options): string {
   const missing = toMissingTd(line, options)
 
   return `<tr><td>${
-    isFolder(line) ? line.file : fileName
+    isFolder(line) ? escapeHtmlAttr(line.file) : fileName
   }</td><td>${stmts}</td><td>${branch}</td><td>${funcs}</td><td>${lines}</td><td>${missing}</td></tr>`
 }
 
@@ -121,7 +130,7 @@ function toTotalRow(line: CoverageLine | undefined): string {
   }
 
   const { file, stmts, branch, funcs, lines } = line
-  return `<tr><td><b>${file}</b></td><td><b>${stmts}</b></td><td><b>${branch}</b></td><td><b>${funcs}</b></td><td><b>${lines}</b></td><td>&nbsp;</td></tr>`
+  return `<tr><td><b>${escapeHtmlAttr(file)}</b></td><td><b>${stmts}</b></td><td><b>${branch}</b></td><td><b>${funcs}</b></td><td><b>${lines}</b></td><td>&nbsp;</td></tr>`
 }
 
 /** Make fileName cell - td. */
@@ -136,10 +145,11 @@ function toFileNameTd(
   const parts = relative.split('/')
   const last = parts[parts.length - 1]
   const space = indent ? '&nbsp; &nbsp;' : ''
+  const fileName = escapeHtmlAttr(last)
 
   return removeLinksToFiles
-    ? `${space}${last}`
-    : `${space}<a href="${href}">${last}</a>`
+    ? `${space}${fileName}`
+    : `${space}<a href="${escapeHtmlAttr(href)}">${fileName}</a>`
 }
 
 /** Make missing cell - td. */
@@ -159,9 +169,14 @@ function toMissingTd(line: CoverageLine, options: Options): string {
         `${coveragePathPrefix}${relative}`,
         `#${fragment}`
       )
-      const text = start === end ? start : `${start}&ndash;${end}`
+      const text =
+        start === end
+          ? escapeHtmlAttr(start)
+          : `${escapeHtmlAttr(start)}&ndash;${escapeHtmlAttr(end)}`
 
-      return removeLinksToLines ? text : `<a href="${href}">${text}</a>`
+      return removeLinksToLines
+        ? text
+        : `<a href="${escapeHtmlAttr(href)}">${text}</a>`
     })
     .join(', ')
 }
@@ -171,7 +186,8 @@ function makeFolders(
   coverageArr: CoverageLine[],
   options: Options
 ): { [key: string]: CoverageLine[] } {
-  const folders: { [key: string]: CoverageLine[] } = {}
+  // no prototype, a folder named e.g. `constructor` must not hit Object members
+  const folders: { [key: string]: CoverageLine[] } = Object.create(null)
 
   for (const line of coverageArr) {
     if (line.file === 'All files') {
