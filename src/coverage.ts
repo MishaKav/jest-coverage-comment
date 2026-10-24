@@ -1,10 +1,13 @@
 import * as core from '@actions/core'
 import { CoverageLine, CoverageReport, Options } from './types.d'
 import {
+  ABSOLUTE_PATH_REGEX,
+  encodePath,
   escapeHtmlAttr,
   getContentFile,
   getCoverageColor,
   getFileUrl,
+  hasParentSegment,
   stripLineBreaks,
 } from './utils'
 import { parseCoverage, getTotalLine, isFile, isFolder } from './parse-coverage'
@@ -116,8 +119,18 @@ function toHeadRow(): string {
 function toRow(line: CoverageLine, indent = false, options: Options): string {
   const { stmts, branch, funcs, lines } = line
 
-  const fileName = toFileNameTd(line, indent, options)
-  const missing = toMissingTd(line, options)
+  // one link per row, shared by the file name and the uncovered lines
+  const fileHref = toFileHref(line, options)
+  const fileName = toFileNameTd(
+    line,
+    indent,
+    options,
+    options.removeLinksToFiles ? null : fileHref
+  )
+  const missing = toMissingTd(
+    line,
+    options.removeLinksToLines ? null : fileHref
+  )
 
   return `<tr><td>${
     isFolder(line) ? escapeHtmlAttr(line.file) : fileName
@@ -139,26 +152,33 @@ function toRelativePath(line: CoverageLine, options: Options): string {
   return line.file.replace(options.prefix, '')
 }
 
-/** Link to a file of the report in the repo, null when it can't be linked. */
+/** Link to a file of the report in the repo, null when it can't be linked safely. */
 function toFileHref(line: CoverageLine, options: Options): string | null {
-  const { coveragePathPrefix = '' } = options
-  const relative = toRelativePath(line, options)
+  const { prefix, coveragePathPrefix = '' } = options
+  // windows reports use `\`, browsers treat it as `/` in links
+  const relative = line.file
+    .replace(/\\/g, '/')
+    .replace(prefix.replace(/\\/g, '/'), '')
 
-  return getFileUrl(options, `${coveragePathPrefix}${relative}`)
+  // a path outside the workspace or with a `..` segment doesn't point into the repo
+  if (ABSOLUTE_PATH_REGEX.test(relative) || hasParentSegment(relative)) {
+    return null
+  }
+
+  return getFileUrl(options, `${coveragePathPrefix}${encodePath(relative)}`)
 }
 
 /** Make fileName cell - td. */
 function toFileNameTd(
   line: CoverageLine,
   indent = false,
-  options: Options
+  options: Options,
+  href: string | null
 ): string {
   const parts = toRelativePath(line, options).split('/')
   const last = parts[parts.length - 1]
   const space = indent ? '&nbsp; &nbsp;' : ''
   const fileName = escapeHtmlAttr(last)
-
-  const href = options.removeLinksToFiles ? null : toFileHref(line, options)
 
   return href
     ? `${space}<a href="${escapeHtmlAttr(href)}">${fileName}</a>`
@@ -166,25 +186,28 @@ function toFileNameTd(
 }
 
 /** Make missing cell - td. */
-function toMissingTd(line: CoverageLine, options: Options): string {
+function toMissingTd(line: CoverageLine, href: string | null): string {
   if (!line.uncoveredLines?.length) {
     return '&nbsp;'
   }
 
-  const fileHref = options.removeLinksToLines ? null : toFileHref(line, options)
+  const fileHref = href && escapeHtmlAttr(href)
+  // line numbers come from the report, encode them like the path
+  const encode = (value: string): string =>
+    encodeURIComponent(value.toWellFormed())
 
   return line.uncoveredLines
     .map((range) => {
       const [start, end = start] = range.split('-')
-      const fragment = start === end ? `L${start}` : `L${start}-L${end}`
-      const text =
-        start === end
-          ? escapeHtmlAttr(start)
-          : `${escapeHtmlAttr(start)}&ndash;${escapeHtmlAttr(end)}`
+      const single = start === end
+      const fragment = single
+        ? `L${encode(start)}`
+        : `L${encode(start)}-L${encode(end)}`
+      const text = single
+        ? escapeHtmlAttr(start)
+        : `${escapeHtmlAttr(start)}&ndash;${escapeHtmlAttr(end)}`
 
-      return fileHref
-        ? `<a href="${escapeHtmlAttr(`${fileHref}#${fragment}`)}">${text}</a>`
-        : text
+      return fileHref ? `<a href="${fileHref}#${fragment}">${text}</a>` : text
     })
     .join(', ')
 }

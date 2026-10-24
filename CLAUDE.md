@@ -99,4 +99,10 @@ The project uses Jest with TypeScript support:
 
 **Coverage Calculation**: Uses Jest's `coverage-summary.json` for percentage calculations, with color-coded badges based on thresholds (0-40: red, 40-60: orange, 60-80: yellow, 80-90: green, 90-100: brightgreen)
 
-**File Path Handling**: The action handles both absolute and relative paths, with configurable path prefixes for linking to files in GitHub
+**File Path Handling**: The action handles both absolute and relative paths, with configurable path prefixes for linking to files in GitHub. Coverage table links go through `toFileHref` (coverage.ts): segments are url-encoded, `\` becomes `/`, and a path with `..` or an absolute path outside the workspace is shown without a link
+
+**Output Format**: Report contents (file and folder names, numbers, test names) are untrusted, e.g. from a fork PR, while workflow inputs (titles, unique id) are trusted:
+
+- HTML: escape report values with `escapeHtml` / `escapeHtmlAttr` (utils.ts). The coverage report is one line that starts with `<!-- jest-coverage-comment -->`, so GitHub treats it as a raw HTML block: no markdown inside, and the next line renders as markdown again (a `<details>` or `<div>` block would run until a blank line). Never emit a line break inside it
+- Markdown table cells (summary, `multiple-files`): escape report values with `escapeMarkdown` (utils.ts); a `|` or a line break would break the table
+- The badge and its color only take a plain number (`isPlainNumber`), anything else is `0`

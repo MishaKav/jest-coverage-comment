@@ -308,8 +308,10 @@ function toHeadRow() {
 /** Make html row - tr. Report values are untrusted (e.g. from a fork PR), so they are escaped. */
 function toRow(line, indent = false, options) {
     const { stmts, branch, funcs, lines } = line;
-    const fileName = toFileNameTd(line, indent, options);
-    const missing = toMissingTd(line, options);
+    // one link per row, shared by the file name and the uncovered lines
+    const fileHref = toFileHref(line, options);
+    const fileName = toFileNameTd(line, indent, options, options.removeLinksToFiles ? null : fileHref);
+    const missing = toMissingTd(line, options.removeLinksToLines ? null : fileHref);
     return `<tr><td>${(0, parse_coverage_1.isFolder)(line) ? (0, utils_1.escapeHtmlAttr)(line.file) : fileName}</td><td>${stmts}</td><td>${branch}</td><td>${funcs}</td><td>${lines}</td><td>${missing}</td></tr>`;
 }
 /** Make summary row - tr. */
@@ -324,39 +326,48 @@ function toTotalRow(line) {
 function toRelativePath(line, options) {
     return line.file.replace(options.prefix, '');
 }
-/** Link to a file of the report in the repo, null when it can't be linked. */
+/** Link to a file of the report in the repo, null when it can't be linked safely. */
 function toFileHref(line, options) {
-    const { coveragePathPrefix = '' } = options;
-    const relative = toRelativePath(line, options);
-    return (0, utils_1.getFileUrl)(options, `${coveragePathPrefix}${relative}`);
+    const { prefix, coveragePathPrefix = '' } = options;
+    // windows reports use `\`, browsers treat it as `/` in links
+    const relative = line.file
+        .replace(/\\/g, '/')
+        .replace(prefix.replace(/\\/g, '/'), '');
+    // a path outside the workspace or with a `..` segment doesn't point into the repo
+    if (utils_1.ABSOLUTE_PATH_REGEX.test(relative) || (0, utils_1.hasParentSegment)(relative)) {
+        return null;
+    }
+    return (0, utils_1.getFileUrl)(options, `${coveragePathPrefix}${(0, utils_1.encodePath)(relative)}`);
 }
 /** Make fileName cell - td. */
-function toFileNameTd(line, indent = false, options) {
+function toFileNameTd(line, indent = false, options, href) {
     const parts = toRelativePath(line, options).split('/');
     const last = parts[parts.length - 1];
     const space = indent ? '&nbsp; &nbsp;' : '';
     const fileName = (0, utils_1.escapeHtmlAttr)(last);
-    const href = options.removeLinksToFiles ? null : toFileHref(line, options);
     return href
         ? `${space}<a href="${(0, utils_1.escapeHtmlAttr)(href)}">${fileName}</a>`
         : `${space}${fileName}`;
 }
 /** Make missing cell - td. */
-function toMissingTd(line, options) {
+function toMissingTd(line, href) {
     if (!line.uncoveredLines?.length) {
         return '&nbsp;';
     }
-    const fileHref = options.removeLinksToLines ? null : toFileHref(line, options);
+    const fileHref = href && (0, utils_1.escapeHtmlAttr)(href);
+    // line numbers come from the report, encode them like the path
+    const encode = (value) => encodeURIComponent(value.toWellFormed());
     return line.uncoveredLines
         .map((range) => {
         const [start, end = start] = range.split('-');
-        const fragment = start === end ? `L${start}` : `L${start}-L${end}`;
-        const text = start === end
+        const single = start === end;
+        const fragment = single
+            ? `L${encode(start)}`
+            : `L${encode(start)}-L${encode(end)}`;
+        const text = single
             ? (0, utils_1.escapeHtmlAttr)(start)
             : `${(0, utils_1.escapeHtmlAttr)(start)}&ndash;${(0, utils_1.escapeHtmlAttr)(end)}`;
-        return fileHref
-            ? `<a href="${(0, utils_1.escapeHtmlAttr)(`${fileHref}#${fragment}`)}">${text}</a>`
-            : text;
+        return fileHref ? `<a href="${fileHref}#${fragment}">${text}</a>` : text;
     })
         .join(', ');
 }
@@ -1055,7 +1066,6 @@ const MAX_FAILURE_MESSAGE_LINES = 15;
 const MAX_REASON_LENGTH = 120;
 const MAX_TEST_NAME_LENGTH = 255;
 exports.MAX_FAILED_TESTS = 30;
-const ABSOLUTE_PATH_REGEX = /^(\/|[A-Za-z]:\/)/;
 // Guard memory on huge failure outputs, rendering truncates far below this
 const MAX_STORED_MESSAGE_LENGTH = 10000;
 const STACK_FRAME_REGEX = /^\s+at\s/;
@@ -1290,14 +1300,14 @@ function toTestName(test, options) {
         ?.replace(/^file:\/\/\/([A-Za-z]:\/)/, '$1')
         .replace(/^file:\/\//, '')
         .replace(/\\/g, '/');
-    const isAbsolutePath = testFile ? ABSOLUTE_PATH_REGEX.test(testFile) : false;
+    const isAbsolutePath = testFile ? utils_1.ABSOLUTE_PATH_REGEX.test(testFile) : false;
     // Absolute stack-trace paths are repo-relative after removing the
     // workspace prefix, `coverage-path-prefix` applies only to relative ones
     const relative = testFile && isAbsolutePath && prefix
         ? testFile.replace(prefix.replace(/\\/g, '/'), '')
         : testFile;
     const cannotResolvePath = !relative ||
-        (isAbsolutePath && ABSOLUTE_PATH_REGEX.test(relative)) ||
+        (isAbsolutePath && utils_1.ABSOLUTE_PATH_REGEX.test(relative)) ||
         (0, utils_1.hasParentSegment)(relative);
     if (!repository || !commit || removeLinksToFiles || cannotResolvePath) {
         return `<b>${(0, utils_1.escapeHtml)(mainText)}</b>${restText}`;
@@ -1851,7 +1861,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.parseLine = void 0;
+exports.parseLine = exports.ABSOLUTE_PATH_REGEX = void 0;
 exports.getFileUrl = getFileUrl;
 exports.escapeHtml = escapeHtml;
 exports.escapeHtmlAttr = escapeHtmlAttr;
@@ -1899,9 +1909,17 @@ function escapeMarkdown(value) {
     }
     return escapeHtml(stripLineBreaks(text).replace(/[!-%'-/:;=?@[-`{-~]/g, '\\$&'));
 }
-/** Encode url-reserved characters in each path segment, keep `/` separators. */
+/** A unix (`/home/...`) or windows (`C:/...`) absolute path, with `/` separators. */
+exports.ABSOLUTE_PATH_REGEX = /^(\/|[A-Za-z]:\/)/;
+/**
+ * Encode url-reserved characters in each path segment, keep `/` separators.
+ * (toWellFormed: a lone utf-16 surrogate makes encodeURIComponent throw)
+ */
 function encodePath(path) {
-    return path.split('/').map(encodeURIComponent).join('/');
+    return path
+        .split('/')
+        .map((segment) => encodeURIComponent(segment.toWellFormed()))
+        .join('/');
 }
 /** A `..` segment would let a link leave the repo once the browser resolves it. */
 function hasParentSegment(path) {
