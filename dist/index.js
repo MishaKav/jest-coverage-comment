@@ -241,7 +241,11 @@ function coverageToMarkdown(coverageArr, options) {
     const table = toTable(coverageArr, options);
     const onlyChanged = reportOnlyChangedFiles ? '• ' : '';
     const reportHtml = `<details><summary>${coverageTitle} ${onlyChanged}(<b>${coverage}%</b>)</summary>${table}</details>`;
-    return reportHtml;
+    // a line starting with an html comment is a raw html block, so github
+    // doesn't parse markdown in the table cells. The block ends with the line,
+    // so text after it (e.g. in a readme) still renders as markdown, and a line
+    // break (e.g. from a report value) must not end the block early
+    return `<!-- jest-coverage-comment -->${reportHtml.replace(/[\r\n]+/g, ' ')}`;
 }
 /** Get coverage and color from CoverageLine[]. */
 function getCoverage(coverageArr) {
@@ -301,12 +305,12 @@ function toTable(coverageArr, options) {
 function toHeadRow() {
     return '<tr><th>File</th><th>% Stmts</th><th>% Branch</th><th>% Funcs</th><th>% Lines</th><th>Uncovered Line #s</th></tr>';
 }
-/** Make html row - tr. */
+/** Make html row - tr. Report values are untrusted (e.g. from a fork PR), so they are escaped. */
 function toRow(line, indent = false, options) {
     const { stmts, branch, funcs, lines } = line;
     const fileName = toFileNameTd(line, indent, options);
     const missing = toMissingTd(line, options);
-    return `<tr><td>${(0, parse_coverage_1.isFolder)(line) ? line.file : fileName}</td><td>${stmts}</td><td>${branch}</td><td>${funcs}</td><td>${lines}</td><td>${missing}</td></tr>`;
+    return `<tr><td>${(0, parse_coverage_1.isFolder)(line) ? (0, utils_1.escapeHtmlAttr)(line.file) : fileName}</td><td>${stmts}</td><td>${branch}</td><td>${funcs}</td><td>${lines}</td><td>${missing}</td></tr>`;
 }
 /** Make summary row - tr. */
 function toTotalRow(line) {
@@ -314,7 +318,7 @@ function toTotalRow(line) {
         return '&nbsp;';
     }
     const { file, stmts, branch, funcs, lines } = line;
-    return `<tr><td><b>${file}</b></td><td><b>${stmts}</b></td><td><b>${branch}</b></td><td><b>${funcs}</b></td><td><b>${lines}</b></td><td>&nbsp;</td></tr>`;
+    return `<tr><td><b>${(0, utils_1.escapeHtmlAttr)(file)}</b></td><td><b>${stmts}</b></td><td><b>${branch}</b></td><td><b>${funcs}</b></td><td><b>${lines}</b></td><td>&nbsp;</td></tr>`;
 }
 /** Make fileName cell - td. */
 function toFileNameTd(line, indent = false, options) {
@@ -324,9 +328,10 @@ function toFileNameTd(line, indent = false, options) {
     const parts = relative.split('/');
     const last = parts[parts.length - 1];
     const space = indent ? '&nbsp; &nbsp;' : '';
+    const fileName = (0, utils_1.escapeHtmlAttr)(last);
     return removeLinksToFiles
-        ? `${space}${last}`
-        : `${space}<a href="${href}">${last}</a>`;
+        ? `${space}${fileName}`
+        : `${space}<a href="${(0, utils_1.escapeHtmlAttr)(href)}">${fileName}</a>`;
 }
 /** Make missing cell - td. */
 function toMissingTd(line, options) {
@@ -340,14 +345,19 @@ function toMissingTd(line, options) {
         const fragment = start === end ? `L${start}` : `L${start}-L${end}`;
         const relative = line.file.replace(prefix, '');
         const href = (0, utils_1.getFileUrl)(options, `${coveragePathPrefix}${relative}`, `#${fragment}`);
-        const text = start === end ? start : `${start}&ndash;${end}`;
-        return removeLinksToLines ? text : `<a href="${href}">${text}</a>`;
+        const text = start === end
+            ? (0, utils_1.escapeHtmlAttr)(start)
+            : `${(0, utils_1.escapeHtmlAttr)(start)}&ndash;${(0, utils_1.escapeHtmlAttr)(end)}`;
+        return removeLinksToLines
+            ? text
+            : `<a href="${(0, utils_1.escapeHtmlAttr)(href)}">${text}</a>`;
     })
         .join(', ');
 }
 /** Collapse all lines to folders structure. */
 function makeFolders(coverageArr, options) {
-    const folders = {};
+    // no prototype, a folder named e.g. `constructor` must not hit Object members
+    const folders = Object.create(null);
     for (const line of coverageArr) {
         if (line.file === 'All files') {
             continue;
