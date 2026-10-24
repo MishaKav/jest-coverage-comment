@@ -50,9 +50,18 @@ export function escapeMarkdown(value: string | number): string {
   )
 }
 
-/** Encode url-reserved characters in each path segment, keep `/` separators. */
+/** A unix (`/home/...`) or windows (`C:/...`) absolute path, with `/` separators. */
+export const ABSOLUTE_PATH_REGEX = /^(\/|[A-Za-z]:\/)/
+
+/**
+ * Encode url-reserved characters in each path segment, keep `/` separators.
+ * (toWellFormed: a lone utf-16 surrogate makes encodeURIComponent throw)
+ */
 export function encodePath(path: string): string {
-  return path.split('/').map(encodeURIComponent).join('/')
+  return path
+    .split('/')
+    .map((segment) => encodeURIComponent(segment.toWellFormed()))
+    .join('/')
 }
 
 /** A `..` segment would let a link leave the repo once the browser resolves it. */

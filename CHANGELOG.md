@@ -1,5 +1,19 @@
 # Changelog of the Jest Coverage Comment
 
+## [Jest Coverage Comment 1.0.38](https://github.com/MishaKav/jest-coverage-comment/tree/v1.0.38)
+
+**Release Date:** 2026-10-24
+
+#### Changes
+
+- escape report values in the coverage table and keep them out of markdown parsing: the coverage report line now starts with `<!-- jest-coverage-comment -->`, so text right after an embedded `coverageHtml` (e.g. in a README) renders as markdown again (#157)
+- escape report values in the summary and `multiple-files` tables, and keep failed test names on one line (#159)
+- the coverage badge only takes a numeric value, so `"pct": "Unknown"` shows `0%` instead of `NaN%` (#159)
+- url-encode file paths in coverage table links, link windows `\` paths with `/`, and don't link paths with `..` or absolute paths outside the workspace (#161)
+- fix an empty coverage report when a folder is named like an Object member (e.g. `constructor`) (#157)
+- fix a missing failed tests report when a test file path has a lone utf-16 surrogate (#161)
+- refactor: share the html escaping, path encoding and file link helpers (#156, #160)
+
 ## [Jest Coverage Comment 1.0.37](https://github.com/MishaKav/jest-coverage-comment/tree/v1.0.37)
 
 **Release Date:** 2026-10-03

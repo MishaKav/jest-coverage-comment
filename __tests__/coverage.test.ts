@@ -271,10 +271,10 @@ describe('get coverage report', () => {
     expect(coverageHtml).toContain('<td>&lt;b&gt;src&lt;/b&gt;</td>')
     expect(coverageHtml).toContain('>&lt;img src=x&gt;.js</a>')
     expect(coverageHtml).toContain(
-      '<a href="https://github.com/MishaKav/jest-coverage-comment/blob/05953710b21d222efa4f4535424a7af367be5a57/&lt;b&gt;src&lt;/b&gt;/x&quot; onclick=&quot;y.js">x&quot; onclick=&quot;y.js</a>'
+      '<a href="https://github.com/MishaKav/jest-coverage-comment/blob/05953710b21d222efa4f4535424a7af367be5a57/%3Cb%3Esrc%3C/b%3E/x%22%20onclick%3D%22y.js">x&quot; onclick=&quot;y.js</a>'
     )
     expect(coverageHtml).toContain(
-      '#L9&quot;&gt;&lt;b&gt;x&lt;/b&gt;">9&quot;&gt;&lt;b&gt;x&lt;/b&gt;</a>'
+      '#L9%22%3E%3Cb%3Ex%3C%2Fb%3E">9&quot;&gt;&lt;b&gt;x&lt;/b&gt;</a>'
     )
     expect(coverageHtml).toContain('>**bold**.js</a>')
     expect(coverageHtml).not.toContain('<b>src</b>')
@@ -310,5 +310,70 @@ describe('get coverage report', () => {
 
     expect(coverageHtml).not.toMatch(/[\r\n]/)
     expect(coverageHtml).toContain('<summary>My Coverage (<b>71%</b>)')
+  })
+
+  describe('file links', () => {
+    const pathsOptions: Options = {
+      ...options,
+      summaryFile: '',
+      prefix: '/home/runner/work/repo/repo/',
+      coverageFile: `${__dirname}/../__mocks__/coverage-paths.txt`,
+    }
+    const blob =
+      'https://github.com/MishaKav/jest-coverage-comment/blob/05953710b21d222efa4f4535424a7af367be5a57'
+
+    test('should url-encode each path segment', () => {
+      const { coverageHtml } = getCoverageReport(pathsOptions)
+
+      expect(coverageHtml).toContain(
+        `<a href="${blob}/src/my%20file%231%3F.js">my file#1?.js</a>`
+      )
+      expect(coverageHtml).toContain(
+        `<a href="${blob}/src/my%20file%231%3F.js#L5-L9">5&ndash;9</a>`
+      )
+      expect(coverageHtml).toContain(
+        `<a href="${blob}/src/%C3%BCn%C3%AF.ts">ünï.ts</a>`
+      )
+    })
+
+    test('should link windows paths with forward slashes', () => {
+      const { coverageHtml } = getCoverageReport(pathsOptions)
+
+      expect(coverageHtml).toContain('<td>src\\utils</td>')
+      expect(coverageHtml).toContain(
+        `<a href="${blob}/src/utils/win.js">win.js</a>`
+      )
+    })
+
+    test('should strip the workspace from absolute paths', () => {
+      const { coverageHtml } = getCoverageReport(pathsOptions)
+
+      expect(coverageHtml).toContain(
+        `<a href="${blob}/lib/inside.js">inside.js</a>`
+      )
+      expect(coverageHtml).toContain(`<a href="${blob}/lib/inside.js#L5">5</a>`)
+    })
+
+    test('should not link paths outside the repo', () => {
+      const { coverageHtml } = getCoverageReport(pathsOptions)
+
+      expect(coverageHtml).toContain('&nbsp; &nbsp;outside.js</td>')
+      expect(coverageHtml).toContain('&nbsp; &nbsp;drive.js</td>')
+      expect(coverageHtml).toContain('&nbsp; &nbsp;x.js</td>')
+      const hrefs = coverageHtml.match(/href="[^"]*"/g) ?? []
+      expect(hrefs).toHaveLength(8)
+      expect(hrefs.join()).not.toMatch(/tmp|C:|\.\.|\\|%5C/)
+    })
+
+    test('should add coverage-path-prefix to the encoded path', () => {
+      const { coverageHtml } = getCoverageReport({
+        ...pathsOptions,
+        coveragePathPrefix: 'packages/app/',
+      })
+
+      expect(coverageHtml).toContain(
+        `<a href="${blob}/packages/app/src/my%20file%231%3F.js">`
+      )
+    })
   })
 })

@@ -3,6 +3,7 @@ import * as core from '@actions/core'
 import * as xml2js from 'xml2js'
 import { FailedTest, Junit, JunitReport, Options } from './types.d'
 import {
+  ABSOLUTE_PATH_REGEX,
   encodePath,
   escapeHtml,
   escapeHtmlAttr,
@@ -17,7 +18,6 @@ const MAX_FAILURE_MESSAGE_LINES = 15
 const MAX_REASON_LENGTH = 120
 const MAX_TEST_NAME_LENGTH = 255
 export const MAX_FAILED_TESTS = 30
-const ABSOLUTE_PATH_REGEX = /^(\/|[A-Za-z]:\/)/
 // Guard memory on huge failure outputs, rendering truncates far below this
 const MAX_STORED_MESSAGE_LENGTH = 10000
 const STACK_FRAME_REGEX = /^\s+at\s/

@@ -155,6 +155,10 @@ describe('should check all utils functions', () => {
       expect(encodePath('src/utils/config.js')).toBe('src/utils/config.js')
     })
 
+    test('should encode a lone surrogate instead of throwing', () => {
+      expect(encodePath('src/\ud800.ts')).toBe('src/%EF%BF%BD.ts')
+    })
+
     test('should detect a parent directory segment', () => {
       expect(hasParentSegment('../src/a.ts')).toBe(true)
       expect(hasParentSegment('src/../../a.ts')).toBe(true)
