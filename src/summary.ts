@@ -96,7 +96,9 @@ export function getCoverage(
   // report values are untrusted, only a number may reach the badge,
   // other text could fake its message or color
   const pct = String(summary.lines.pct)
-  const value = isPlainNumber(pct) ? Number(pct) : 0
+  // a very long digit string parses to Infinity
+  const parsed = isPlainNumber(pct) ? Number(pct) : 0
+  const value = Number.isFinite(parsed) ? parsed : 0
   const color = getCoverageColor(value)
   const coverage = Math.trunc(value)
 
