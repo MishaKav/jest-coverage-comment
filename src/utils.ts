@@ -13,6 +13,26 @@ export function getFileUrl(
   return `${serverUrl}/${repository}/blob/${commit}/${relativePath}${anchor}`
 }
 
+/** Escape characters that are unsafe inside generated html. */
+export function escapeHtml(text: string): string {
+  return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+}
+
+/** Escape a value placed inside a double-quoted html attribute. */
+export function escapeHtmlAttr(text: string): string {
+  return escapeHtml(text).replace(/"/g, '&quot;')
+}
+
+/** Encode url-reserved characters in each path segment, keep `/` separators. */
+export function encodePath(path: string): string {
+  return path.split('/').map(encodeURIComponent).join('/')
+}
+
+/** A `..` segment would let a link leave the repo once the browser resolves it. */
+export function hasParentSegment(path: string): boolean {
+  return path.split('/').includes('..')
+}
+
 export function getPathToFile(pathToFile: string): string {
   if (!pathToFile) {
     return ''

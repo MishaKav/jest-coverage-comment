@@ -1044,10 +1044,6 @@ const ABSOLUTE_PATH_REGEX = /^(\/|[A-Za-z]:\/)/;
 const MAX_STORED_MESSAGE_LENGTH = 10000;
 const STACK_FRAME_REGEX = /^\s+at\s/;
 const TEST_FILE_REGEX = /(__tests__[\\/]|\.(test|spec)\.[cm]?[jt]sx?$)/;
-/** Escape characters that are unsafe inside generated html. */
-function escapeHtml(text) {
-    return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-}
 /**
  * Extract texts from <failure> or <error> node.
  * xml2js parses a node without attributes to a plain string,
@@ -1068,10 +1064,6 @@ function getNodeTexts(node) {
 /** Truncate text with ellipsis when it exceeds the given length. */
 function truncateText(text, maxLength) {
     return text.length > maxLength ? `${text.slice(0, maxLength)}…` : text;
-}
-/** Encode url-reserved characters in each path segment, keep `/` separators. */
-function encodePath(path) {
-    return path.split('/').map(encodeURIComponent).join('/');
 }
 /** Remove stack-trace frame lines from failure text. */
 function stripStackFrames(text) {
@@ -1274,7 +1266,7 @@ function toTestName(test, options) {
     const hasSuitePrefix = suiteName && testName.startsWith(suiteName);
     const mainText = truncateText(suiteName || testName, MAX_TEST_NAME_LENGTH);
     const restText = suiteName && testName !== suiteName
-        ? ` › ${escapeHtml(truncateText(hasSuitePrefix ? testName.slice(suiteName.length).trim() : testName, Math.max(0, MAX_TEST_NAME_LENGTH - mainText.length)))}`
+        ? ` › ${(0, utils_1.escapeHtml)(truncateText(hasSuitePrefix ? testName.slice(suiteName.length).trim() : testName, Math.max(0, MAX_TEST_NAME_LENGTH - mainText.length)))}`
         : '';
     const testFile = test.file
         ?.replace(/^file:\/\/\/([A-Za-z]:\/)/, '$1')
@@ -1288,17 +1280,17 @@ function toTestName(test, options) {
         : testFile;
     const cannotResolvePath = !relative ||
         (isAbsolutePath && ABSOLUTE_PATH_REGEX.test(relative)) ||
-        relative.split('/').includes('..');
+        (0, utils_1.hasParentSegment)(relative);
     if (!repository || !commit || removeLinksToFiles || cannotResolvePath) {
-        return `<b>${escapeHtml(mainText)}</b>${restText}`;
+        return `<b>${(0, utils_1.escapeHtml)(mainText)}</b>${restText}`;
     }
     // `coverage-path-prefix` applies only to paths that are still repo-relative
     const linkPath = isAbsolutePath
-        ? encodePath(relative)
-        : `${options.coveragePathPrefix ?? ''}${encodePath(relative)}`;
+        ? (0, utils_1.encodePath)(relative)
+        : `${options.coveragePathPrefix ?? ''}${(0, utils_1.encodePath)(relative)}`;
     const anchor = test.line && !removeLinksToLines ? `#L${test.line}` : '';
-    const href = escapeHtml((0, utils_1.getFileUrl)(options, linkPath, anchor)).replace(/"/g, '&quot;');
-    return `<a href="${href}">${escapeHtml(mainText)}</a>${restText}`;
+    const href = (0, utils_1.escapeHtmlAttr)((0, utils_1.getFileUrl)(options, linkPath, anchor));
+    return `<a href="${href}">${(0, utils_1.escapeHtml)(mainText)}</a>${restText}`;
 }
 /** Convert failed tests to collapsed html table. */
 function failedTestsToMarkdown(failedTests, options, title, maxFailedTests = options.maxFailedTests ?? exports.MAX_FAILED_TESTS) {
@@ -1309,12 +1301,12 @@ function failedTestsToMarkdown(failedTests, options, title, maxFailedTests = opt
     const entries = failedTests.slice(0, maxFailedTests).map((test) => {
         const message = formatFailureMessage(test.message);
         const reason = extractShortReason(message);
-        return `<details><summary>${toTestName(test, options)} — <code>${escapeHtml(reason)}</code></summary>\n\n${messageToDiffBlock(message)}\n\n</details>`;
+        return `<details><summary>${toTestName(test, options)} — <code>${(0, utils_1.escapeHtml)(reason)}</code></summary>\n\n${messageToDiffBlock(message)}\n\n</details>`;
     });
     if (failedTests.length > maxFailedTests) {
         entries.push(moreFailedTestsNote(failedTests.length - maxFailedTests));
     }
-    return `<details><summary>:x: ${escapeHtml(summaryTitle)} (<b>${failedTests.length}</b>)</summary>\n\n${entries.join('\n')}\n\n</details>`;
+    return `<details><summary>:x: ${(0, utils_1.escapeHtml)(summaryTitle)} (<b>${failedTests.length}</b>)</summary>\n\n${entries.join('\n')}\n\n</details>`;
 }
 /** Return JUnit report. */
 async function getJunitReport(options) {
@@ -1839,6 +1831,10 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.parseLine = void 0;
 exports.getFileUrl = getFileUrl;
+exports.escapeHtml = escapeHtml;
+exports.escapeHtmlAttr = escapeHtmlAttr;
+exports.encodePath = encodePath;
+exports.hasParentSegment = hasParentSegment;
 exports.getPathToFile = getPathToFile;
 exports.getContentFile = getContentFile;
 exports.getCoverageColor = getCoverageColor;
@@ -1849,6 +1845,22 @@ const fs_1 = __nccwpck_require__(9896);
 function getFileUrl(options, relativePath, anchor = '') {
     const { serverUrl = 'https://github.com', repository, commit } = options;
     return `${serverUrl}/${repository}/blob/${commit}/${relativePath}${anchor}`;
+}
+/** Escape characters that are unsafe inside generated html. */
+function escapeHtml(text) {
+    return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+/** Escape a value placed inside a double-quoted html attribute. */
+function escapeHtmlAttr(text) {
+    return escapeHtml(text).replace(/"/g, '&quot;');
+}
+/** Encode url-reserved characters in each path segment, keep `/` separators. */
+function encodePath(path) {
+    return path.split('/').map(encodeURIComponent).join('/');
+}
+/** A `..` segment would let a link leave the repo once the browser resolves it. */
+function hasParentSegment(path) {
+    return path.split('/').includes('..');
 }
 function getPathToFile(pathToFile) {
     if (!pathToFile) {

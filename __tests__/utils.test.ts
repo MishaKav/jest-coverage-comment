@@ -1,9 +1,13 @@
 import { readFileSync } from 'fs'
 import { expect, test, describe, beforeAll, afterAll } from '@jest/globals'
 import {
+  encodePath,
+  escapeHtml,
+  escapeHtmlAttr,
   getContentFile,
   getCoverageColor,
   getPathToFile,
+  hasParentSegment,
   parseLine,
 } from '../src/utils'
 import { spyCore } from './setup'
@@ -130,6 +134,33 @@ describe('should check all utils functions', () => {
 
       expect(parsedLine1).toMatchObject(expectedResult)
       expect(parsedLine2).toMatchObject(expectedResult)
+    })
+  })
+
+  describe('html escaping and path helpers', () => {
+    test('should escape html special characters', () => {
+      expect(escapeHtml('<b>a & b</b>')).toBe('&lt;b&gt;a &amp; b&lt;/b&gt;')
+      expect(escapeHtml('&amp;')).toBe('&amp;amp;')
+      expect(escapeHtml('say "hi"')).toBe('say "hi"')
+    })
+
+    test('should also escape double quotes in attribute values', () => {
+      expect(escapeHtmlAttr('x" onclick="y')).toBe('x&quot; onclick=&quot;y')
+      expect(escapeHtmlAttr('<a&b>')).toBe('&lt;a&amp;b&gt;')
+    })
+
+    test('should encode each path segment and keep separators', () => {
+      expect(encodePath('src/my file#1?.ts')).toBe('src/my%20file%231%3F.ts')
+      expect(encodePath('src/100%/ünï.ts')).toBe('src/100%25/%C3%BCn%C3%AF.ts')
+      expect(encodePath('src/utils/config.js')).toBe('src/utils/config.js')
+    })
+
+    test('should detect a parent directory segment', () => {
+      expect(hasParentSegment('../src/a.ts')).toBe(true)
+      expect(hasParentSegment('src/../../a.ts')).toBe(true)
+      expect(hasParentSegment('src/..')).toBe(true)
+      expect(hasParentSegment('src/..a/b..ts')).toBe(false)
+      expect(hasParentSegment('src/a.ts')).toBe(false)
     })
   })
 })
