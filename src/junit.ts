@@ -2,7 +2,14 @@
 import * as core from '@actions/core'
 import * as xml2js from 'xml2js'
 import { FailedTest, Junit, JunitReport, Options } from './types.d'
-import { getContentFile, getFileUrl } from './utils'
+import {
+  encodePath,
+  escapeHtml,
+  escapeHtmlAttr,
+  getContentFile,
+  getFileUrl,
+  hasParentSegment,
+} from './utils'
 
 const MAX_FAILURE_MESSAGE_LENGTH = 500
 const MAX_FAILURE_MESSAGE_LINES = 15
@@ -14,11 +21,6 @@ const ABSOLUTE_PATH_REGEX = /^(\/|[A-Za-z]:\/)/
 const MAX_STORED_MESSAGE_LENGTH = 10000
 const STACK_FRAME_REGEX = /^\s+at\s/
 const TEST_FILE_REGEX = /(__tests__[\\/]|\.(test|spec)\.[cm]?[jt]sx?$)/
-
-/** Escape characters that are unsafe inside generated html. */
-function escapeHtml(text: string): string {
-  return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-}
 
 /**
  * Extract texts from <failure> or <error> node.
@@ -43,11 +45,6 @@ function getNodeTexts(node: any): string[] {
 /** Truncate text with ellipsis when it exceeds the given length. */
 function truncateText(text: string, maxLength: number): string {
   return text.length > maxLength ? `${text.slice(0, maxLength)}…` : text
-}
-
-/** Encode url-reserved characters in each path segment, keep `/` separators. */
-function encodePath(path: string): string {
-  return path.split('/').map(encodeURIComponent).join('/')
 }
 
 /** Remove stack-trace frame lines from failure text. */
@@ -342,7 +339,7 @@ function toTestName(test: FailedTest, options: Options): string {
   const cannotResolvePath =
     !relative ||
     (isAbsolutePath && ABSOLUTE_PATH_REGEX.test(relative)) ||
-    relative.split('/').includes('..')
+    hasParentSegment(relative)
 
   if (!repository || !commit || removeLinksToFiles || cannotResolvePath) {
     return `<b>${escapeHtml(mainText)}</b>${restText}`
@@ -353,10 +350,7 @@ function toTestName(test: FailedTest, options: Options): string {
     ? encodePath(relative)
     : `${options.coveragePathPrefix ?? ''}${encodePath(relative)}`
   const anchor = test.line && !removeLinksToLines ? `#L${test.line}` : ''
-  const href = escapeHtml(getFileUrl(options, linkPath, anchor)).replace(
-    /"/g,
-    '&quot;'
-  )
+  const href = escapeHtmlAttr(getFileUrl(options, linkPath, anchor))
 
   return `<a href="${href}">${escapeHtml(mainText)}</a>${restText}`
 }
