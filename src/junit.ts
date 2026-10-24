@@ -9,6 +9,7 @@ import {
   getContentFile,
   getFileUrl,
   hasParentSegment,
+  stripLineBreaks,
 } from './utils'
 
 const MAX_FAILURE_MESSAGE_LENGTH = 500
@@ -312,7 +313,9 @@ function toTestName(test: FailedTest, options: Options): string {
     removeLinksToFiles,
     removeLinksToLines,
   } = options
-  const { suiteName, testName } = test
+  // a line break would end the html block of the summary line
+  const suiteName = stripLineBreaks(test.suiteName)
+  const testName = stripLineBreaks(test.testName)
   const hasSuitePrefix = suiteName && testName.startsWith(suiteName)
   const mainText = truncateText(suiteName || testName, MAX_TEST_NAME_LENGTH)
   const restText =

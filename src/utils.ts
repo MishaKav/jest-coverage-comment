@@ -23,6 +23,33 @@ export function escapeHtmlAttr(text: string): string {
   return escapeHtml(text).replace(/"/g, '&quot;')
 }
 
+/** A plain non-negative number, e.g. `78.57`. */
+export function isPlainNumber(text: string): boolean {
+  return /^\d+(\.\d+)?$/.test(text)
+}
+
+/** Replace line breaks with a space, e.g. to keep a value on one line. */
+export function stripLineBreaks(text: string): string {
+  return text.replace(/[\r\n]+/g, ' ')
+}
+
+/**
+ * Escape a value for a markdown table cell: line breaks become spaces, ascii
+ * punctuation is backslash-escaped (no markdown, `|`, autolinks) and `&<>`
+ * become entities. A plain number stays as is.
+ */
+export function escapeMarkdown(value: string | number): string {
+  const text = String(value)
+
+  if (isPlainNumber(text)) {
+    return text
+  }
+
+  return escapeHtml(
+    stripLineBreaks(text).replace(/[!-%'-/:;=?@[-`{-~]/g, '\\$&')
+  )
+}
+
 /** Encode url-reserved characters in each path segment, keep `/` separators. */
 export function encodePath(path: string): string {
   return path.split('/').map(encodeURIComponent).join('/')

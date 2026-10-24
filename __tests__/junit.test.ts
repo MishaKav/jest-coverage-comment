@@ -191,6 +191,23 @@ describe('failed tests to markdown', () => {
     )
   })
 
+  test('should keep test names on the summary line', () => {
+    const html = failedTestsToMarkdown(
+      [
+        {
+          suiteName: 'suite\n\n**A**',
+          testName: 'suite\n\n**A** test\r\rone',
+          message: 'boom',
+        },
+      ],
+      options
+    )
+
+    expect(html).toContain(
+      '<details><summary><b>suite **A**</b> › test one — <code>boom</code></summary>'
+    )
+  })
+
   test('should escape html in test names and reason, keep messages verbatim', () => {
     const html = failedTestsToMarkdown(
       [
