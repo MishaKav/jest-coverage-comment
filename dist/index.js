@@ -320,37 +320,43 @@ function toTotalRow(line) {
     const { file, stmts, branch, funcs, lines } = line;
     return `<tr><td><b>${(0, utils_1.escapeHtmlAttr)(file)}</b></td><td><b>${stmts}</b></td><td><b>${branch}</b></td><td><b>${funcs}</b></td><td><b>${lines}</b></td><td>&nbsp;</td></tr>`;
 }
+/** Path of a report line relative to the repo root. */
+function toRelativePath(line, options) {
+    return line.file.replace(options.prefix, '');
+}
+/** Link to a file of the report in the repo, null when it can't be linked. */
+function toFileHref(line, options) {
+    const { coveragePathPrefix = '' } = options;
+    const relative = toRelativePath(line, options);
+    return (0, utils_1.getFileUrl)(options, `${coveragePathPrefix}${relative}`);
+}
 /** Make fileName cell - td. */
 function toFileNameTd(line, indent = false, options) {
-    const { prefix, coveragePathPrefix = '', removeLinksToFiles } = options;
-    const relative = line.file.replace(prefix, '');
-    const href = (0, utils_1.getFileUrl)(options, `${coveragePathPrefix}${relative}`);
-    const parts = relative.split('/');
+    const parts = toRelativePath(line, options).split('/');
     const last = parts[parts.length - 1];
     const space = indent ? '&nbsp; &nbsp;' : '';
     const fileName = (0, utils_1.escapeHtmlAttr)(last);
-    return removeLinksToFiles
-        ? `${space}${fileName}`
-        : `${space}<a href="${(0, utils_1.escapeHtmlAttr)(href)}">${fileName}</a>`;
+    const href = options.removeLinksToFiles ? null : toFileHref(line, options);
+    return href
+        ? `${space}<a href="${(0, utils_1.escapeHtmlAttr)(href)}">${fileName}</a>`
+        : `${space}${fileName}`;
 }
 /** Make missing cell - td. */
 function toMissingTd(line, options) {
     if (!line.uncoveredLines?.length) {
         return '&nbsp;';
     }
+    const fileHref = options.removeLinksToLines ? null : toFileHref(line, options);
     return line.uncoveredLines
         .map((range) => {
-        const { prefix, coveragePathPrefix = '', removeLinksToLines } = options;
         const [start, end = start] = range.split('-');
         const fragment = start === end ? `L${start}` : `L${start}-L${end}`;
-        const relative = line.file.replace(prefix, '');
-        const href = (0, utils_1.getFileUrl)(options, `${coveragePathPrefix}${relative}`, `#${fragment}`);
         const text = start === end
             ? (0, utils_1.escapeHtmlAttr)(start)
             : `${(0, utils_1.escapeHtmlAttr)(start)}&ndash;${(0, utils_1.escapeHtmlAttr)(end)}`;
-        return removeLinksToLines
-            ? text
-            : `<a href="${(0, utils_1.escapeHtmlAttr)(href)}">${text}</a>`;
+        return fileHref
+            ? `<a href="${(0, utils_1.escapeHtmlAttr)(`${fileHref}#${fragment}`)}">${text}</a>`
+            : text;
     })
         .join(', ');
 }
@@ -362,7 +368,7 @@ function makeFolders(coverageArr, options) {
         if (line.file === 'All files') {
             continue;
         }
-        const parts = line.file.replace(options.prefix, '').split('/');
+        const parts = toRelativePath(line, options).split('/');
         const folder = (0, parse_coverage_1.isFile)(line) ? parts.slice(0, -1).join('/') : line.file;
         folders[folder] = folders[folder] || [];
         folders[folder].push(line);
