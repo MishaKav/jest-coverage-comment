@@ -29,6 +29,10 @@ describe('coverage from summary', () => {
       color: 'red',
       coverage: 0,
     })
+    expect(getCoverage({ lines: { pct: '9'.repeat(400) } } as never)).toEqual({
+      color: 'red',
+      coverage: 0,
+    })
     expect(getCoverage({ lines: { pct: 'Unknown' } } as never)).toEqual({
       color: 'red',
       coverage: 0,
@@ -56,11 +60,11 @@ describe('summary to td', () => {
   test('should escape report values in td', () => {
     const line = lineSummaryToTd({
       total: '[a](https://evil.example)',
-      covered: '<b>1</b>',
+      covered: '<b>1</b> & 2',
       pct: '99|**y**\n\nz',
     } as never)
     expect(line).toBe(
-      '99\\|\\*\\*y\\*\\* z% (&lt;b&gt;1&lt;\\/b&gt;/\\[a\\]\\(https\\:\\/\\/evil\\.example\\))'
+      '99\\|\\*\\*y\\*\\* z% (&lt;b&gt;1&lt;\\/b&gt; &amp; 2/\\[a\\]\\(https\\:\\/\\/evil\\.example\\))'
     )
     expect(
       lineSummaryToTd({ total: 0, covered: 0, pct: 'Unknown' } as never)
